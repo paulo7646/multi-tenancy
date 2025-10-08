@@ -11,6 +11,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\TextInput;
 
 class TenantResource extends Resource
@@ -23,19 +25,42 @@ class TenantResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->required()
-                    ->default('admin'),
-                TextInput::make('email')
-                    ->email()
-                    ->required()
-                    ->default('admin@gmail.com'),
-                TextInput::make('password')
-                    ->password()
-                    ->required()
-                    ->default('admin@123'),
-                TextInput::make('domain')
-                    ->columnSpanFull(),
+                Section::make('Usuario')
+                    ->description('Configuração de Usuario Admin')
+                    ->icon('heroicon-s-user')
+                    ->schema([
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255)
+                            ->default('admin'),
+                        TextInput::make('email')
+                            ->email()
+                            ->required()
+                            ->default('admin@gmail.com')
+                            ->maxLength(255),
+                        TextInput::make('password')
+                            ->password()
+                            ->revealable()
+                            ->default('admin@123')
+                            ->required()
+                            ->maxLength(255),
+                    ]),
+
+                Section::make('Empresa')
+                    ->description('Confiração de empresa')
+                    ->icon('heroicon-m-globe-alt')
+                    ->schema([
+                        TextInput::make('domain')
+                            ->required()
+                            ->suffixAction(
+                                Action::make('Url')
+                                    ->icon('heroicon-m-globe-alt')
+                                    ->url(function ($record, $state) {
+                                        return "http://{$state}";
+                                    })
+                                    ->openUrlInNewTab()
+                            )
+                    ]),
             ]);
     }
 
