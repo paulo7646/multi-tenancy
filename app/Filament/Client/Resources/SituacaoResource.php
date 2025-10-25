@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Client\Resources;
 
-use App\Filament\Resources\DomainResource\Pages;
-use App\Filament\Resources\DomainResource\RelationManagers;
-use App\Models\Domain;
+use App\Filament\Client\Resources\SituacaoResource\Pages;
+use App\Filament\Client\Resources\SituacaoResource\RelationManagers;
+use App\Models\Situacao;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,13 +13,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class DomainResource extends Resource
+class SituacaoResource extends Resource
 {
-    protected static ?string $model = Domain::class;
-
-    protected static ?string $pluralLabel = 'Dominios';
-
-    protected static ?string $modelLabel = 'Dominio';
+    protected static ?string $model = Situacao::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -27,11 +23,12 @@ class DomainResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('domain')
+                Forms\Components\TextInput::make('nome')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('tenant_id')
-                    ->required()
+                Forms\Components\TextInput::make('icon')
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('color')
                     ->maxLength(255),
             ]);
     }
@@ -40,9 +37,11 @@ class DomainResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('domain')
+                Tables\Columns\TextColumn::make('nome')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('tenant_id')
+                Tables\Columns\TextColumn::make('icon')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('color')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -77,10 +76,10 @@ class DomainResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListDomains::route('/'),
-            'create' => Pages\CreateDomain::route('/create'),
-            'view' => Pages\ViewDomain::route('/{record}'),
-            'edit' => Pages\EditDomain::route('/{record}/edit'),
+            'index' => Pages\ListSituacaos::route('/'),
+            'create' => Pages\CreateSituacao::route('/create'),
+            'view' => Pages\ViewSituacao::route('/{record}'),
+            'edit' => Pages\EditSituacao::route('/{record}/edit'),
         ];
     }
 }
