@@ -1,0 +1,13 @@
+composer install
+
+npm install
+
+copy .env.example .env
+
+php artisan migrate
+
+php artisan key:generate
+
+php artisan shield:super-admin
+
+php artisan shield:generate --all
