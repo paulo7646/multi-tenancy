@@ -21,6 +21,12 @@ return new class extends Migration
         });
 
         DB::table('situacaos')->insert([
+            'nome' => 'Cadastrado',
+            'icon' => '',
+            'color' => '',
+        ]);
+
+        DB::table('situacaos')->insert([
             'nome' => 'Ativo',
             'icon' => '',
             'color' => '',

@@ -11,6 +11,17 @@ class Situacao extends Model
     /** @use HasFactory<\Database\Factories\SituacaoFactory> */
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'nome',
+        'icon',
+        'color',
+    ];
+
     public function empresa(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
