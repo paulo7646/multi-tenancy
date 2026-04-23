@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Situacao extends Model
 {
@@ -22,8 +23,9 @@ class Situacao extends Model
         'color',
     ];
 
-    public function empresa(): BelongsTo
+    public function user(): HasMany
     {
-        return $this->belongsTo(Tenant::class);
+        return $this->HasMany(User::class);
     }
+
 }

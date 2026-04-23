@@ -22,20 +22,17 @@ return new class extends Migration
 
         DB::table('situacaos')->insert([
             'nome' => 'Cadastrado',
-            'icon' => '',
-            'color' => '',
+            'color' => 'gray',
         ]);
 
         DB::table('situacaos')->insert([
             'nome' => 'Ativo',
-            'icon' => '',
-            'color' => '',
+            'color' => 'success',
         ]);
 
         DB::table('situacaos')->insert([
             'nome' => 'Inativo',
-            'icon' => '',
-            'color' => '',
+            'color' => 'danger',
         ]);
     }
 

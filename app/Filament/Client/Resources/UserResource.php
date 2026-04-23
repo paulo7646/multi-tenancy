@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -47,6 +48,10 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
+                
+                Tables\Columns\TextColumn::make('situacao.nome')
+                ->badge()
+                ->color(fn ($record) => $record->situacao->color),
             ])
             ->filters([
                 //

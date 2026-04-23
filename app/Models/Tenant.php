@@ -13,12 +13,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDatabase, HasDomains;
 
-
     public function domains(): HasMany
     {
         return $this->hasMany(Domain::class);
     }
-
 
     public static function getCustomColumns(): array
     {
