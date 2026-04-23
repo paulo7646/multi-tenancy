@@ -3,21 +3,20 @@
 namespace App\Filament\Client\Resources;
 
 use App\Filament\Client\Resources\SituacaoResource\Pages;
-use App\Filament\Client\Resources\SituacaoResource\RelationManagers;
 use App\Models\Situacao;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SituacaoResource extends Resource
 {
     protected static ?string $model = Situacao::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $navigationLabel = 'Situações';
 
     public static function form(Form $form): Form
     {
@@ -28,8 +27,20 @@ class SituacaoResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('icon')
                     ->maxLength(255),
-                Forms\Components\TextInput::make('color')
-                    ->maxLength(255),
+                Forms\Components\Select::make('color')
+                    ->label('Cor')
+                    ->options([
+                        'primary' => '🔵 Primary',
+                        'secondary' => '🟣 Secondary',
+                        'success' => '🟢 Success',
+                        'danger' => '🔴 Danger',
+                        'warning' => '🟡 Warning',
+                        'info' => '🔷 Info',
+                        'gray' => '⚪ Gray',
+                    ])
+                    ->searchable()
+                    ->preload()
+                    ->required(),
             ]);
     }
 
