@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 
-class UserResource extends Resource
+class UserResource extends BaseResource
 {
     protected static ?string $model = User::class;
 
@@ -53,20 +53,14 @@ class UserResource extends Resource
                 
                 Tables\Columns\TextColumn::make('situacao.nome')
                 ->badge()
+                ->icon(fn ($record) => $record->situacao->icon)
                 ->color(fn ($record) => $record->situacao->color),
             ])
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->actions(self::defaultActions())
+            ->bulkActions(self::defaultBulkActions());
     }
 
     public static function getRelations(): array

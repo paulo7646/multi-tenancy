@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\Select;
 
 class SituacaoResource extends Resource
 {
@@ -25,8 +26,10 @@ class SituacaoResource extends Resource
                 Forms\Components\TextInput::make('nome')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('icon')
-                    ->maxLength(255),
+                Select::make('icon')
+                ->searchable()
+                ->options(fn () => self::getHeroIcons())
+                ->getOptionLabelUsing(fn ($value) => str($value)->after('heroicon-o-')->headline()),
                 Forms\Components\Select::make('color')
                     ->label('Cor')
                     ->options([
@@ -44,37 +47,34 @@ class SituacaoResource extends Resource
             ]);
     }
 
+    public static function getHeroIcons(): array
+    {
+        return [
+            'heroicon-o-check' => 'check',
+            'heroicon-m-x-circle' => 'x-circle',
+            'heroicon-m-x-mark' => 'x-mark',
+        ];
+    }
+
+
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('nome')
+        return self::tableWithDefaults($table, [
+            Tables\Columns\TextColumn::make('nome')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('icon')
+            Tables\Columns\TextColumn::make('icon')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('color')
+            Tables\Columns\TextColumn::make('color')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
+            Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+            Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+        ]);
     }
 
     public static function getRelations(): array
