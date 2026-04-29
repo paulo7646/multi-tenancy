@@ -7,8 +7,6 @@ use Filament\Tables;
 
 abstract class BaseResource extends Resource
 {
-
-
     public static function tableWithDefaults(Table $table, array $columns): Table
     {
         return $table
