@@ -34,10 +34,12 @@ class UserLicense extends Model
 
     public static function findActive(string $email, string $tenantId): ?static
     {
-        return static::where('user_email', $email)
-            ->where('tenant_id', $tenantId)
+        $base = static::where('user_email', $email)
             ->where('status', 'active')
-            ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-            ->first();
+            ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
+
+        // licença específica ao tenant tem prioridade sobre a global
+        return (clone $base)->where('tenant_id', $tenantId)->first()
+            ?? (clone $base)->whereNull('tenant_id')->first();
     }
 }

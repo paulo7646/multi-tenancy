@@ -38,20 +38,18 @@ class UserLicenseResource extends Resource
                     ->options(Tenant::pluck('name', 'id'))
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->placeholder('Global (todas as empresas)')
+                    ->nullable(),
                 Forms\Components\TextInput::make('license_key')
                     ->label('Chave da Licença')
                     ->default(fn() => Str::uuid()->toString())
                     ->readOnly()
                     ->required(),
-                Forms\Components\Select::make('status')
-                    ->label('Status')
-                    ->options([
-                        'active' => 'Ativa',
-                        'inactive' => 'Inativa',
-                    ])
-                    ->default('active')
-                    ->required(),
+                Forms\Components\Toggle::make('status')
+                    ->label('Licença Ativa')
+                    ->default(true)
+                    ->afterStateHydrated(fn($component, $state) => $component->state($state === 'active'))
+                    ->dehydrateStateUsing(fn($state) => $state ? 'active' : 'inactive'),
                 Forms\Components\DateTimePicker::make('expires_at')
                     ->label('Expira em')
                     ->nullable()
@@ -70,7 +68,8 @@ class UserLicenseResource extends Resource
                 Tables\Columns\TextColumn::make('tenant.name')
                     ->label('Empresa')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->placeholder('Global'),
                 Tables\Columns\TextColumn::make('license_key')
                     ->label('Chave')
                     ->limit(20)
