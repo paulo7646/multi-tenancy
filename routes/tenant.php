@@ -26,4 +26,7 @@ Route::middleware([
     Route::get('/', function () {
         return redirect('/client');
     });
+
+    Route::get('/license-invalid', fn() => view('license-invalid'))
+        ->name('license.invalid');
 });
