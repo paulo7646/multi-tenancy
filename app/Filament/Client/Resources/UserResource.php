@@ -3,15 +3,12 @@
 namespace App\Filament\Client\Resources;
 
 use App\Filament\Client\Resources\UserResource\Pages;
-use App\Filament\Client\Resources\UserResource\RelationManagers;
+use App\Models\Licenca;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 
 class UserResource extends BaseResource
@@ -39,6 +36,13 @@ class UserResource extends BaseResource
                     ->multiple()
                     ->preload()
                     ->searchable(),
+                Forms\Components\Select::make('licenca_id')
+                    ->label('Licença')
+                    ->relationship('licenca', 'nome')
+                    ->options(Licenca::where('ativo', true)->pluck('nome', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
             ]);
     }
 
@@ -51,10 +55,10 @@ class UserResource extends BaseResource
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
                 
-                Tables\Columns\TextColumn::make('situacao.nome')
-                ->badge()
-                ->icon(fn ($record) => $record->situacao->icon)
-                ->color(fn ($record) => $record->situacao->color),
+                Tables\Columns\TextColumn::make('licenca.nome')
+                    ->label('Licença')
+                    ->badge()
+                    ->color(fn ($record) => $record->licenca?->color ?? 'gray'),
             ])
             ->filters([
                 //

@@ -10,7 +10,6 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -26,11 +25,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'licenca_id',
     ];
 
-    public function situacao(): BelongsTo
+    public function licenca(): BelongsTo
     {
-        return $this->BelongsTo(Situacao::class);
+        return $this->belongsTo(Licenca::class);
     }
 
     /**
