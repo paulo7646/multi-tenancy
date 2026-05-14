@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Auth\ImpersonateController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -29,4 +30,7 @@ Route::middleware([
 
     Route::get('/license-invalid', fn() => view('license-invalid'))
         ->name('license.invalid');
+
+    Route::get('/impersonate', ImpersonateController::class)
+        ->name('tenant.impersonate');
 });
