@@ -35,14 +35,7 @@ class UserResource extends BaseResource
                     ->relationship('roles', 'name')
                     ->multiple()
                     ->preload()
-                    ->searchable(),
-                Forms\Components\Select::make('licenca_id')
-                    ->label('Licença')
-                    ->relationship('licenca', 'nome')
-                    ->options(Licenca::where('ativo', true)->pluck('nome', 'id'))
                     ->searchable()
-                    ->preload()
-                    ->nullable(),
             ]);
     }
 
@@ -54,11 +47,11 @@ class UserResource extends BaseResource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
-                
+
                 Tables\Columns\TextColumn::make('licenca.nome')
                     ->label('Licença')
                     ->badge()
-                    ->color(fn ($record) => $record->licenca?->color ?? 'gray'),
+                    ->color(fn($record) => $record->licenca?->color ?? 'gray'),
             ])
             ->filters([
                 //
