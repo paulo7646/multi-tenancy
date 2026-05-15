@@ -31,6 +31,9 @@ Route::middleware([
     Route::get('/license-invalid', fn() => view('license-invalid'))
         ->name('license.invalid');
 
+    Route::get('/tenant-disabled', fn() => view('tenant-disabled'))
+        ->name('tenant.disabled');
+
     Route::get('/impersonate', ImpersonateController::class)
         ->name('tenant.impersonate');
 });

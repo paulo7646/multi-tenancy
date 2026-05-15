@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -66,6 +67,11 @@ class TenantResource extends Resource
                                     })
                                     ->openUrlInNewTab()
                             ),
+
+                        Toggle::make('is_active')
+                            ->label('Empresa ativa')
+                            ->default(true)
+                            ->helperText('Desative para bloquear o acesso de todos os usuários desta empresa.'),
                     ]),
             ]);
     }
@@ -83,6 +89,14 @@ class TenantResource extends Resource
 
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
+
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Status')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger'),
             ])
             ->filters([
                 //

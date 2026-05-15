@@ -25,7 +25,13 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'name',
             'email',
             'password',
+            'is_active',
         ];
+    }
+
+    public function isActive(): bool
+    {
+        return (bool) $this->is_active;
     }
 
     protected $hidden = [

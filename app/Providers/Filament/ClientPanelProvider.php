@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\CheckTenantStatus;
 use App\Http\Middleware\CheckUserLicense;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -61,7 +62,8 @@ class ClientPanelProvider extends PanelProvider
             ->middleware([
                 'universal',
                 InitializeTenancyByDomain::class,
-                PreventAccessFromCentralDomains::class
+                PreventAccessFromCentralDomains::class,
+                CheckTenantStatus::class,
             ], isPersistent: TRUE)
             ->authMiddleware([
                 Authenticate::class,
