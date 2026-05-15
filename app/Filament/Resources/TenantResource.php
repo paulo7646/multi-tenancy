@@ -11,7 +11,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -30,29 +29,6 @@ class TenantResource extends Resource
     {
         return $form
             ->schema([
-                Section::make('Usuario')
-                    ->description('Configuração de Usuario Admin')
-                    ->icon('heroicon-s-user')
-                    ->schema([
-                        TextInput::make('name')
-                            ->required()
-                            ->maxLength(255)
-                            ->default('admin'),
-
-                        TextInput::make('email')
-                            ->email()
-                            ->required()
-                            ->default('admin@gmail.com')
-                            ->maxLength(255),
-
-                        TextInput::make('password')
-                            ->password()
-                            ->revealable()
-                            ->default('admin@123')
-                            ->required()
-                            ->maxLength(255),
-                    ]),
-
                 Section::make('Empresa')
                     ->description('Confiração de empresa')
                     ->icon('heroicon-m-globe-alt')
@@ -82,12 +58,6 @@ class TenantResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
-                    ->searchable(),
-
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-
-                Tables\Columns\TextColumn::make('email')
                     ->searchable(),
 
                 Tables\Columns\IconColumn::make('is_active')
