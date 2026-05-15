@@ -18,6 +18,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return $this->hasMany(Domain::class);
     }
 
+    public function userLicenses(): HasMany
+    {
+        return $this->hasMany(UserLicense::class);
+    }
+
     public static function getCustomColumns(): array
     {
         return [
