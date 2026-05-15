@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TenantResource\Pages;
+use App\Filament\Resources\TenantResource\RelationManagers\UserLicensesRelationManager;
 use App\Models\Tenant;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,7 @@ use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Toggle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Filament\Forms\Components\TextInput;
 
 class TenantResource extends Resource
 {
@@ -58,6 +60,10 @@ class TenantResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('domain')
+                    ->label('Domínio')
                     ->searchable(),
 
                 Tables\Columns\IconColumn::make('is_active')
@@ -123,7 +129,7 @@ class TenantResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            UserLicensesRelationManager::class,
         ];
     }
 
