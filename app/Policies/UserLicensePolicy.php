@@ -3,10 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\Licenca;
+use App\Models\UserLicense;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class LicencaPolicy
+class UserLicensePolicy
 {
     use HandlesAuthorization;
 
@@ -15,15 +15,15 @@ class LicencaPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_licenca');
+        return $user->can('view_any_user::license');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Licenca $licenca): bool
+    public function view(User $user, UserLicense $userLicense): bool
     {
-        return $user->can('view_licenca');
+        return $user->can('view_user::license');
     }
 
     /**
@@ -31,23 +31,23 @@ class LicencaPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_licenca');
+        return $user->can('create_user::license');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Licenca $licenca): bool
+    public function update(User $user, UserLicense $userLicense): bool
     {
-        return $user->can('update_licenca');
+        return $user->can('update_user::license');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Licenca $licenca): bool
+    public function delete(User $user, UserLicense $userLicense): bool
     {
-        return $user->can('delete_licenca');
+        return $user->can('delete_user::license');
     }
 
     /**
@@ -55,15 +55,15 @@ class LicencaPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_licenca');
+        return $user->can('delete_any_user::license');
     }
 
     /**
      * Determine whether the user can permanently delete.
      */
-    public function forceDelete(User $user, Licenca $licenca): bool
+    public function forceDelete(User $user, UserLicense $userLicense): bool
     {
-        return $user->can('force_delete_licenca');
+        return $user->can('force_delete_user::license');
     }
 
     /**
@@ -71,15 +71,15 @@ class LicencaPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_licenca');
+        return $user->can('force_delete_any_user::license');
     }
 
     /**
      * Determine whether the user can restore.
      */
-    public function restore(User $user, Licenca $licenca): bool
+    public function restore(User $user, UserLicense $userLicense): bool
     {
-        return $user->can('restore_licenca');
+        return $user->can('restore_user::license');
     }
 
     /**
@@ -87,15 +87,15 @@ class LicencaPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_licenca');
+        return $user->can('restore_any_user::license');
     }
 
     /**
      * Determine whether the user can replicate.
      */
-    public function replicate(User $user, Licenca $licenca): bool
+    public function replicate(User $user, UserLicense $userLicense): bool
     {
-        return $user->can('replicate_licenca');
+        return $user->can('replicate_user::license');
     }
 
     /**
@@ -103,6 +103,6 @@ class LicencaPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_licenca');
+        return $user->can('reorder_user::license');
     }
 }
