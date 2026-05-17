@@ -10,11 +10,14 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Session;
 
-class User extends Authenticatable
+use OwenIt\Auditing\Contracts\Auditable;
+
+class User extends Authenticatable implements Auditable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, \OwenIt\Auditing\Auditable;
 
     /**
      * The attributes that are mass assignable.
@@ -26,11 +29,36 @@ class User extends Authenticatable
         'email',
         'password',
         'licenca_id',
+        'filial_id',
     ];
 
     public function licenca(): BelongsTo
     {
         return $this->belongsTo(Licenca::class);
+    }
+
+    public function filial(): BelongsTo
+    {
+        return $this->belongsTo(Filial::class);
+    }
+
+    /**
+     * Retorna o ID da filial ativa para este usuário.
+     * Se o usuário tem filial_id fixo, retorna ele.
+     * Se não tem, retorna o que está na sessão (ou null = todas as filiais).
+     */
+    public function getActiveFilialId(): ?int
+    {
+        if ($this->filial_id !== null) {
+            return $this->filial_id;
+        }
+
+        return Session::get('filial_ativa');
+    }
+
+    public function hasFilial(): bool
+    {
+        return $this->filial_id !== null;
     }
 
     /**

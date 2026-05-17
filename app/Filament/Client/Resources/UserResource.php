@@ -3,6 +3,7 @@
 namespace App\Filament\Client\Resources;
 
 use App\Filament\Client\Resources\UserResource\Pages;
+use App\Models\Filial;
 use App\Models\Licenca;
 use App\Models\User;
 use Filament\Forms;
@@ -35,7 +36,13 @@ class UserResource extends BaseResource
                     ->relationship('roles', 'name')
                     ->multiple()
                     ->preload()
+                    ->searchable(),
+                Forms\Components\Select::make('filial_id')
+                    ->label('Filial')
+                    ->options(fn() => Filial::where('ativo', true)->orderBy('nome')->pluck('nome', 'id'))
                     ->searchable()
+                    ->nullable()
+                    ->placeholder('Sem filial (acesso a todas)'),
             ]);
     }
 
@@ -52,6 +59,11 @@ class UserResource extends BaseResource
                     ->label('Licença')
                     ->badge()
                     ->color(fn($record) => $record->licenca?->color ?? 'gray'),
+                Tables\Columns\TextColumn::make('filial.nome')
+                    ->label('Filial')
+                    ->badge()
+                    ->color('info')
+                    ->default('Todas'),
             ])
             ->filters([
                 //

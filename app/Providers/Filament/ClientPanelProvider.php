@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Http\Middleware\CheckTenantStatus;
 use App\Http\Middleware\CheckUserLicense;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use CrescentPurchasing\FilamentAuditing\FilamentAuditingPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -43,10 +44,11 @@ class ClientPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Client/Widgets'), for: 'App\\Filament\\Client\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                \App\Filament\Client\Widgets\FilialSelectorWidget::class,
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
+                FilamentAuditingPlugin::make(),
             ])
             ->middleware([
                 EncryptCookies::class,

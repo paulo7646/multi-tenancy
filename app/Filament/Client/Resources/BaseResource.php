@@ -4,6 +4,7 @@ namespace App\Filament\Client\Resources;
 
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Table;
 
 abstract class BaseResource extends Resource
 {

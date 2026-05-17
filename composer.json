@@ -8,12 +8,14 @@
     "require": {
         "php": "^8.2",
         "bezhansalleh/filament-shield": "^3.9",
+        "crescent-purchasing/filament-auditing": "1.1",
         "filament/filament": "3.3",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.1.1",
         "livewire/volt": "^1.7.0",
+        "owen-it/laravel-auditing": "14.0",
         "stancl/tenancy": "^3.9",
         "stechstudio/filament-impersonate": "^3.16"
     },
