@@ -37,11 +37,6 @@ class User extends Authenticatable implements Auditable
         return $this->belongsTo(Licenca::class);
     }
 
-    public function filial(): BelongsTo
-    {
-        return $this->belongsTo(Filial::class);
-    }
-
     /**
      * Retorna o ID da filial ativa para este usuário.
      * Se o usuário tem filial_id fixo, retorna ele.

@@ -42,6 +42,7 @@ class UserResource extends BaseResource
                     ->options(fn() => Filial::where('ativo', true)->orderBy('nome')->pluck('nome', 'id'))
                     ->searchable()
                     ->nullable()
+                    ->hidden(fn() => auth()->user()->getActiveFilialId())
                     ->placeholder('Sem filial (acesso a todas)'),
             ]);
     }

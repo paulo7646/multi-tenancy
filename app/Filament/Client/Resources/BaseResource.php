@@ -21,6 +21,7 @@ abstract class BaseResource extends Resource
         return [
             Tables\Actions\ViewAction::make(),
             Tables\Actions\EditAction::make(),
+            Tables\Actions\DeleteAction::make(),
         ];
     }
 
