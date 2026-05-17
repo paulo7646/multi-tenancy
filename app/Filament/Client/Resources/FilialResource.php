@@ -13,7 +13,7 @@ class FilialResource extends BaseResource
 {
     protected static ?string $model = Filial::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-office';
+    protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 
     protected static ?string $navigationLabel = 'Filiais';
 

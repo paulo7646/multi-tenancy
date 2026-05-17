@@ -13,7 +13,7 @@ class LicencaResource extends BaseResource
 {
     protected static ?string $model = Licenca::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-identification';
+    protected static ?string $navigationIcon = 'heroicon-o-check-badge';
 
     protected static ?string $navigationLabel = 'Licenças';
 

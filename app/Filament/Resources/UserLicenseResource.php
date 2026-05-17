@@ -16,7 +16,7 @@ class UserLicenseResource extends Resource
 {
     protected static ?string $model = UserLicense::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-key';
+    protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
     protected static ?string $navigationLabel = 'Licenças de Usuário';
 
