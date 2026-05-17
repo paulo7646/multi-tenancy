@@ -9,11 +9,9 @@ use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
 
-use OwenIt\Auditing\Contracts\Auditable;
-
-class Tenant extends BaseTenant implements TenantWithDatabase, Auditable
+class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasDatabase, HasDomains, \OwenIt\Auditing\Auditable;
+    use HasDatabase, HasDomains;
 
     public function domains(): HasMany
     {
