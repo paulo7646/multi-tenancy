@@ -11,13 +11,13 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Session;
-
 use OwenIt\Auditing\Contracts\Auditable;
+use App\Models\Traits\HasFilialScope;
 
 class User extends Authenticatable implements Auditable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, \OwenIt\Auditing\Auditable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, \OwenIt\Auditing\Auditable, HasFilialScope;
 
     /**
      * The attributes that are mass assignable.
