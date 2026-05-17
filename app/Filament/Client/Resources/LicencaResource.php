@@ -21,6 +21,8 @@ class LicencaResource extends BaseResource
 
     protected static ?string $pluralModelLabel = 'Licenças';
 
+    protected static ?string $navigationGroup = 'Configurações';
+
     public static function form(Form $form): Form
     {
         return $form

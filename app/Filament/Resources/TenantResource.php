@@ -27,6 +27,8 @@ class TenantResource extends Resource
 
     protected static ?string $modelLabel = 'Empresa';
 
+    protected static ?string $navigationGroup = 'Empresa';
+
     public static function form(Form $form): Form
     {
         return $form

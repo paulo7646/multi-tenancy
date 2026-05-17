@@ -48,7 +48,8 @@ class ClientPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
-                FilamentAuditingPlugin::make(),
+                FilamentAuditingPlugin::make()
+                    ->navigationGroup('Configurações'),
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -24,6 +24,8 @@ class UserLicenseResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Licenças de Usuário';
 
+    protected static ?string $navigationGroup = 'Empresa';
+
     public static function form(Form $form): Form
     {
         return $form
