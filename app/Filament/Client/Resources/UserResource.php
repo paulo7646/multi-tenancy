@@ -62,6 +62,40 @@ class UserResource extends BaseResource
                     ->label('Licença')
                     ->badge()
                     ->color(fn($record) => $record->licenca?->color ?? 'gray'),
+                Tables\Columns\TextColumn::make('license_status')
+                    ->label('Status da Licença')
+                    ->badge()
+                    ->getStateUsing(function ($record) {
+                        $tenantId = tenant()?->getTenantKey();
+                        if (!$tenantId) {
+                            return 'Sem Licença';
+                        }
+
+                        $license = \App\Models\UserLicense::where('user_email', $record->email)
+                            ->where(fn ($q) => $q->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))
+                            ->orderByRaw('CASE WHEN tenant_id IS NOT NULL THEN 0 ELSE 1 END')
+                            ->first();
+
+                        if (!$license) {
+                            return 'Sem Licença';
+                        }
+
+                        if ($license->isActive()) {
+                            return 'Ativa';
+                        }
+
+                        if ($license->status === 'active' && $license->expires_at?->isPast()) {
+                            return 'Vencida';
+                        }
+
+                        return 'Inativa';
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'Ativa' => 'success',
+                        'Vencida' => 'warning',
+                        'Inativa' => 'danger',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('filial.nome')
                     ->label('Filial')
                     ->badge()
