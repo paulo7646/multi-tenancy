@@ -1,1 +1,3 @@
-@livewire('filial-selector-topbar')
+@if (\App\Livewire\FilialSelectorTopbar::shouldRender())
+    @livewire('filial-selector-topbar')
+@endif

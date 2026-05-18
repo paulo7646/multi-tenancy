@@ -1,4 +1,3 @@
-@if (\App\Livewire\FilialSelectorTopbar::shouldRender())
 <div class="fi-topbar-filial-selector">
     <x-filament::dropdown placement="bottom-end">
         <x-slot name="trigger">
@@ -59,4 +58,3 @@
         </x-filament::dropdown.list>
     </x-filament::dropdown>
 </div>
-@endif
