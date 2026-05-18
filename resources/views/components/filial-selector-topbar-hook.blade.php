@@ -1,0 +1,1 @@
+@livewire('filial-selector-topbar')

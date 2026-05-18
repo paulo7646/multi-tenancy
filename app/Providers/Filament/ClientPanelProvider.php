@@ -44,7 +44,6 @@ class ClientPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Client/Widgets'), for: 'App\\Filament\\Client\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                \App\Filament\Client\Widgets\FilialSelectorWidget::class,
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
@@ -75,6 +74,10 @@ class ClientPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::BODY_START,
                 fn() => view('components.license-monitor-hook'),
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn() => view('components.filial-selector-topbar-hook'),
             );
     }
 }

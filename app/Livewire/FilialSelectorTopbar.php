@@ -1,28 +1,19 @@
 <?php
 
-namespace App\Filament\Client\Widgets;
+namespace App\Livewire;
 
 use App\Models\Filial;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Widgets\Widget;
+use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
-class FilialSelectorWidget extends Widget implements HasForms
+class FilialSelectorTopbar extends Component
 {
-    use InteractsWithForms;
-
-    protected static string $view = 'filament.client.widgets.filial-selector-widget';
-
-    protected static ?int $sort = -10;
-
     public ?int $filial_id = null;
 
-    public static function canView(): bool
+    public static function shouldRender(): bool
     {
-        return false;
+        return Auth::check() && ! Auth::user()->hasFilial();
     }
 
     public function mount(): void
@@ -43,5 +34,10 @@ class FilialSelectorWidget extends Widget implements HasForms
         Session::put('filial_ativa', $value);
         $this->dispatch('filial-changed');
         $this->redirect(request()->header('Referer') ?? '/client');
+    }
+
+    public function render()
+    {
+        return view('livewire.filial-selector-topbar');
     }
 }
