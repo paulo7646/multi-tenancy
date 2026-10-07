@@ -84,6 +84,8 @@ class TenantResource extends Resource
 
                 Tables\Actions\EditAction::make(),
 
+                Tables\Actions\DeleteAction::make(),
+
                 Tables\Actions\Action::make('impersonate')
                     ->label('Entrar')
                     ->icon('heroicon-o-arrow-right-on-rectangle')

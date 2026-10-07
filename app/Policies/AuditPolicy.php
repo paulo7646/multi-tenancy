@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\User;
-use OwenIt\Auditing\Models\Audit;
+use App\Models\Audit;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class AuditPolicy
