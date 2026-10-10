@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // Usado pelo job BuildFrontendAssets
+    'npm' => [
+        'binary' => env('NPM_BINARY', 'npm'),
+    ],
+
 ];

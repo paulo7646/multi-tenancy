@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Http\Controllers\LicenseRequestController;
 use App\Models\UserLicense;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -64,9 +65,15 @@ class LicenseMonitor extends Component
 
     private function forceLogout(): void
     {
+        $user = auth()->user();
+
         auth()->logout();
         session()->invalidate();
         session()->regenerateToken();
+
+        if ($user) {
+            LicenseRequestController::rememberUser(request(), $user);
+        }
 
         $this->redirect(route('license.invalid'));
     }

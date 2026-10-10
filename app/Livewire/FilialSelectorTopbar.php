@@ -33,7 +33,7 @@ class FilialSelectorTopbar extends Component
     {
         Session::put('filial_ativa', $value);
         $this->dispatch('filial-changed');
-        $this->redirect(request()->header('Referer') ?? '/client');
+        $this->redirect(request()->header('Referer') ?? '/admin');
     }
 
     public function render()

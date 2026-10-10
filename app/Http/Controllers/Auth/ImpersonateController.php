@@ -21,6 +21,6 @@ class ImpersonateController extends Controller
 
         Auth::loginUsingId($userId);
 
-        return redirect('/client');
+        return redirect('/admin');
     }
 }

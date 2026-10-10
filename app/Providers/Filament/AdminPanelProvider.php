@@ -27,7 +27,13 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            // O painel do tenant (ClientPanelProvider) também usa /admin;
+            // este fica restrito aos domínios centrais.
+            ->domains(config('tenancy.central_domains'))
             ->login()
+            // Sino no topo: solicitações de licença vindas das empresas
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->colors([
                 'primary' => Color::Amber,
             ])

@@ -42,6 +42,6 @@ class FilialSelectorWidget extends Widget implements HasForms
     {
         Session::put('filial_ativa', $value);
         $this->dispatch('filial-changed');
-        $this->redirect(request()->header('Referer') ?? '/client');
+        $this->redirect(request()->header('Referer') ?? '/admin');
     }
 }

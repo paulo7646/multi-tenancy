@@ -84,16 +84,18 @@ class UserResource extends BaseResource
                             return 'Ativa';
                         }
 
-                        if ($license->status === 'active' && $license->expires_at?->isPast()) {
+                        if ($license->status === \App\Enums\LicenseStatus::Active && $license->expires_at?->isPast()) {
                             return 'Vencida';
                         }
 
-                        return 'Inativa';
+                        return $license->status->getLabel();
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'Ativa' => 'success',
                         'Vencida' => 'warning',
-                        'Inativa' => 'danger',
+                        'Desativada' => 'danger',
+                        'Cadastrada' => 'info',
+                        'Em análise' => 'warning',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('filial.nome')

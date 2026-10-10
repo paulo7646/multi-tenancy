@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\LicenseStatus;
 use App\Models\Tenant;
 use App\Models\UserLicense;
 
@@ -22,18 +23,19 @@ class UserLicenseObserver
             return;
         }
 
-        tenancy()->initialize($tenant);
-
-        try {
-            $licencaName = $license->isActive() ? 'Licença Ativa' : 'Licença Suspensa';
+        // run() restaura o contexto anterior (central ou outro tenant) ao terminar
+        $tenant->run(function () use ($license) {
+            $licencaName = match (true) {
+                $license->isActive() => 'Licença Ativa',
+                $license->status === LicenseStatus::Inactive => 'Licença Suspensa',
+                default => 'Sem Licença', // cadastrada / em análise
+            };
             $licencaId = \App\Models\Licenca::where('nome', $licencaName)->value('id');
 
             if ($licencaId) {
                 \App\Models\User::where('email', $license->user_email)
                     ->update(['licenca_id' => $licencaId]);
             }
-        } finally {
-            tenancy()->end();
-        }
+        });
     }
 }

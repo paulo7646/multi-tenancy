@@ -39,6 +39,12 @@ class TenantResource extends Resource
                     ->schema([
                         TextInput::make('domain')
                             ->required()
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (?string $state, Forms\Get $get, Forms\Set $set) {
+                                if (blank($get('slug')) && filled($state)) {
+                                    $set('slug', Str::slug(Str::before($state, '.')));
+                                }
+                            })
                             ->suffixAction(
                                 Action::make('Url')
                                     ->icon('heroicon-m-globe-alt')
@@ -47,6 +53,23 @@ class TenantResource extends Resource
                                     })
                                     ->openUrlInNewTab()
                             ),
+
+                        TextInput::make('slug')
+                            ->label('Pasta do frontend')
+                            ->required()
+                            ->alphaDash()
+                            ->maxLength(50)
+                            ->unique(ignoreRecord: true)
+                            ->disabledOn('edit')
+                            ->prefix('views/clientes/')
+                            ->helperText('Pasta Vue criada automaticamente para esta empresa. Não pode ser alterada depois.'),
+
+                        TextInput::make('qtd_licencas')
+                            ->label('Quantidade de licenças')
+                            ->numeric()
+                            ->integer()
+                            ->minValue(0)
+                            ->helperText('Máximo de licenças ATIVAS da empresa. Deixe vazio para não limitar.'),
 
                         Toggle::make('is_active')
                             ->label('Empresa ativa')
@@ -59,14 +82,25 @@ class TenantResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->withCount(['userLicenses as active_licenses_count' => fn ($q) => $q->active()]))
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
                     ->searchable(),
 
+                Tables\Columns\TextColumn::make('slug')
+                    ->label('Pasta')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('domain')
                     ->label('Domínio')
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('qtd_licencas')
+                    ->label('Licenças ativas')
+                    ->badge()
+                    ->state(fn (Tenant $record) => $record->active_licenses_count . ' / ' . ($record->qtd_licencas ?? '∞'))
+                    ->color(fn (Tenant $record) => $record->qtd_licencas !== null && $record->active_licenses_count >= $record->qtd_licencas ? 'danger' : 'success'),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Status')

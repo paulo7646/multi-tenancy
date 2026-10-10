@@ -31,7 +31,7 @@ class ClientPanelProvider extends PanelProvider
     {
         return $panel
             ->id('client')
-            ->path('client')
+            ->path('admin')
             ->login()
             ->colors([
                 'primary' => Color::Amber,

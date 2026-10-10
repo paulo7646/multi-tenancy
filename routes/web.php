@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FrontendController;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -8,9 +9,8 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
 
-Route::get('/', function () {
-    return redirect('/admin');
-})->name('home');
+// Sistema principal em Vue: views/multitenant
+Route::get('/', [FrontendController::class, 'central'])->name('home');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])

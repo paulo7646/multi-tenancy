@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\LicenseStatus;
 use App\Models\Licenca;
 use App\Models\Tenant;
 use App\Models\User;
@@ -15,13 +16,13 @@ class ExpireLicenses extends Command
 
     public function handle(): int
     {
-        $expired = UserLicense::where('status', 'active')
+        $expired = UserLicense::where('status', LicenseStatus::Active)
             ->whereNotNull('expires_at')
             ->where('expires_at', '<', now())
             ->get();
 
         foreach ($expired as $license) {
-            $license->update(['status' => 'inactive']);
+            $license->update(['status' => LicenseStatus::Inactive]);
 
             if (! $license->tenant_id) {
                 continue;

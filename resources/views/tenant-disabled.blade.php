@@ -78,7 +78,7 @@
                     Contatar suporte
                 </a>
 
-                <a href="{{ url('/client/login') }}"
+                <a href="{{ url('/admin/login') }}"
                    class="flex items-center justify-center gap-2 w-full rounded-xl border border-white/10 bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white font-medium py-3 px-6 transition-all duration-200">
 
                     <svg xmlns="http://www.w3.org/2000/svg"

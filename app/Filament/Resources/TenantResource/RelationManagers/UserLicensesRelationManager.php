@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TenantResource\RelationManagers;
 
+use App\Filament\Resources\UserLicenseResource;
 use App\Models\UserLicense;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -49,9 +50,7 @@ class UserLicensesRelationManager extends RelationManager
                     ->label('Escopo')
                     ->options(function () {
                         $tenantId = $this->getOwnerRecord()->getKey();
-                        $tenantName = $this->getOwnerRecord()->name
-                            ?? $this->getOwnerRecord()->domain
-                            ?? $tenantId;
+                        $tenantName = $this->getOwnerRecord()->displayName();
 
                         return [
                             $tenantId => "Somente esta empresa ({$tenantName})",
@@ -68,11 +67,7 @@ class UserLicensesRelationManager extends RelationManager
                     ->readOnly()
                     ->required(),
 
-                Forms\Components\Toggle::make('status')
-                    ->label('Licença Ativa')
-                    ->default(true)
-                    ->afterStateHydrated(fn ($component, $state) => $component->state($state === 'active'))
-                    ->dehydrateStateUsing(fn ($state) => $state ? 'active' : 'inactive'),
+                UserLicenseResource::statusField(),
 
                 Forms\Components\DateTimePicker::make('expires_at')
                     ->label('Expira em')
@@ -107,15 +102,7 @@ class UserLicensesRelationManager extends RelationManager
                     ->copyable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'active' => 'success',
-                        'inactive' => 'danger',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn ($state) => $state === 'active' ? 'Ativa' : 'Inativa'),
+                UserLicenseResource::statusColumn(),
 
                 Tables\Columns\TextColumn::make('expires_at')
                     ->label('Expira em')
@@ -124,12 +111,7 @@ class UserLicensesRelationManager extends RelationManager
                     ->placeholder('Sem expiração'),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->label('Status')
-                    ->options([
-                        'active' => 'Ativa',
-                        'inactive' => 'Inativa',
-                    ]),
+                UserLicenseResource::statusFilter(),
 
                 Tables\Filters\Filter::make('global_only')
                     ->label('Apenas Globais')
@@ -144,6 +126,7 @@ class UserLicensesRelationManager extends RelationManager
                     ->label('Nova Licença'),
             ])
             ->actions([
+                UserLicenseResource::statusActions(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\LicenseRequestController;
 use App\Models\UserLicense;
 use Closure;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ class CheckUserLicense
             auth()->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+
+            LicenseRequestController::rememberUser($request, $user);
 
             return redirect()->route('license.invalid');
         }
