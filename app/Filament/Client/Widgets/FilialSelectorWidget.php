@@ -2,6 +2,7 @@
 
 namespace App\Filament\Client\Widgets;
 
+use Filament\Actions\Concerns\InteractsWithActions;
 use App\Models\Filial;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -12,9 +13,10 @@ use Illuminate\Support\Facades\Session;
 
 class FilialSelectorWidget extends Widget implements HasForms
 {
+    use InteractsWithActions;
     use InteractsWithForms;
 
-    protected static string $view = 'filament.client.widgets.filial-selector-widget';
+    protected string $view = 'filament.client.widgets.filial-selector-widget';
 
     protected static ?int $sort = -10;
 

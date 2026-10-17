@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\UserLicenseResource\Pages;
 
+use Filament\Actions\EditAction;
 use App\Filament\Resources\UserLicenseResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewUserLicense extends ViewRecord
@@ -13,7 +13,7 @@ class ViewUserLicense extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
+            EditAction::make(),
         ];
     }
 }

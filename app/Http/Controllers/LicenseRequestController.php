@@ -7,7 +7,7 @@ use App\Filament\Resources\TenantResource;
 use App\Filament\Resources\UserLicenseResource;
 use App\Models\User;
 use App\Models\UserLicense;
-use Filament\Notifications\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

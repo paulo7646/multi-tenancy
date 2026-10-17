@@ -1,0 +1,9 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/Client/**/*';
+@source '../../../../resources/views/filament/client/**/*';
+
+/* Views injetadas no painel via render hooks */
+@source '../../../../resources/views/components/*-hook.blade.php';
+@source '../../../../resources/views/livewire/filial-selector-topbar.blade.php';
+@source '../../../../resources/views/livewire/license-monitor.blade.php';

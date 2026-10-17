@@ -2,13 +2,20 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\DomainResource\Pages;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\DomainResource\Pages\ListDomains;
+use App\Filament\Resources\DomainResource\Pages\CreateDomain;
+use App\Filament\Resources\DomainResource\Pages\ViewDomain;
+use App\Filament\Resources\DomainResource\Pages\EditDomain;
 use App\Filament\Resources\DomainResource\RelationManagers;
 use App\Models\Domain;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -21,18 +28,18 @@ class DomainResource extends Resource
 
     protected static ?string $modelLabel = 'Dominio';
 
-    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationGroup = 'Empresa';
+    protected static string | \UnitEnum | null $navigationGroup = 'Empresa';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('domain')
+        return $schema
+            ->components([
+                TextInput::make('domain')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('tenant_id')
+                TextInput::make('tenant_id')
                     ->required()
                     ->maxLength(255),
             ]);
@@ -42,15 +49,15 @@ class DomainResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('domain')
+                TextColumn::make('domain')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('tenant_id')
+                TextColumn::make('tenant_id')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -58,13 +65,13 @@ class DomainResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -79,10 +86,10 @@ class DomainResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListDomains::route('/'),
-            'create' => Pages\CreateDomain::route('/create'),
-            'view' => Pages\ViewDomain::route('/{record}'),
-            'edit' => Pages\EditDomain::route('/{record}/edit'),
+            'index' => ListDomains::route('/'),
+            'create' => CreateDomain::route('/create'),
+            'view' => ViewDomain::route('/{record}'),
+            'edit' => EditDomain::route('/{record}/edit'),
         ];
     }
 }

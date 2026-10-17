@@ -2,12 +2,20 @@
 
 namespace App\Filament\Resources\TenantResource\RelationManagers;
 
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use App\Filament\Resources\UserLicenseResource;
 use App\Models\UserLicense;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -36,17 +44,17 @@ class UserLicensesRelationManager extends RelationManager
             ->orderBy('created_at', 'desc');
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('user_email')
+        return $schema
+            ->components([
+                TextInput::make('user_email')
                     ->label('E-mail do Usuário')
                     ->email()
                     ->required()
                     ->maxLength(255),
 
-                Forms\Components\Select::make('tenant_id')
+                Select::make('tenant_id')
                     ->label('Escopo')
                     ->options(function () {
                         $tenantId = $this->getOwnerRecord()->getKey();
@@ -61,7 +69,7 @@ class UserLicensesRelationManager extends RelationManager
                     ->nullable()
                     ->helperText('Deixe em branco para criar uma licença global válida em todas as empresas.'),
 
-                Forms\Components\TextInput::make('license_key')
+                TextInput::make('license_key')
                     ->label('Chave da Licença')
                     ->default(fn () => Str::uuid()->toString())
                     ->readOnly()
@@ -69,7 +77,7 @@ class UserLicensesRelationManager extends RelationManager
 
                 UserLicenseResource::statusField(),
 
-                Forms\Components\DateTimePicker::make('expires_at')
+                DateTimePicker::make('expires_at')
                     ->label('Expira em')
                     ->nullable()
                     ->helperText('Deixe em branco para licença sem expiração.'),
@@ -81,12 +89,12 @@ class UserLicensesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('user_email')
             ->columns([
-                Tables\Columns\TextColumn::make('user_email')
+                TextColumn::make('user_email')
                     ->label('E-mail')
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('scope')
+                TextColumn::make('scope')
                     ->label('Escopo')
                     ->badge()
                     ->getStateUsing(fn ($record) => $record->tenant_id ? 'Tenant' : 'Global')
@@ -96,7 +104,7 @@ class UserLicensesRelationManager extends RelationManager
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('license_key')
+                TextColumn::make('license_key')
                     ->label('Chave')
                     ->limit(20)
                     ->copyable()
@@ -104,7 +112,7 @@ class UserLicensesRelationManager extends RelationManager
 
                 UserLicenseResource::statusColumn(),
 
-                Tables\Columns\TextColumn::make('expires_at')
+                TextColumn::make('expires_at')
                     ->label('Expira em')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
@@ -113,26 +121,26 @@ class UserLicensesRelationManager extends RelationManager
             ->filters([
                 UserLicenseResource::statusFilter(),
 
-                Tables\Filters\Filter::make('global_only')
+                Filter::make('global_only')
                     ->label('Apenas Globais')
                     ->query(fn (Builder $query) => $query->whereNull('tenant_id')),
 
-                Tables\Filters\Filter::make('tenant_only')
+                Filter::make('tenant_only')
                     ->label('Apenas desta Empresa')
                     ->query(fn (Builder $query) => $query->whereNotNull('tenant_id')),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()
+                CreateAction::make()
                     ->label('Nova Licença'),
             ])
-            ->actions([
+            ->recordActions([
                 UserLicenseResource::statusActions(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

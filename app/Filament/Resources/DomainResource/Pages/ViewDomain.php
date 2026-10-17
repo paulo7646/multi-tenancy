@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\DomainResource\Pages;
 
+use Filament\Actions\EditAction;
 use App\Filament\Resources\DomainResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewDomain extends ViewRecord
@@ -13,7 +13,7 @@ class ViewDomain extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
+            EditAction::make(),
         ];
     }
 }

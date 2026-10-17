@@ -2,15 +2,30 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Utilities\Get;
+use Closure;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\Action;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\UserLicenseResource\Pages\ListUserLicenses;
+use App\Filament\Resources\UserLicenseResource\Pages\CreateUserLicense;
+use App\Filament\Resources\UserLicenseResource\Pages\ViewUserLicense;
+use App\Filament\Resources\UserLicenseResource\Pages\EditUserLicense;
 use App\Enums\LicenseStatus;
-use App\Filament\Resources\UserLicenseResource\Pages;
 use App\Models\Tenant;
 use App\Models\UserLicense;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
@@ -18,7 +33,7 @@ class UserLicenseResource extends Resource
 {
     protected static ?string $model = UserLicense::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-ticket';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-ticket';
 
     protected static ?string $navigationLabel = 'Licenças de Usuário';
 
@@ -26,7 +41,7 @@ class UserLicenseResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Licenças de Usuário';
 
-    protected static ?string $navigationGroup = 'Empresa';
+    protected static string | \UnitEnum | null $navigationGroup = 'Empresa';
 
     /**
      * Badge no menu com as solicitações que ainda não foram analisadas.
@@ -58,16 +73,16 @@ class UserLicenseResource extends Resource
     /**
      * Select de status com a trava do limite de licenças ativas da empresa.
      */
-    public static function statusField(): Forms\Components\Select
+    public static function statusField(): Select
     {
-        return Forms\Components\Select::make('status')
+        return Select::make('status')
             ->label('Status')
             ->options(LicenseStatus::class)
             ->default(LicenseStatus::Active)
             ->required()
             ->native(false)
             ->rules([
-                fn (Forms\Get $get, ?UserLicense $record) => function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                fn (Get $get, ?UserLicense $record) => function (string $attribute, $value, Closure $fail) use ($get, $record) {
                     $status = $value instanceof LicenseStatus ? $value : LicenseStatus::tryFrom((string) $value);
 
                     if ($status !== LicenseStatus::Active) {
@@ -83,17 +98,17 @@ class UserLicenseResource extends Resource
             ]);
     }
 
-    public static function statusColumn(): Tables\Columns\TextColumn
+    public static function statusColumn(): TextColumn
     {
-        return Tables\Columns\TextColumn::make('status')
+        return TextColumn::make('status')
             ->label('Status')
             ->badge()
             ->sortable();
     }
 
-    public static function statusFilter(): Tables\Filters\SelectFilter
+    public static function statusFilter(): SelectFilter
     {
-        return Tables\Filters\SelectFilter::make('status')
+        return SelectFilter::make('status')
             ->label('Status')
             ->options(LicenseStatus::class);
     }
@@ -101,23 +116,23 @@ class UserLicenseResource extends Resource
     /**
      * Ações rápidas do fluxo: Em análise -> Ativar / Desativar.
      */
-    public static function statusActions(): Tables\Actions\ActionGroup
+    public static function statusActions(): ActionGroup
     {
-        return Tables\Actions\ActionGroup::make([
-            Tables\Actions\Action::make('analisar')
+        return ActionGroup::make([
+            Action::make('analisar')
                 ->label('Colocar em análise')
                 ->icon(LicenseStatus::InReview->getIcon())
                 ->color(LicenseStatus::InReview->getColor())
                 ->visible(fn (UserLicense $record) => $record->status === LicenseStatus::Requested)
                 ->action(fn (UserLicense $record) => $record->update(['status' => LicenseStatus::InReview])),
 
-            Tables\Actions\Action::make('ativar')
+            Action::make('ativar')
                 ->label('Ativar')
                 ->icon(LicenseStatus::Active->getIcon())
                 ->color(LicenseStatus::Active->getColor())
                 ->requiresConfirmation()
                 ->visible(fn (UserLicense $record) => $record->status !== LicenseStatus::Active)
-                ->action(function (UserLicense $record, Tables\Actions\Action $action) {
+                ->action(function (UserLicense $record, Action $action) {
                     if ($record->tenant?->licenseLimitReached(except: $record->getKey())) {
                         Notification::make()
                             ->title('Limite de licenças atingido')
@@ -134,7 +149,7 @@ class UserLicenseResource extends Resource
                     Notification::make()->title('Licença ativada')->success()->send();
                 }),
 
-            Tables\Actions\Action::make('desativar')
+            Action::make('desativar')
                 ->label('Desativar')
                 ->icon(LicenseStatus::Inactive->getIcon())
                 ->color(LicenseStatus::Inactive->getColor())
@@ -149,16 +164,16 @@ class UserLicenseResource extends Resource
             ->color('gray');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('user_email')
+        return $schema
+            ->components([
+                TextInput::make('user_email')
                     ->label('E-mail do Usuário')
                     ->email()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('tenant_id')
+                Select::make('tenant_id')
                     ->label('Empresa (Tenant)')
                     ->options(fn () => static::tenantOptions())
                     ->searchable()
@@ -166,7 +181,7 @@ class UserLicenseResource extends Resource
                     ->live()
                     ->placeholder('Global (todas as empresas)')
                     ->nullable()
-                    ->helperText(function (Forms\Get $get) {
+                    ->helperText(function (Get $get) {
                         $tenant = Tenant::find($get('tenant_id'));
 
                         if (! $tenant || $tenant->qtd_licencas === null) {
@@ -175,13 +190,13 @@ class UserLicenseResource extends Resource
 
                         return "Licenças ativas da empresa: {$tenant->activeLicensesCount()} de {$tenant->qtd_licencas}.";
                     }),
-                Forms\Components\TextInput::make('license_key')
+                TextInput::make('license_key')
                     ->label('Chave da Licença')
                     ->default(fn() => Str::uuid()->toString())
                     ->readOnly()
                     ->required(),
                 static::statusField(),
-                Forms\Components\DateTimePicker::make('expires_at')
+                DateTimePicker::make('expires_at')
                     ->label('Expira em')
                     ->nullable()
                     ->helperText('Deixe em branco para licença sem expiração.'),
@@ -194,27 +209,27 @@ class UserLicenseResource extends Resource
             ->modifyQueryUsing(fn ($query) => $query->with('tenant.domains'))
             ->defaultSort('created_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('user_email')
+                TextColumn::make('user_email')
                     ->label('E-mail')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('tenant_id')
+                TextColumn::make('tenant_id')
                     ->label('Empresa')
                     ->formatStateUsing(fn (UserLicense $record) => $record->tenant?->displayName())
                     ->placeholder('Global')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('license_key')
+                TextColumn::make('license_key')
                     ->label('Chave')
                     ->limit(20)
                     ->copyable()
                     ->toggleable(),
                 static::statusColumn(),
-                Tables\Columns\TextColumn::make('expires_at')
+                TextColumn::make('expires_at')
                     ->label('Expira em')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->placeholder('Sem expiração'),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime('d/m/Y')
                     ->sortable()
@@ -222,20 +237,20 @@ class UserLicenseResource extends Resource
             ])
             ->filters([
                 static::statusFilter(),
-                Tables\Filters\SelectFilter::make('tenant_id')
+                SelectFilter::make('tenant_id')
                     ->label('Empresa')
                     ->options(fn () => static::tenantOptions())
                     ->searchable(),
             ])
-            ->actions([
+            ->recordActions([
                 static::statusActions(),
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -248,10 +263,10 @@ class UserLicenseResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUserLicenses::route('/'),
-            'create' => Pages\CreateUserLicense::route('/create'),
-            'view' => Pages\ViewUserLicense::route('/{record}'),
-            'edit' => Pages\EditUserLicense::route('/{record}/edit'),
+            'index' => ListUserLicenses::route('/'),
+            'create' => CreateUserLicense::route('/create'),
+            'view' => ViewUserLicense::route('/{record}'),
+            'edit' => EditUserLicense::route('/{record}/edit'),
         ];
     }
 }

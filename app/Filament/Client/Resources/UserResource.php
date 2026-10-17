@@ -2,13 +2,19 @@
 
 namespace App\Filament\Client\Resources;
 
-use App\Filament\Client\Resources\UserResource\Pages;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
+use App\Models\UserLicense;
+use App\Enums\LicenseStatus;
+use App\Filament\Client\Resources\UserResource\Pages\ListUsers;
+use App\Filament\Client\Resources\UserResource\Pages\CreateUser;
+use App\Filament\Client\Resources\UserResource\Pages\ViewUser;
+use App\Filament\Client\Resources\UserResource\Pages\EditUser;
 use App\Models\Filial;
 use App\Models\Licenca;
 use App\Models\User;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Tables;
 use Filament\Tables\Table;
 
 
@@ -16,30 +22,30 @@ class UserResource extends BaseResource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $navigationLabel = 'Usuarios';
 
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static string | \UnitEnum | null $navigationGroup = 'Configurações';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
+        return $schema
+            ->components([
+                TextInput::make('name')
                     ->required(),
-                Forms\Components\TextInput::make('email')
+                TextInput::make('email')
                     ->email()
                     ->required(),
-                Forms\Components\TextInput::make('password')
+                TextInput::make('password')
                     ->password()
                     ->required(),
-                Forms\Components\Select::make('roles')
+                Select::make('roles')
                     ->relationship('roles', 'name')
                     ->multiple()
                     ->preload()
                     ->searchable(),
-                Forms\Components\Select::make('filial_id')
+                Select::make('filial_id')
                     ->label('Filial')
                     ->options(fn() => Filial::where('ativo', true)->orderBy('nome')->pluck('nome', 'id'))
                     ->searchable()
@@ -53,16 +59,16 @@ class UserResource extends BaseResource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('licenca.nome')
+                TextColumn::make('licenca.nome')
                     ->label('Licença')
                     ->badge()
                     ->color(fn($record) => $record->licenca?->color ?? 'gray'),
-                Tables\Columns\TextColumn::make('license_status')
+                TextColumn::make('license_status')
                     ->label('Status da Licença')
                     ->badge()
                     ->getStateUsing(function ($record) {
@@ -71,7 +77,7 @@ class UserResource extends BaseResource
                             return 'Sem Licença';
                         }
 
-                        $license = \App\Models\UserLicense::where('user_email', $record->email)
+                        $license = UserLicense::where('user_email', $record->email)
                             ->where(fn ($q) => $q->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))
                             ->orderByRaw('CASE WHEN tenant_id IS NOT NULL THEN 0 ELSE 1 END')
                             ->first();
@@ -84,7 +90,7 @@ class UserResource extends BaseResource
                             return 'Ativa';
                         }
 
-                        if ($license->status === \App\Enums\LicenseStatus::Active && $license->expires_at?->isPast()) {
+                        if ($license->status === LicenseStatus::Active && $license->expires_at?->isPast()) {
                             return 'Vencida';
                         }
 
@@ -98,7 +104,7 @@ class UserResource extends BaseResource
                         'Em análise' => 'warning',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('filial.nome')
+                TextColumn::make('filial.nome')
                     ->label('Filial')
                     ->badge()
                     ->color('info')
@@ -107,8 +113,8 @@ class UserResource extends BaseResource
             ->filters([
                 //
             ])
-            ->actions(self::defaultActions())
-            ->bulkActions(self::defaultBulkActions());
+            ->recordActions(self::defaultActions())
+            ->toolbarActions(self::defaultBulkActions());
     }
 
     public static function getRelations(): array
@@ -121,10 +127,10 @@ class UserResource extends BaseResource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'view' => Pages\ViewUser::route('/{record}'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => ListUsers::route('/'),
+            'create' => CreateUser::route('/create'),
+            'view' => ViewUser::route('/{record}'),
+            'edit' => EditUser::route('/{record}/edit'),
         ];
     }
 }

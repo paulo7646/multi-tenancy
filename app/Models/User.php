@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,10 +16,24 @@ use Illuminate\Support\Facades\Session;
 use OwenIt\Auditing\Contracts\Auditable;
 use App\Models\Traits\HasFilialScope;
 
-class User extends Authenticatable implements Auditable
+class User extends Authenticatable implements Auditable, FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, \OwenIt\Auditing\Auditable, HasFilialScope;
+
+    /**
+     * Sem isso o Filament nega acesso (403) a todos fora do ambiente local.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return match ($panel->getId()) {
+            // Painel central gerencia todas as empresas; o /register central é aberto
+            'admin' => $this->hasRole(config('filament-shield.super_admin.name')),
+            // Licença (CheckUserLicense) e permissões (Shield) já são checadas no painel da empresa
+            'client' => true,
+            default => false,
+        };
+    }
 
     /**
      * The attributes that are mass assignable.

@@ -2,16 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TenantResource\Pages;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Actions\Action;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Select;
+use App\Models\User;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\TenantResource\Pages\ListTenants;
+use App\Filament\Resources\TenantResource\Pages\CreateTenant;
+use App\Filament\Resources\TenantResource\Pages\ViewTenant;
+use App\Filament\Resources\TenantResource\Pages\EditTenant;
 use App\Filament\Resources\TenantResource\RelationManagers\UserLicensesRelationManager;
 use App\Models\Tenant;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Toggle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -21,18 +33,18 @@ class TenantResource extends Resource
 {
     protected static ?string $model = Tenant::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-office-2';
 
     protected static ?string $pluralLabel = 'Empresas';
 
     protected static ?string $modelLabel = 'Empresa';
 
-    protected static ?string $navigationGroup = 'Empresa';
+    protected static string | \UnitEnum | null $navigationGroup = 'Empresa';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Empresa')
                     ->description('Confiração de empresa')
                     ->icon('heroicon-m-globe-alt')
@@ -40,7 +52,7 @@ class TenantResource extends Resource
                         TextInput::make('domain')
                             ->required()
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function (?string $state, Forms\Get $get, Forms\Set $set) {
+                            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
                                 if (blank($get('slug')) && filled($state)) {
                                     $set('slug', Str::slug(Str::before($state, '.')));
                                 }
@@ -60,7 +72,8 @@ class TenantResource extends Resource
                             ->alphaDash()
                             ->maxLength(50)
                             ->unique(ignoreRecord: true)
-                            ->disabledOn('edit')
+                            // Empresas antigas podem estar sem pasta: aí o campo fica liberado na edição
+                            ->disabled(fn (string $operation, ?Tenant $record) => $operation === 'edit' && filled($record?->slug))
                             ->prefix('views/clientes/')
                             ->helperText('Pasta Vue criada automaticamente para esta empresa. Não pode ser alterada depois.'),
 
@@ -84,25 +97,25 @@ class TenantResource extends Resource
         return $table
             ->modifyQueryUsing(fn ($query) => $query->withCount(['userLicenses as active_licenses_count' => fn ($q) => $q->active()]))
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->label('ID')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('slug')
+                TextColumn::make('slug')
                     ->label('Pasta')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('domain')
+                TextColumn::make('domain')
                     ->label('Domínio')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('qtd_licencas')
+                TextColumn::make('qtd_licencas')
                     ->label('Licenças ativas')
                     ->badge()
                     ->state(fn (Tenant $record) => $record->active_licenses_count . ' / ' . ($record->qtd_licencas ?? '∞'))
                     ->color(fn (Tenant $record) => $record->qtd_licencas !== null && $record->active_licenses_count >= $record->qtd_licencas ? 'danger' : 'success'),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Status')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
@@ -113,24 +126,24 @@ class TenantResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
 
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
 
-                Tables\Actions\DeleteAction::make(),
+                DeleteAction::make(),
 
-                Tables\Actions\Action::make('impersonate')
+                Action::make('impersonate')
                     ->label('Entrar')
                     ->icon('heroicon-o-arrow-right-on-rectangle')
-                    ->form([
-                        Forms\Components\Select::make('user_id')
+                    ->schema([
+                        Select::make('user_id')
                             ->label('Usuario')
                             ->options(function (Tenant $record) {
 
                                 tenancy()->initialize($record);
 
-                                $users = \App\Models\User::all()
+                                $users = User::all()
                                     ->pluck('name', 'id')
                                     ->toArray();
 
@@ -157,9 +170,9 @@ class TenantResource extends Resource
                         $livewire->js("window.open('{$url}', '_blank')");
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -174,10 +187,10 @@ class TenantResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTenants::route('/'),
-            'create' => Pages\CreateTenant::route('/create'),
-            'view' => Pages\ViewTenant::route('/{record}'),
-            'edit' => Pages\EditTenant::route('/{record}/edit'),
+            'index' => ListTenants::route('/'),
+            'create' => CreateTenant::route('/create'),
+            'view' => ViewTenant::route('/{record}'),
+            'edit' => EditTenant::route('/{record}/edit'),
         ];
     }
 }

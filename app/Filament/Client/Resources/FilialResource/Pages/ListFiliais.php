@@ -2,8 +2,8 @@
 
 namespace App\Filament\Client\Resources\FilialResource\Pages;
 
+use Filament\Actions\CreateAction;
 use App\Filament\Client\Resources\FilialResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
 class ListFiliais extends ListRecords
@@ -13,7 +13,7 @@ class ListFiliais extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 }

@@ -2,8 +2,12 @@
 
 namespace App\Filament\Client\Resources;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 
 abstract class BaseResource extends Resource
@@ -12,24 +16,24 @@ abstract class BaseResource extends Resource
     {
         return $table
             ->columns($columns)
-            ->actions(self::defaultActions())
-            ->bulkActions(self::defaultBulkActions());
+            ->recordActions(self::defaultActions())
+            ->toolbarActions(self::defaultBulkActions());
     }
 
     public static function defaultActions(): array
     {
         return [
-            Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make(),
-            Tables\Actions\DeleteAction::make(),
+            ViewAction::make(),
+            EditAction::make(),
+            DeleteAction::make(),
         ];
     }
 
     public static function defaultBulkActions(): array
     {
         return [
-            Tables\Actions\BulkActionGroup::make([
-                Tables\Actions\DeleteBulkAction::make(),
+            BulkActionGroup::make([
+                DeleteBulkAction::make(),
             ]),
         ];
     }

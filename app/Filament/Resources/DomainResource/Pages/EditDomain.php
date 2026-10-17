@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\DomainResource\Pages;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\DeleteAction;
 use App\Filament\Resources\DomainResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditDomain extends EditRecord
@@ -13,8 +14,8 @@ class EditDomain extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make(),
-            Actions\DeleteAction::make(),
+            ViewAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

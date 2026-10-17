@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\TenantResource\Pages;
 
+use Filament\Actions\EditAction;
 use App\Filament\Resources\TenantResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewTenant extends ViewRecord
@@ -13,7 +13,7 @@ class ViewTenant extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
+            EditAction::make(),
         ];
     }
 }
