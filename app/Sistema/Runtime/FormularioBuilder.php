@@ -376,15 +376,15 @@ class FormularioBuilder
     {
         $tabela = $this->formulario->tabela;
         $situacoes = $tabela->situacoes->filter(fn ($s) => $s->status);
-        $opcoes = $situacoes->mapWithKeys(fn ($s) => [$s->status->nome_fisico => $s->status->nome])->all();
+        $opcoes = $situacoes->mapWithKeys(fn ($s) => [$s->status->id => $s->status->nome])->all();
 
         $campo = match (TipoComponente::resolver($componente, null)) {
             TipoComponente::Combo => Select::make(MdTabela::COLUNA_SITUACAO)->options($opcoes)->native(false),
             TipoComponente::Radio => Radio::make(MdTabela::COLUNA_SITUACAO)->options($opcoes)->inline(),
             default => ToggleButtons::make(MdTabela::COLUNA_SITUACAO)
                 ->options($opcoes)
-                ->icons($situacoes->mapWithKeys(fn ($s) => [$s->status->nome_fisico => $s->status->icone])->filter()->all())
-                ->colors($situacoes->mapWithKeys(fn ($s) => [$s->status->nome_fisico => $s->status->corFilament()])->all())
+                ->icons($situacoes->mapWithKeys(fn ($s) => [$s->status->id => $s->status->icone])->filter()->all())
+                ->colors($situacoes->mapWithKeys(fn ($s) => [$s->status->id => $s->status->corFilament()])->all())
                 ->inline(),
         };
 

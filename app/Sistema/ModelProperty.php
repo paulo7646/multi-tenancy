@@ -617,7 +617,7 @@ class ModelProperty
     }
 
     /**
-     * Tipo do campo no dicionário (situacao = enum; id = bigInteger).
+     * Tipo do campo no dicionário (situacao e id = unsignedBigInteger).
      */
     /**
      * Nomes físicos são em maiúscula: aceita 'descricao' ou 'DESCRICAO' (id e datas do Laravel ficam como são).
@@ -634,7 +634,7 @@ class ModelProperty
         }
 
         if ($campo === MdTabela::COLUNA_SITUACAO && $this->tabela->controla_situacao) {
-            return TipoCampo::Enum;
+            return TipoCampo::UnsignedBigInteger;
         }
 
         if (in_array($campo, ['created_at', 'updated_at'], true)) {
@@ -831,9 +831,7 @@ class ModelProperty
 
     protected function opcao(string $campo, ?MdCampo $md, mixed $valor, \Closure $erro): string
     {
-        $opcoes = $campo === MdTabela::COLUNA_SITUACAO && ! $md
-            ? $this->tabela->situacoes->map(fn ($s) => $s->status?->nome_fisico)->filter()->values()->all()
-            : array_map('strval', $md?->opcoes ?? []);
+        $opcoes = array_map('strval', $md?->opcoes ?? []);
 
         if (! in_array((string) $valor, $opcoes, true)) {
             throw $erro('opções: ' . implode(', ', $opcoes));

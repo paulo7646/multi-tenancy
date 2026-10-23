@@ -14,6 +14,7 @@ use App\Sistema\Runtime\Layout;
 use App\Sistema\Schema\MigrationWriter;
 use App\Sistema\Schema\SchemaException;
 use App\Sistema\Schema\SchemaSnapshot;
+use App\Sistema\Schema\StatusNoTenant;
 use Closure;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
@@ -338,11 +339,12 @@ PHP;
     }
 
     /**
-     * Situações: ícone e cor são lidos na hora; só o JSON do git muda.
+     * Situações: ícone e cor são lidos na hora; muda o JSON do git e a cópia em cada cliente.
      */
     public static function publicarStatus(): array
     {
         Exportador::status();
+        StatusNoTenant::sincronizarTodos();
         Registro::limpar();
 
         return [];

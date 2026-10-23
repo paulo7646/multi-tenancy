@@ -206,7 +206,7 @@ class MdTabelaResource extends Resource
 
                                         Toggle::make('controla_situacao')
                                             ->label('Controla situação')
-                                            ->helperText('Cria a coluna SITUACAO na tabela, com as situações escolhidas na aba Situação (ícone e cor no datagrid e no formulário).')
+                                            ->helperText('Cria a coluna MD_STATUS_ID (chave estrangeira de md_status) na tabela, com as situações escolhidas na aba Situação (ícone e cor no datagrid e no formulário).')
                                             ->live(),
                                     ]),
                             ]),
@@ -261,7 +261,7 @@ class MdTabelaResource extends Resource
                                             ->notIn(Campos::COLUNAS_RESERVADAS)
                                             ->distinct()
                                             ->disabled(fn(Get $get) => (bool) $get('sistema'))
-                                            ->validationMessages(['not_in' => 'ID, CREATED_AT, UPDATED_AT e SITUACAO são criados pelo sistema.']),
+                                            ->validationMessages(['not_in' => 'ID, CREATED_AT, UPDATED_AT e MD_STATUS_ID são criados pelo sistema.']),
 
                                         Select::make('tipo')
                                             ->options(TipoCampo::groupedOptions())

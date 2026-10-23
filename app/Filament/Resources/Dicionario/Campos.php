@@ -28,7 +28,7 @@ class Campos
         'role_has_permissions', 'roles', 'sessions', 'tenants', 'user_licenses', 'users',
     ];
 
-    public const COLUNAS_RESERVADAS = ['ID', 'CREATED_AT', 'UPDATED_AT', 'SITUACAO'];
+    public const COLUNAS_RESERVADAS = ['ID', 'CREATED_AT', 'UPDATED_AT', 'SITUACAO', 'MD_STATUS_ID'];
 
     /** Métodos das classes base que um botão não pode usar como nome físico */
     public const METODOS_RESERVADOS = ['getmodel', 'gettabela', 'abortar', 'notificar', 'usuario', 'tenantatual', '__construct'];

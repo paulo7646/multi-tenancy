@@ -389,7 +389,7 @@ abstract class BaseResource extends Resource
             $filtros[] = SelectFilter::make(MdTabela::COLUNA_SITUACAO)
                 ->label('Situação')
                 ->multiple()
-                ->options($tabela->situacoes->filter(fn ($s) => $s->status)->mapWithKeys(fn ($s) => [$s->status->nome_fisico => $s->status->nome])->all());
+                ->options($tabela->situacoes->filter(fn ($s) => $s->status)->mapWithKeys(fn ($s) => [$s->status->id => $s->status->nome])->all());
         }
 
         return $table
