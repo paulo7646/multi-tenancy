@@ -2,6 +2,7 @@
 
 namespace App\Navigation;
 
+use App\Sistema\Runtime\ModuloNavegacao;
 use BackedEnum;
 use Filament\Facades\Filament;
 use Filament\Resources\Resource;
@@ -51,7 +52,7 @@ class NavigationCatalog
                 ];
             }
 
-            return collect($items)->sortBy('sort')->all();
+            return [...collect($items)->sortBy('sort')->all(), ...ModuloNavegacao::catalogo($panelId)];
         } finally {
             Filament::setCurrentPanel($previous);
         }

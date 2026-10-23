@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\UserLicense;
+use App\Sistema\Base\BaseResource;
 use App\Navigation\CustomNavigationManager;
 use App\Observers\UserLicenseObserver;
 use BezhanSalleh\FilamentShield\Facades\FilamentShield;
@@ -51,6 +52,8 @@ class AppServiceProvider extends ServiceProvider
         FilamentShield::buildPermissionKeyUsing(
             function (string $entity, ?string $affix, string $subject, string $case, string $separator) use ($legacySubjects) {
                 return match (true) {
+                    // telas do dicionário: view_any_op_produto, create_op_produto...
+                    is_subclass_of($entity, BaseResource::class) => Str::snake($affix) . '_' . $entity::sujeitoPermissao(),
                     is_subclass_of($entity, Resource::class) => Str::snake($affix) . '_' . ($legacySubjects[$entity] ?? Str::of($entity)
                         ->afterLast('Resources\\')
                         ->before('Resource')

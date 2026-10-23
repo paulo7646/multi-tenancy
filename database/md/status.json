@@ -1,0 +1,44 @@
+[
+    {
+        "nome": "Ativo",
+        "nome_fisico": "ATIVO",
+        "icone": "heroicon-o-check-circle",
+        "cor": "green",
+        "descricao": null
+    },
+    {
+        "nome": "Cancelado",
+        "nome_fisico": "CANCELADO",
+        "icone": "heroicon-o-no-symbol",
+        "cor": "gray",
+        "descricao": null
+    },
+    {
+        "nome": "Concluído",
+        "nome_fisico": "CONCLUIDO",
+        "icone": "heroicon-o-check-badge",
+        "cor": "emerald",
+        "descricao": null
+    },
+    {
+        "nome": "Em andamento",
+        "nome_fisico": "EM_ANDAMENTO",
+        "icone": "heroicon-o-arrow-path",
+        "cor": "blue",
+        "descricao": null
+    },
+    {
+        "nome": "Inativo",
+        "nome_fisico": "INATIVO",
+        "icone": "heroicon-o-x-circle",
+        "cor": "red",
+        "descricao": null
+    },
+    {
+        "nome": "Pendente",
+        "nome_fisico": "PENDENTE",
+        "icone": "heroicon-o-clock",
+        "cor": "amber",
+        "descricao": null
+    }
+]

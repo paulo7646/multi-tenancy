@@ -215,6 +215,8 @@ return [
         'prefix' => 'view',
         'exclude' => [
             Dashboard::class,
+            // visão geral do módulo: acesso pela permissão modulo_{prefixo}
+            App\Filament\Sistema\Pages\ModuloPage::class,
         ],
     ],
 

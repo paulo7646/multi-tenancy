@@ -22,14 +22,19 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
 
 /**
- * Configura o menu lateral de cada painel: grupos (nome e ordem) e,
- * para cada página, grupo, nome, ícone, ordem e visibilidade.
+ * Configura o menu lateral de cada painel, grupo por grupo: a ordem dos
+ * grupos e, dentro de cada um, a ordem, o nome, o ícone e a visibilidade
+ * dos itens. Os módulos do dicionário de dados entram como grupos.
  */
 class NavigationSettings extends Page
 {
+    /** Valor do "Mover para" que leva o item para o topo (sem grupo) */
+    protected const TOPO = '__topo';
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-bars-3-bottom-left';
 
     protected static string | \UnitEnum | null $navigationGroup = 'Configurações';
@@ -52,7 +57,7 @@ class NavigationSettings extends Page
 
     public function getSubheading(): string
     {
-        return 'Arraste para ordenar. Ocultar um item só o tira do menu: quem tem permissão ainda consegue abrir a página pelo endereço.';
+        return 'Arraste os grupos e os itens para ordenar; use "Mover para" para trocar um item de grupo. Ocultar um item só o tira do menu: quem tem permissão ainda abre a página pelo endereço.';
     }
 
     public function mount(): void
@@ -71,33 +76,43 @@ class NavigationSettings extends Page
         $savedGroups = NavigationGroup::where('panel', $this->painel)->orderBy('sort')->pluck('name');
 
         $items = collect($catalog)
-            ->map(function (array $default, string $class) use ($savedItems) {
-                $saved = $savedItems->get($class);
+            ->map(function (array $default, string $key) use ($savedItems) {
+                $saved = $savedItems->get($key);
 
                 return [
-                    'item' => $class,
+                    'item' => $key,
                     'group' => $saved ? $saved->group : $default['group'],
                     'label' => $saved?->label,
                     'icon' => $saved?->icon,
                     'hidden' => (bool) $saved?->hidden,
-                    // itens novos (sem configuração) vão para o fim
+                    // itens novos (sem configuração) vão para o fim, na ordem do código
                     '_sort' => $saved ? $saved->sort : 100000 + $default['sort'],
                 ];
             })
-            ->sortBy('_sort')
-            ->map(fn (array $item) => collect($item)->except('_sort')->all())
+            ->sortBy('_sort');
+
+        $groupNames = $savedGroups
+            ->merge($items->pluck('group')->filter())
+            ->unique()
             ->values();
 
-        $groups = $savedGroups
-            ->merge(collect($catalog)->pluck('group')->filter())
-            ->unique()
-            ->values()
-            ->map(fn (string $name) => ['name' => $name, 'original' => $name]);
+        $semCampos = fn (array $item) => collect($item)->except(['group', '_sort'])->all();
 
         $this->form->fill([
-            'groups' => $groups->all(),
-            'items' => $items->all(),
+            'topo' => static::comChaves($items->filter(fn ($i) => blank($i['group']))->map($semCampos)->values()->all()),
+            'groups' => static::comChaves($groupNames->map(fn (string $name) => [
+                'name' => $name,
+                'items' => static::comChaves($items->where('group', $name)->map($semCampos)->values()->all()),
+            ])->all()),
         ]);
+    }
+
+    /**
+     * Chaves estáveis nos itens dos repeaters (o "Mover para" troca itens de lista).
+     */
+    protected static function comChaves(array $lista): array
+    {
+        return collect($lista)->mapWithKeys(fn (array $item) => [(string) Str::uuid() => $item])->all();
     }
 
     public function form(Schema $schema): Schema
@@ -107,87 +122,140 @@ class NavigationSettings extends Page
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Grupos')
-                    ->description('Ordem dos grupos no menu. Itens sem grupo ficam sempre no topo.')
-                    ->icon('heroicon-o-folder')
+                Section::make('Sem grupo (topo)')
+                    ->description('Itens sem grupo ficam sempre no topo do menu.')
+                    ->icon('heroicon-o-arrow-up')
                     ->collapsible()
+                    ->schema([
+                        static::itensRepeater('topo', $catalog, '../../'),
+                    ]),
+
+                Section::make('Grupos')
+                    ->description('Arraste para ordenar os grupos. Grupos vazios não aparecem no menu.')
+                    ->icon('heroicon-o-folder')
                     ->schema([
                         Repeater::make('groups')
                             ->hiddenLabel()
                             ->schema([
-                                Hidden::make('original'),
                                 TextInput::make('name')
-                                    ->hiddenLabel()
+                                    ->label('Nome do grupo')
                                     ->required()
                                     ->distinct()
-                                    ->live(onBlur: true)
-                                    // Renomear o grupo leva junto os itens que estavam nele
-                                    ->afterStateUpdated(function (?string $state, ?string $old, Get $get, Set $set) {
-                                        if (blank($old) || $state === $old) {
-                                            return;
-                                        }
+                                    ->live(onBlur: true),
 
-                                        $items = collect($get('../../items'))
-                                            ->map(fn (array $item) => $item['group'] === $old ? [...$item, 'group' => $state] : $item)
-                                            ->all();
-
-                                        $set('../../items', $items);
-                                    }),
+                                static::itensRepeater('items', $catalog, '../../../../'),
                             ])
+                            ->itemLabel(fn (array $state) => ($state['name'] ?? 'Novo grupo') . '  ·  ' . count($state['items'] ?? []) . ' ' . (count($state['items'] ?? []) === 1 ? 'item' : 'itens'))
                             ->addActionLabel('Novo grupo')
                             ->reorderableWithDragAndDrop()
-                            ->defaultItems(0)
-                            ->grid(3),
-                    ]),
-
-                Section::make('Itens do menu')
-                    ->description('Troque o grupo, o nome e o ícone de cada página. Deixe nome e ícone vazios para usar o padrão.')
-                    ->icon('heroicon-o-queue-list')
-                    ->schema([
-                        Repeater::make('items')
-                            ->hiddenLabel()
-                            ->schema([
-                                Hidden::make('item'),
-                                Grid::make(['default' => 1, 'md' => 2, 'xl' => 4])->schema([
-                                    Select::make('group')
-                                        ->label('Grupo')
-                                        ->placeholder('Sem grupo (topo)')
-                                        ->options(fn (Get $get) => collect($get('../../groups'))
-                                            ->pluck('name')
-                                            ->filter()
-                                            ->mapWithKeys(fn (string $name) => [$name => $name])
-                                            ->all()),
-                                    TextInput::make('label')
-                                        ->label('Nome')
-                                        ->placeholder(fn (Get $get) => $catalog[$get('item')]['label'] ?? null)
-                                        ->maxLength(100),
-                                    Select::make('icon')
-                                        ->label('Ícone')
-                                        ->placeholder(fn (Get $get) => static::iconPlaceholder($catalog[$get('item')]['icon'] ?? null))
-                                        ->searchable()
-                                        ->allowHtml()
-                                        ->getSearchResultsUsing(fn (string $search) => NavigationCatalog::searchIcons($search))
-                                        ->getOptionLabelUsing(fn (?string $value) => $value ? NavigationCatalog::iconLabel($value) : null),
-                                    Toggle::make('hidden')
-                                        ->label('Ocultar do menu')
-                                        ->inline(false)
-                                        // esta tela não pode sumir do menu
-                                        ->disabled(fn (Get $get) => $get('item') === static::class),
-                                ]),
-                            ])
-                            ->itemLabel(function (array $state) use ($catalog) {
-                                $label = filled($state['label'] ?? null) ? $state['label'] : ($catalog[$state['item']]['label'] ?? $state['item']);
-                                $group = filled($state['group'] ?? null) ? $state['group'] : 'Sem grupo';
-
-                                return $label . '  ·  ' . $group . (($state['hidden'] ?? false) ? '  ·  oculto' : '');
-                            })
-                            ->addable(false)
-                            ->deletable(false)
-                            ->reorderableWithDragAndDrop()
                             ->collapsible()
-                            ->collapsed(),
+                            ->defaultItems(0),
                     ]),
             ]);
+    }
+
+    /**
+     * Itens de uma lista (topo ou um grupo). $raiz leva do item à raiz do formulário.
+     *
+     * @param  array<string, array{label: string, group: ?string, icon: ?string, sort: int}>  $catalog
+     */
+    protected static function itensRepeater(string $nome, array $catalog, string $raiz): Repeater
+    {
+        return Repeater::make($nome)
+            ->hiddenLabel()
+            ->schema([
+                Hidden::make('item'),
+                Grid::make(['default' => 1, 'md' => 2, 'xl' => 4])->schema([
+                    TextInput::make('label')
+                        ->label('Nome')
+                        ->placeholder(fn (Get $get) => $catalog[$get('item')]['label'] ?? null)
+                        ->maxLength(100),
+
+                    Select::make('icon')
+                        ->label('Ícone')
+                        ->placeholder(fn (Get $get) => static::iconPlaceholder($catalog[$get('item')]['icon'] ?? null))
+                        ->searchable()
+                        ->allowHtml()
+                        ->getSearchResultsUsing(fn (string $search) => NavigationCatalog::searchIcons($search))
+                        ->getOptionLabelUsing(fn (?string $value) => $value ? NavigationCatalog::iconLabel($value) : null),
+
+                    Select::make('mover')
+                        ->label('Mover para')
+                        ->placeholder('Manter aqui')
+                        ->options(fn (Get $get) => [
+                            static::TOPO => 'Sem grupo (topo)',
+                            ...collect($get("{$raiz}groups"))->pluck('name')->filter()->mapWithKeys(fn (string $n) => [$n => $n])->all(),
+                        ])
+                        ->dehydrated(false)
+                        ->live()
+                        ->afterStateUpdated(fn (?string $state, Get $get, Set $set) => static::mover($state, $get, $set, $raiz)),
+
+                    Toggle::make('hidden')
+                        ->label('Ocultar do menu')
+                        ->inline(false)
+                        // esta tela não pode sumir do menu
+                        ->disabled(fn (Get $get) => $get('item') === static::class),
+                ]),
+            ])
+            ->itemLabel(function (array $state) use ($catalog) {
+                $label = filled($state['label'] ?? null) ? $state['label'] : ($catalog[$state['item'] ?? '']['label'] ?? ($state['item'] ?? ''));
+
+                return $label . (($state['hidden'] ?? false) ? '  ·  oculto' : '');
+            })
+            ->addable(false)
+            ->deletable(false)
+            ->reorderableWithDragAndDrop()
+            ->collapsible()
+            ->collapsed()
+            ->defaultItems(0);
+    }
+
+    /**
+     * Tira o item da lista em que está e põe no fim do destino (topo ou um grupo).
+     */
+    protected static function mover(?string $destino, Get $get, Set $set, string $raiz): void
+    {
+        if (blank($destino)) {
+            return;
+        }
+
+        $chave = $get('item');
+        $topo = $get("{$raiz}topo") ?? [];
+        $grupos = $get("{$raiz}groups") ?? [];
+
+        $tirar = function (array $lista) use ($chave, &$item): array {
+            foreach ($lista as $id => $atual) {
+                if (($atual['item'] ?? null) === $chave) {
+                    $item = [...$atual, 'mover' => null];
+                    unset($lista[$id]);
+                }
+            }
+
+            return $lista;
+        };
+
+        $item = null;
+        $topo = $tirar($topo);
+        foreach ($grupos as $id => $grupo) {
+            $grupos[$id]['items'] = $tirar($grupo['items'] ?? []);
+        }
+
+        if (! $item) {
+            return;
+        }
+
+        if ($destino === static::TOPO) {
+            $topo[(string) Str::uuid()] = $item;
+        } else {
+            foreach ($grupos as $id => $grupo) {
+                if (($grupo['name'] ?? null) === $destino) {
+                    $grupos[$id]['items'][(string) Str::uuid()] = $item;
+                }
+            }
+        }
+
+        $set("{$raiz}topo", $topo);
+        $set("{$raiz}groups", $grupos);
     }
 
     public function content(Schema $schema): Schema
@@ -241,21 +309,33 @@ class NavigationSettings extends Page
         $data = $this->form->getState();
         $catalog = NavigationCatalog::items($this->painel);
 
-        $groups = collect($data['groups'] ?? [])
-            ->pluck('name')
-            ->map(fn (?string $name) => trim((string) $name))
-            ->filter()
-            ->unique()
-            ->values();
+        // ordem do menu = ordem da tela: topo primeiro, depois cada grupo
+        $linhas = collect($data['topo'] ?? [])->values()->map(fn (array $item) => [...$item, 'group' => null]);
+        $groups = collect();
 
-        DB::connection('central')->transaction(function () use ($data, $catalog, $groups) {
+        foreach (array_values($data['groups'] ?? []) as $grupo) {
+            $nome = trim((string) ($grupo['name'] ?? ''));
+
+            if ($nome === '' || $groups->contains($nome)) {
+                continue;
+            }
+
+            $groups->push($nome);
+            $linhas = $linhas->merge(collect($grupo['items'] ?? [])->values()->map(fn (array $item) => [...$item, 'group' => $nome]));
+        }
+
+        // itens de grupos apagados voltam para o topo
+        $perdidos = collect(array_keys($catalog))->diff($linhas->pluck('item'));
+        $linhas = $linhas->merge($perdidos->map(fn (string $chave) => ['item' => $chave, 'group' => null, 'label' => null, 'icon' => null, 'hidden' => false]));
+
+        DB::connection('central')->transaction(function () use ($linhas, $catalog, $groups) {
             NavigationGroup::where('panel', $this->painel)->delete();
 
             foreach ($groups as $index => $name) {
                 NavigationGroup::create(['panel' => $this->painel, 'name' => $name, 'sort' => $index]);
             }
 
-            foreach (array_values($data['items'] ?? []) as $index => $item) {
+            foreach ($linhas->values() as $index => $item) {
                 $default = $catalog[$item['item']] ?? null;
 
                 if (! $default) {
@@ -267,8 +347,7 @@ class NavigationSettings extends Page
                 NavigationItem::updateOrCreate(
                     ['panel' => $this->painel, 'item' => $item['item']],
                     [
-                        // grupo apagado da lista: o item vai para o topo
-                        'group' => $groups->contains($item['group'] ?? null) ? $item['group'] : null,
+                        'group' => $item['group'],
                         'label' => $label !== '' && $label !== $default['label'] ? $label : null,
                         'icon' => filled($item['icon'] ?? null) && $item['icon'] !== $default['icon'] ? $item['icon'] : null,
                         'sort' => $index,
@@ -278,7 +357,11 @@ class NavigationSettings extends Page
             }
         });
 
-        Notification::make()->title('Menu salvo')->success()->send();
+        Notification::make()
+            ->title('Menu salvo')
+            ->body($perdidos->isNotEmpty() ? $perdidos->count() . ' item(ns) de grupos removidos foram para o topo.' : null)
+            ->success()
+            ->send();
 
         // Recarrega para o menu lateral refletir a mudança
         $this->redirect(static::getUrl(['painel' => $this->painel]));

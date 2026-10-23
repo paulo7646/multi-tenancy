@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Forms\Schema;
+namespace App\Sistema\Schema;
 
 use RuntimeException;
 

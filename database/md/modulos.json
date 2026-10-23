@@ -1,0 +1,12 @@
+[
+    {
+        "nome": "Operacional",
+        "prefixo": "op",
+        "pasta": "Operacional",
+        "descricao": "Modulo Operacional",
+        "ordem": 0,
+        "roles": [],
+        "roles_gerados": [],
+        "banco": "tenant"
+    }
+]

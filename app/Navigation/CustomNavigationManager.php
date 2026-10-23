@@ -4,6 +4,7 @@ namespace App\Navigation;
 
 use App\Models\NavigationGroup as NavigationGroupSetting;
 use App\Models\NavigationItem as NavigationItemSetting;
+use App\Sistema\Runtime\ModuloNavegacao;
 use Filament\Navigation\NavigationManager;
 
 /**
@@ -34,6 +35,19 @@ class CustomNavigationManager extends NavigationManager
         }
 
         return parent::get();
+    }
+
+    /**
+     * Itens do código e, em seguida, os módulos do dicionário de dados.
+     */
+    public function mountNavigation(): void
+    {
+        parent::mountNavigation();
+
+        [$grupos, $itens] = ModuloNavegacao::para($this->panel->getId());
+
+        $this->navigationGroups($grupos);
+        $this->navigationItems($itens);
     }
 
     /**
@@ -84,6 +98,30 @@ class CustomNavigationManager extends NavigationManager
 
             if ($setting->hidden) {
                 $item->visible(false);
+            }
+        }
+
+        $this->tirarIconesDeGruposComIcone();
+    }
+
+    /**
+     * O Filament não aceita ícone no grupo e nos itens ao mesmo tempo (o menu
+     * inteiro quebra): nos grupos com ícone (módulos), os itens ficam sem.
+     */
+    protected function tirarIconesDeGruposComIcone(): void
+    {
+        $comIcone = collect($this->navigationGroups)
+            ->filter(fn ($grupo) => $grupo instanceof \Filament\Navigation\NavigationGroup && filled($grupo->getIcon()))
+            ->map(fn ($grupo) => $grupo->getLabel())
+            ->all();
+
+        if ($comIcone === []) {
+            return;
+        }
+
+        foreach ($this->navigationItems as $item) {
+            if (in_array($item->getGroup(), $comIcone, true)) {
+                $item->icon(null)->activeIcon(null);
             }
         }
     }

@@ -1,79 +1,118 @@
 <?php
 
-namespace App\Forms\Schema;
+namespace App\Sistema\Schema;
 
-use App\Forms\Enums\FieldType;
-use App\Models\FormDefinition;
-use App\Models\FormField;
+use App\Models\Md\MdCampo;
+use App\Models\Md\MdStatus;
+use App\Models\Md\MdTabela;
+use App\Sistema\Enums\TipoCampo;
+use Illuminate\Support\Collection;
 
 /**
- * "Foto" da estrutura que a tabela do formulário deve ter:
- * ['fields' => [uid => campo], 'roles' => [...]].
+ * "Foto" da estrutura que a tabela física deve ter: ['fields' => [uid => coluna]].
  *
- * Os campos são indexados pelo uid (fixo, vai para o git): renomear um campo
- * é reconhecido como rename, e reimportar em outra máquina não muda nada.
+ * As colunas são indexadas pelo uid do campo (fixo): trocar o nome físico é
+ * reconhecido como rename. A situação (quando a tabela controla situação)
+ * entra como a coluna "situacao", restrita aos códigos habilitados.
  */
 class SchemaSnapshot
 {
-    /**
-     * Snapshot dos campos salvos no banco.
-     */
-    public static function of(FormDefinition $form): array
+    public const UID_SITUACAO = 'situacao';
+
+    public static function of(MdTabela $tabela): array
     {
-        return [
-            'fields' => $form->fields()->with('lookupForm')->get()
-                ->mapWithKeys(fn (FormField $field) => [$field->uid => static::field($field)])
-                ->all(),
-            'roles' => static::roles($form->roles),
-        ];
+        $tabela->loadMissing(['campos.fkTabela', 'situacoes.status']);
+
+        return static::build(
+            $tabela->campos,
+            $tabela->controla_situacao,
+            $tabela->situacoes->map(fn ($s) => $s->status?->nome_fisico)->filter()->values()->all(),
+            $tabela->situacaoPadrao(),
+        );
     }
 
     /**
-     * Snapshot a partir do que está na tela (antes de salvar).
+     * A partir do que está na tela, antes de salvar.
+     *
+     * @param  list<array<string, mixed>>  $campos  estado do repeater de campos
+     * @param  list<array<string, mixed>>  $situacoes  estado do repeater de situações
      */
-    public static function fromState(array $fieldsState, ?array $roles): array
+    public static function fromState(array $campos, bool $controlaSituacao, array $situacoes): array
     {
-        $lookups = FormDefinition::whereIn('id', collect($fieldsState)->pluck('lookup_form_id')->filter())->get()->keyBy('id');
+        $fks = MdTabela::whereIn('id', collect($campos)->pluck('fk_tabela_id')->filter())->get()->keyBy('id');
+        $status = MdStatus::whereIn('id', collect($situacoes)->pluck('md_status_id')->filter())->get()->keyBy('id');
 
-        return [
-            'fields' => collect($fieldsState)
-                ->mapWithKeys(function (array $state) use ($lookups) {
-                    $field = new FormField(collect($state)->only((new FormField)->getFillable())->all());
-                    $field->setRelation('lookupForm', $lookups->get($state['lookup_form_id'] ?? null));
+        $models = collect($campos)->map(function (array $state) use ($fks) {
+            $campo = new MdCampo(collect($state)->only((new MdCampo)->getFillable())->all());
+            $campo->uid = $state['uid'];
+            $campo->setRelation('fkTabela', $fks->get($state['fk_tabela_id'] ?? null));
 
-                    return [$state['uid'] => static::field($field)];
-                })
-                ->all(),
-            'roles' => static::roles($roles),
-        ];
+            return $campo;
+        });
+
+        $codigos = collect($situacoes)->map(fn ($s) => $status->get($s['md_status_id'] ?? null)?->nome_fisico)->filter()->values();
+        $padrao = collect($situacoes)->first(fn ($s) => ! empty($s['padrao']));
+
+        return static::build(
+            $models,
+            $controlaSituacao,
+            $codigos->all(),
+            $padrao ? $status->get($padrao['md_status_id'] ?? null)?->nome_fisico : $codigos->first(),
+        );
     }
 
     public static function empty(): array
     {
-        return ['fields' => [], 'roles' => []];
+        return ['fields' => []];
+    }
+
+    /**
+     * @param  Collection<int, MdCampo>  $campos
+     */
+    protected static function build(Collection $campos, bool $controlaSituacao, array $codigosSituacao, ?string $padrao): array
+    {
+        $fields = $campos->mapWithKeys(fn (MdCampo $campo) => [$campo->uid => static::field($campo)])->all();
+
+        if ($controlaSituacao) {
+            $fields[static::UID_SITUACAO] = [
+                'name' => MdTabela::COLUNA_SITUACAO,
+                'type' => TipoCampo::Enum->value,
+                'length' => null,
+                'precision' => null,
+                'scale' => null,
+                'options' => array_values($codigosSituacao),
+                'nullable' => true,
+                'default' => $padrao,
+                'unique' => false,
+                'index' => true,
+                'foreign' => null,
+            ];
+        }
+
+        return ['fields' => $fields];
     }
 
     /**
      * @return array<string, mixed>
      */
-    public static function field(FormField $field): array
+    public static function field(MdCampo $campo): array
     {
-        $type = $field->type->storageType();
+        $type = $campo->tipo->storageType();
 
         return [
-            'name' => $field->name,
+            'name' => $campo->nome_fisico,
             'type' => $type->value,
-            'length' => $type->hasLength() ? ((int) $field->length ?: $field->type->defaultLength()) : null,
-            'precision' => $type->hasPrecision() ? ((int) $field->precision ?: ($type === FieldType::Decimal ? 10 : 53)) : null,
-            'scale' => $type->hasScale() ? (int) ($field->scale ?? 2) : null,
+            'length' => $type->hasLength() ? ((int) $campo->tamanho ?: $campo->tipo->defaultLength()) : null,
+            'precision' => $type->hasPrecision() ? ((int) $campo->precisao ?: ($type === TipoCampo::Decimal ? 10 : 53)) : null,
+            'scale' => $type->hasScale() ? (int) ($campo->escala ?? 2) : null,
             // só o enum vira regra no banco; a múltipla escolha é validada na tela
-            'options' => $type === FieldType::Enum ? array_values(array_map('strval', $field->options ?? [])) : null,
-            'nullable' => (bool) $field->nullable,
-            'default' => filled($field->default) ? (string) $field->default : null,
-            'unique' => (bool) $field->unique,
-            'index' => (bool) $field->index,
-            'foreign' => $field->type->isForeign() && $field->lookupForm
-                ? ['table' => $field->lookupForm->table_name, 'on_delete' => $field->on_delete ?: 'restrict']
+            'options' => $type === TipoCampo::Enum ? array_values(array_map('strval', $campo->opcoes ?? [])) : null,
+            'nullable' => ! $campo->obrigatorio,
+            'default' => filled($campo->padrao) ? (string) $campo->padrao : null,
+            'unique' => (bool) $campo->unico,
+            'index' => (bool) $campo->indice,
+            'foreign' => $campo->isFk() && $campo->fkTabela
+                ? ['table' => $campo->fkTabela->nome_fisico, 'on_delete' => $campo->fk_on_delete ?: 'restrict']
                 : null,
         ];
     }
@@ -81,13 +120,13 @@ class SchemaSnapshot
     /**
      * Converte o valor padrão (texto do cadastro) para o tipo da coluna.
      */
-    public static function castDefault(FieldType $type, string $value): string|int|float|bool
+    public static function castDefault(TipoCampo $type, string $value): string|int|float|bool
     {
         $type = $type->storageType();
 
         return match (true) {
-            $type === FieldType::Boolean => in_array(mb_strtolower($value), ['1', 'true', 'sim', 'yes', 's'], true),
-            $type->isInteger(), $type === FieldType::Year => (int) $value,
+            $type === TipoCampo::Boolean => in_array(mb_strtolower($value), ['1', 'true', 'sim', 'yes', 's'], true),
+            $type->isInteger(), $type === TipoCampo::Year => (int) $value,
             $type->isNumeric() => (float) $value,
             default => $value,
         };
@@ -99,13 +138,5 @@ class SchemaSnapshot
     public static function constraintName(string $table, string $uid, string $suffix): string
     {
         return "{$table}_" . substr(str_replace('-', '', $uid), 0, 8) . "_{$suffix}";
-    }
-
-    protected static function roles(?array $roles): array
-    {
-        $roles = array_values(array_unique(array_filter($roles ?? [])));
-        sort($roles);
-
-        return $roles;
     }
 }

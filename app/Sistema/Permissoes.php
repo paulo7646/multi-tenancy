@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Forms;
+namespace App\Sistema;
 
 use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
@@ -8,79 +8,90 @@ use Spatie\Permission\PermissionRegistrar;
 use Throwable;
 
 /**
- * Permissões das telas geradas, no padrão já usado pelo Shield no projeto
- * (ex.: view_any_form_clientes). Criadas pelas próprias migrations geradas,
- * no banco onde a migration roda (central ou cada empresa), e concedidas aos
- * papéis escolhidos no cadastro (o super_admin recebe sempre).
+ * Permissões de acesso aos módulos (modulo_{prefixo}). São criadas pelas
+ * migrations geradas, no banco onde a migration roda (central ou cada
+ * cliente), e concedidas aos papéis escolhidos no cadastro do módulo.
  */
-class FormPermissions
+class Permissoes
 {
-    /** ação do Filament => prefixo da permissão */
-    public const ACTIONS = [
-        'viewAny' => 'view_any',
-        'view' => 'view',
-        'create' => 'create',
-        'update' => 'update',
-        'delete' => 'delete',
-        'deleteAny' => 'delete_any',
-    ];
-
-    /**
-     * @return list<string>
-     */
-    public static function names(string $table): array
+    public static function superAdmin(): string
     {
-        return array_map(fn (string $prefix) => "{$prefix}_form_{$table}", array_values(static::ACTIONS));
-    }
-
-    public static function forAction(string $table, string $action): ?string
-    {
-        $prefix = static::ACTIONS[$action] ?? null;
-
-        return $prefix ? "{$prefix}_form_{$table}" : null;
+        return config('filament-shield.super_admin.name', 'super_admin');
     }
 
     /**
-     * Cria as permissões e concede aos papéis (os que existirem neste banco).
-     * O super_admin sempre recebe: no projeto ele não passa pelo Gate
-     * automaticamente (define_via_gate = false), tem as permissões explícitas.
+     * Cria a permissão e deixa exatamente estes papéis (mais o super_admin)
+     * com ela, entre os papéis que existem neste banco.
      */
-    public static function install(array $permissions, array $roles = []): void
+    public static function sincronizar(string $permissao, array $roles): void
     {
+        // Consulta direto no banco atual: o PermissionRegistrar guarda as
+        // permissões em memória e, no mesmo processo (tenants:migrate, central
+        // depois de um cliente), devolveria a permissão de outro banco.
         $registrar = app(PermissionRegistrar::class);
+        $permission = $registrar->getPermissionClass()::query()->firstOrCreate(['name' => $permissao, 'guard_name' => 'web']);
+        $roles = array_unique([...$roles, static::superAdmin()]);
 
-        foreach ($permissions as $permission) {
-            $registrar->getPermissionClass()::findOrCreate($permission, 'web');
+        foreach ($registrar->getRoleClass()::query()->get() as $role) {
+            in_array($role->name, $roles, true)
+                ? $role->permissions()->syncWithoutDetaching([$permission->getKey()])
+                : $role->permissions()->detach($permission->getKey());
         }
 
-        $roles = array_unique([...$roles, config('filament-shield.super_admin.name', 'super_admin')]);
-
-        $registrar->getRoleClass()::whereIn('name', $roles)->get()
-            ->each(fn ($role) => $role->givePermissionTo($permissions));
-
-        static::forgetCache();
+        static::esquecerCache();
     }
 
-    public static function uninstall(array $permissions): void
+    /**
+     * Cria as permissões (se não existirem) e concede a estes papéis (mais o
+     * super_admin), sem tirar de quem já tem: depois disso quem manda é o Shield.
+     */
+    public static function criar(array $permissoes, array $roles): void
     {
-        app(PermissionRegistrar::class)->getPermissionClass()::whereIn('name', $permissions)->delete();
+        $registrar = app(PermissionRegistrar::class);
+        $roles = array_unique([...$roles, static::superAdmin()]);
+        $ids = collect($permissoes)
+            ->map(fn (string $nome) => $registrar->getPermissionClass()::query()->firstOrCreate(['name' => $nome, 'guard_name' => 'web'])->getKey())
+            ->all();
 
-        static::forgetCache();
+        foreach ($registrar->getRoleClass()::query()->whereIn('name', $roles)->get() as $role) {
+            $role->permissions()->syncWithoutDetaching($ids);
+        }
+
+        static::esquecerCache();
+    }
+
+    public static function remover(string ...$permissoes): void
+    {
+        app(PermissionRegistrar::class)->getPermissionClass()::query()->whereIn('name', $permissoes)->delete();
+
+        static::esquecerCache();
+    }
+
+    /**
+     * Pode a ação? O super_admin pode tudo.
+     */
+    public static function pode(string $permissao): bool
+    {
+        $user = auth()->user();
+
+        return (bool) $user && ($user->hasRole(static::superAdmin()) || $user->can($permissao));
     }
 
     /**
      * O PermissionRegistrar guarda o cache do primeiro banco em que foi usado:
-     * no tenants:migrate (várias empresas no mesmo processo) ele limparia o
-     * cache da empresa errada. Por isso a chave também é apagada direto na
+     * no tenants:migrate (vários clientes no mesmo processo) ele limparia o
+     * cache do cliente errado. Por isso a chave também é apagada direto na
      * tabela de cache do banco atual.
      */
-    protected static function forgetCache(): void
+    protected static function esquecerCache(): void
     {
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->clearPermissionsCollection();
 
         $store = config('permission.cache.store') === 'default' ? config('cache.default') : config('permission.cache.store');
 
         if (config("cache.stores.{$store}.driver") !== 'database') {
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+
             return;
         }
 
@@ -94,11 +105,11 @@ class FormPermissions
     }
 
     /**
-     * Nomes de papéis existentes (central + empresas), para sugerir no cadastro.
+     * Nomes de papéis existentes (central + clientes), para sugerir no cadastro.
      *
-     * @return list<string>
+     * @return array<string, string>
      */
-    public static function roleSuggestions(): array
+    public static function sugestoesDePapeis(): array
     {
         $roleClass = app(PermissionRegistrar::class)->getRoleClass();
         $names = $roleClass::pluck('name');
@@ -107,6 +118,7 @@ class FormPermissions
             $names = $names->merge($tenant->run(fn () => $roleClass::pluck('name')));
         }
 
-        return $names->unique()->sort()->values()->all();
+        return $names->unique()->reject(fn ($name) => $name === static::superAdmin())
+            ->sort()->values()->mapWithKeys(fn ($name) => [$name => $name])->all();
     }
 }

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Forms\Enums;
+namespace App\Sistema\Enums;
 
 /**
- * Tipos de coluna do Laravel disponíveis no construtor de formulários.
+ * Tipos de campo do dicionário de dados (md_campos).
  * O valor é o método do Blueprint usado na migration.
  *
  * Ficam de fora os tipos que não fazem sentido como campo de tela
@@ -11,7 +11,7 @@ namespace App\Forms\Enums;
  * binary e os que o PostgreSQL não suporta sem extensão (set, geometry,
  * geography, vector).
  */
-enum FieldType: string
+enum TipoCampo: string
 {
     // Texto
     case String = 'string';

@@ -1,63 +1,46 @@
 <?php
 
-namespace App\Forms\Generators;
+namespace App\Sistema\Schema;
 
-use App\Forms\Enums\FieldType;
-use App\Forms\FormPermissions;
-use App\Forms\Schema\SchemaSnapshot;
-use App\Models\FormDefinition;
+use App\Models\Md\MdTabela;
+use App\Sistema\Enums\TipoCampo;
 
 /**
- * Gera o código das migrations do formulário (arquivos que vão para o git;
- * o cliente aplica com migrate / tenants:migrate).
+ * Gera o código das migrations das tabelas do dicionário (arquivos que vão
+ * para o git; o cliente aplica com migrate / tenants:migrate).
  *
- * O snapshot ['fields' => [...], 'roles' => [...]] é a foto da última
- * migration gerada. Comparando a foto antiga com a atual sai a migration de
- * alteração. Campos são indexados pelo id: trocar o nome vira renameColumn.
+ * O snapshot ['fields' => [...]] é a foto da última migration gerada.
+ * Comparando a foto antiga com a atual sai a migration de alteração. Campos
+ * são indexados pelo uid: trocar o nome físico vira renameColumn.
  *
  * Proteções geradas junto:
  *  - verificações (MigrationGuard) antes de alterar: dados que não convertem,
  *    vazios, repetidos, ids inexistentes, opções fora da lista;
  *  - troca de tipo com USING (o Laravel não faz isso no PostgreSQL);
- *  - campo que ficou obrigatório com valor padrão: preenche os vazios antes;
- *  - permissões da tela criadas/removidas na própria migration.
+ *  - campo que ficou obrigatório com valor padrão: preenche os vazios antes.
  */
 class MigrationWriter
 {
-    public static function create(FormDefinition $form, array $new): string
+    public static function create(MdTabela $tabela, array $new): string
     {
-        $table = $form->table_name;
+        $table = $tabela->nome_fisico;
 
-        $up = [
-            static::createBlock($table, $new['fields']),
-            ...static::checks($table, [], $new['fields']),
-            static::installPermissions($form, $new['roles']),
-        ];
-
-        $down = [
-            static::uninstallPermissions($form),
-            "Schema::dropIfExists('{$table}');",
-        ];
-
-        return static::file($up, $down);
+        return static::file(
+            [static::createBlock($table, $new['fields']), ...static::checks($table, [], $new['fields'])],
+            ["Schema::dropIfExists('{$table}');"],
+        );
     }
 
     /**
      * Retorna null se não houver diferença.
      */
-    public static function alter(FormDefinition $form, array $old, array $new): ?string
+    public static function alter(MdTabela $tabela, array $old, array $new): ?string
     {
-        $up = static::alterStatements($form->table_name, $old['fields'], $new['fields']);
-        $down = static::alterStatements($form->table_name, $new['fields'], $old['fields']);
+        $up = static::alterStatements($tabela->nome_fisico, $old['fields'], $new['fields']);
+        $down = static::alterStatements($tabela->nome_fisico, $new['fields'], $old['fields']);
 
-        $rolesChanged = $old['roles'] !== $new['roles'];
-
-        if ($up === [] && ! $rolesChanged) {
+        if ($up === []) {
             return null;
-        }
-
-        if ($rolesChanged) {
-            $up[] = static::installPermissions($form, $new['roles']);
         }
 
         return static::file($up, $down ?: ['//']);
@@ -66,13 +49,13 @@ class MigrationWriter
     /**
      * Apaga a tabela. O rollback recria a estrutura (sem os dados).
      */
-    public static function drop(FormDefinition $form, array $old): string
+    public static function drop(MdTabela $tabela, array $old): string
     {
-        $table = $form->table_name;
+        $table = $tabela->nome_fisico;
 
         return static::file(
-            [static::uninstallPermissions($form), "Schema::dropIfExists('{$table}');"],
-            [static::createBlock($table, $old['fields']), ...static::checks($table, [], $old['fields']), static::installPermissions($form, $old['roles'])],
+            ["Schema::dropIfExists('{$table}');"],
+            [static::createBlock($table, $old['fields']), ...static::checks($table, [], $old['fields'])],
         );
     }
 
@@ -150,7 +133,7 @@ class MigrationWriter
 
             if ($before['nullable'] && ! $after['nullable'] && $after['default'] !== null) {
                 $sql[] = "DB::table('{$table}')->whereNull('{$after['name']}')->update(['{$after['name']}' => "
-                    . static::export(SchemaSnapshot::castDefault(FieldType::from($after['type']), $after['default'])) . ']);';
+                    . static::export(SchemaSnapshot::castDefault(TipoCampo::from($after['type']), $after['default'])) . ']);';
             }
 
             if (static::columnChanged($before, $after)) {
@@ -260,7 +243,7 @@ class MigrationWriter
 
     protected static function cast(array $field): string
     {
-        return FieldType::from($field['type'])->postgresCast($field['length'], $field['precision'], $field['scale']);
+        return TipoCampo::from($field['type'])->postgresCast($field['length'], $field['precision'], $field['scale']);
     }
 
     protected static function columnChanged(array $before, array $after): bool
@@ -276,15 +259,15 @@ class MigrationWriter
 
     protected static function column(array $field): string
     {
-        $type = FieldType::from($field['type']);
+        $type = TipoCampo::from($field['type']);
         $name = var_export($field['name'], true);
 
         $code = match (true) {
             $type->isForeign() => "\$table->unsignedBigInteger({$name})",
-            $type === FieldType::Enum => "\$table->string({$name}, 255)", // opções viram CHECK
+            $type === TipoCampo::Enum => "\$table->string({$name}, 255)", // opções viram CHECK
             $type->hasLength() => "\$table->{$type->value}({$name}, {$field['length']})",
-            $type === FieldType::Decimal => "\$table->decimal({$name}, {$field['precision']}, {$field['scale']})",
-            $type === FieldType::Float => "\$table->float({$name}, {$field['precision']})",
+            $type === TipoCampo::Decimal => "\$table->decimal({$name}, {$field['precision']}, {$field['scale']})",
+            $type === TipoCampo::Float => "\$table->float({$name}, {$field['precision']})",
             default => "\$table->{$type->value}({$name})",
         };
 
@@ -295,16 +278,6 @@ class MigrationWriter
         }
 
         return $code;
-    }
-
-    protected static function installPermissions(FormDefinition $form, array $roles): string
-    {
-        return 'FormPermissions::install(' . static::export(FormPermissions::names($form->table_name)) . ', ' . static::export(array_values($roles)) . ');';
-    }
-
-    protected static function uninstallPermissions(FormDefinition $form): string
-    {
-        return 'FormPermissions::uninstall(' . static::export(FormPermissions::names($form->table_name)) . ');';
     }
 
     protected static function statement(string $sql): string
@@ -349,10 +322,9 @@ class MigrationWriter
         return <<<PHP
 <?php
 
-// Gerado pelo construtor de formulários.
+// Gerado pelo dicionário de dados (md_tabelas).
 
-use App\Forms\FormPermissions;
-use App\Forms\Schema\MigrationGuard;
+use App\Sistema\Schema\MigrationGuard;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;

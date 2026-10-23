@@ -10,6 +10,9 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use App\Sistema\Enums\Banco;
+use App\Sistema\Registro;
+use App\Filament\Sistema\Pages\ModuloPage;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -38,9 +41,12 @@ class ClientPanelProvider extends PanelProvider
             ])
             ->viteTheme('resources/css/filament/client/theme.css')
             ->discoverResources(in: app_path('Filament/Client/Resources'), for: 'App\\Filament\\Client\\Resources')
+            // telas dos módulos dos clientes (dicionário de dados)
+            ->resources(Registro::resources(Banco::Tenant))
             ->discoverPages(in: app_path('Filament/Client/Pages'), for: 'App\\Filament\\Client\\Pages')
             ->pages([
                 Dashboard::class,
+                ModuloPage::class, // visão geral de cada módulo
             ])
             ->discoverWidgets(in: app_path('Filament/Client/Widgets'), for: 'App\\Filament\\Client\\Widgets')
             ->widgets([
