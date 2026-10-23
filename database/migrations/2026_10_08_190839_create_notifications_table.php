@@ -15,7 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('type');
             $table->morphs('notifiable');
-            $table->text('data');
+            // jsonb: o sino do Filament consulta data->>'format'
+            $table->jsonb('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });

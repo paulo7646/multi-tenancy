@@ -19,6 +19,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // situação da licença de cada usuário
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('licenca_id')->references('id')->on('licencas')->nullOnDelete();
+        });
+
         DB::table('licencas')->insert([
             ['nome' => 'Sem Licença', 'color' => 'gray', 'ativo' => true, 'created_at' => now(), 'updated_at' => now()],
             ['nome' => 'Licença Ativa', 'color' => 'success', 'ativo' => true, 'created_at' => now(), 'updated_at' => now()],
@@ -29,6 +34,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('users', fn (Blueprint $table) => $table->dropForeign(['licenca_id']));
         Schema::dropIfExists('licencas');
     }
 };

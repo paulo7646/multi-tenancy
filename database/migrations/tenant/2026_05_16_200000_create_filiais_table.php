@@ -15,10 +15,16 @@ return new class extends Migration
             $table->boolean('ativo')->default(true);
             $table->timestamps();
         });
+
+        // filial fixa do usuário (null = escolhe a filial no topo)
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('filial_id')->references('id')->on('filiais')->nullOnDelete();
+        });
     }
 
     public function down(): void
     {
+        Schema::table('users', fn (Blueprint $table) => $table->dropForeign(['filial_id']));
         Schema::dropIfExists('filiais');
     }
 };
