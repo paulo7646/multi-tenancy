@@ -17,8 +17,15 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            // autenticação em dois fatores (Fortify)
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            // as FKs entram nas migrations de licencas e filiais (que criam essas tabelas depois)
+            $table->unsignedBigInteger('licenca_id')->nullable();
+            $table->unsignedBigInteger('filial_id')->nullable();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

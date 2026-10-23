@@ -17,10 +17,15 @@ class CreateTenantsTable extends Migration
     {
         Schema::create('tenants', function (Blueprint $table) {
             $table->string('id')->primary();
+            // pasta do frontend da empresa (views/clientes/{slug})
+            $table->string('slug')->nullable()->unique();
 
             $table->string('name');
             $table->string('email');
             $table->string('password');
+            $table->boolean('is_active')->default(true);
+            // limite de licenças ativas; null = sem limite
+            $table->unsignedInteger('qtd_licencas')->nullable();
 
             $table->timestamps();
             $table->json('data')->nullable();
