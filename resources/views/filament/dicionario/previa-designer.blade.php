@@ -45,7 +45,7 @@
             this.fechar()
         },
 
-        // resumo ao lado de "Ajustar campo": posição na tab e tamanho
+        // resumo ao lado de Ajustar campo: posição na tab e tamanho
         resumo(campo) {
             const previa = this.$wire.previa || []
             const item = this.ajuste(campo)
