@@ -119,13 +119,13 @@ class ColunasBuilder
      */
     protected function situacao(Collection $status): Column
     {
-        $porCodigo = $status->keyBy('nome_fisico');
+        $porCodigo = $status->keyBy('id');
 
         return TextColumn::make(MdTabela::COLUNA_SITUACAO)
             ->label('Situação')
             ->badge()
-            ->formatStateUsing(fn (?string $state) => $porCodigo->get($state)?->nome ?? $state)
-            ->icon(fn (?string $state) => $porCodigo->get($state)?->icone)
-            ->color(fn (?string $state) => $porCodigo->get($state)?->corFilament() ?? 'gray');
+            ->formatStateUsing(fn ($state) => $porCodigo->get($state)?->nome ?? $state)
+            ->icon(fn ($state) => $porCodigo->get($state)?->icone)
+            ->color(fn ($state) => $porCodigo->get($state)?->corFilament() ?? 'gray');
     }
 }

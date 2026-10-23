@@ -84,7 +84,7 @@ PHP)
         $conexao = $tabela->banco === Banco::Central ? "\n    protected \$connection = 'central';\n" : '';
         $padrao = $tabela->situacaoPadrao();
         $coluna = MdTabela::COLUNA_SITUACAO;
-        $atributos = $padrao ? "\n    protected \$attributes = ['{$coluna}' => '{$padrao}'];\n" : '';
+        $atributos = $padrao ? "\n    protected \$attributes = ['{$coluna}' => {$padrao}];\n" : '';
 
         return static::INICIO . <<<PHP
 

@@ -17,8 +17,8 @@ use Illuminate\Support\Str;
  */
 class MdTabela extends Model
 {
-    /** Coluna da situação (quando a tabela controla situação) */
-    public const COLUNA_SITUACAO = 'SITUACAO';
+    /** Coluna da situação (quando a tabela controla situação): FK para md_status */
+    public const COLUNA_SITUACAO = 'MD_STATUS_ID';
 
     protected $connection = 'central';
 
@@ -207,7 +207,7 @@ class MdTabela extends Model
     /**
      * Situação padrão (preenchida ao incluir registros).
      */
-    public function situacaoPadrao(): ?string
+    public function situacaoPadrao(): ?int
     {
         if (! $this->controla_situacao) {
             return null;
@@ -215,7 +215,7 @@ class MdTabela extends Model
 
         $situacoes = $this->situacoes()->with('status')->get();
 
-        return ($situacoes->firstWhere('padrao', true) ?? $situacoes->first())?->status?->nome_fisico;
+        return ($situacoes->firstWhere('padrao', true) ?? $situacoes->first())?->status?->id;
     }
 
     /**

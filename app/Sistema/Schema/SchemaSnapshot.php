@@ -3,7 +3,6 @@
 namespace App\Sistema\Schema;
 
 use App\Models\Md\MdCampo;
-use App\Models\Md\MdStatus;
 use App\Models\Md\MdTabela;
 use App\Sistema\Enums\TipoCampo;
 use Illuminate\Support\Collection;
@@ -13,7 +12,7 @@ use Illuminate\Support\Collection;
  *
  * As colunas são indexadas pelo uid do campo (fixo): trocar o nome físico é
  * reconhecido como rename. A situação (quando a tabela controla situação)
- * entra como a coluna "situacao", restrita aos códigos habilitados.
+ * entra como a coluna MD_STATUS_ID, chave estrangeira de md_status.
  */
 class SchemaSnapshot
 {
@@ -26,7 +25,6 @@ class SchemaSnapshot
         return static::build(
             $tabela->campos,
             $tabela->controla_situacao,
-            $tabela->situacoes->map(fn ($s) => $s->status?->nome_fisico)->filter()->values()->all(),
             $tabela->situacaoPadrao(),
         );
     }
@@ -40,7 +38,6 @@ class SchemaSnapshot
     public static function fromState(array $campos, bool $controlaSituacao, array $situacoes): array
     {
         $fks = MdTabela::whereIn('id', collect($campos)->pluck('fk_tabela_id')->filter())->get()->keyBy('id');
-        $status = MdStatus::whereIn('id', collect($situacoes)->pluck('md_status_id')->filter())->get()->keyBy('id');
 
         $models = collect($campos)->map(function (array $state) use ($fks) {
             $campo = new MdCampo(collect($state)->only((new MdCampo)->getFillable())->all());
@@ -50,15 +47,10 @@ class SchemaSnapshot
             return $campo;
         });
 
-        $codigos = collect($situacoes)->map(fn ($s) => $status->get($s['md_status_id'] ?? null)?->nome_fisico)->filter()->values();
-        $padrao = collect($situacoes)->first(fn ($s) => ! empty($s['padrao']));
+        $ids = collect($situacoes)->pluck('md_status_id')->filter()->values();
+        $padrao = collect($situacoes)->first(fn ($s) => ! empty($s['padrao']))['md_status_id'] ?? $ids->first();
 
-        return static::build(
-            $models,
-            $controlaSituacao,
-            $codigos->all(),
-            $padrao ? $status->get($padrao['md_status_id'] ?? null)?->nome_fisico : $codigos->first(),
-        );
+        return static::build($models, $controlaSituacao, $padrao ? (int) $padrao : null);
     }
 
     public static function empty(): array
@@ -69,23 +61,23 @@ class SchemaSnapshot
     /**
      * @param  Collection<int, MdCampo>  $campos
      */
-    protected static function build(Collection $campos, bool $controlaSituacao, array $codigosSituacao, ?string $padrao): array
+    protected static function build(Collection $campos, bool $controlaSituacao, ?int $padrao): array
     {
         $fields = $campos->mapWithKeys(fn (MdCampo $campo) => [$campo->uid => static::field($campo)])->all();
 
         if ($controlaSituacao) {
             $fields[static::UID_SITUACAO] = [
                 'name' => MdTabela::COLUNA_SITUACAO,
-                'type' => TipoCampo::Enum->value,
+                'type' => TipoCampo::UnsignedBigInteger->value,
                 'length' => null,
                 'precision' => null,
                 'scale' => null,
-                'options' => array_values($codigosSituacao),
+                'options' => null,
                 'nullable' => true,
-                'default' => $padrao,
+                'default' => $padrao === null ? null : (string) $padrao,
                 'unique' => false,
                 'index' => true,
-                'foreign' => null,
+                'foreign' => ['table' => 'md_status', 'on_delete' => 'restrict'],
             ];
         }
 
