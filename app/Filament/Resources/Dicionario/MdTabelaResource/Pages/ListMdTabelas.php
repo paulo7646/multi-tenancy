@@ -13,6 +13,7 @@ class ListMdTabelas extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            MdTabelaResource::acaoSchemaGeral(),
             CreateAction::make(),
         ];
     }

@@ -13,6 +13,10 @@ use App\Sistema\Enums\TipoCampo;
 use App\Sistema\Enums\TipoTabela;
 use App\Models\Md\MdTabelaItem;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use App\Sistema\Runtime\DiagramaSchema;
+use Filament\Support\Enums\Width;
+use Illuminate\Database\Eloquent\Collection;
 use App\Sistema\Geradores\Gerador;
 use Closure;
 use Filament\Actions\DeleteAction;
@@ -614,7 +618,48 @@ class MdTabelaResource extends Resource
                 ViewAction::make(),
                 EditAction::make(),
                 static::excluir(DeleteAction::make()),
+            ])
+            // selecionou tabelas no datagrid: o schema delas e das filhas
+            ->toolbarActions([
+                BulkAction::make('schema')
+                    ->label('Schema')
+                    ->icon('heroicon-o-share')
+                    ->color('gray')
+                    ->modalHeading(fn (Collection $records) => 'Schema: ' . $records->pluck('nome_fisico')->join(', ') . ' e tabelas filhas')
+                    ->modalWidth(Width::Screen)
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Fechar')
+                    ->modalContent(fn (Collection $records) => view('filament.dicionario.schema', [
+                        'codigo' => DiagramaSchema::daTabela($records->modelKeys()),
+                    ]))
+                    ->action(fn () => null),
             ]);
+    }
+
+    /**
+     * "Schema" do topo da lista: todas as tabelas e ligações (filtro por banco).
+     */
+    public static function acaoSchemaGeral(): Action
+    {
+        return Action::make('schema')
+            ->label('Schema')
+            ->icon('heroicon-o-share')
+            ->color('gray')
+            ->modalHeading('Schema de todas as tabelas')
+            ->modalWidth(Width::Screen)
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Fechar')
+            ->modalContent(fn () => view('filament.dicionario.schema', ['codigo' => DiagramaSchema::geral()]))
+            // por banco: as FKs só ligam tabelas do mesmo banco
+            ->extraModalFooterActions(fn () => collect(Banco::cases())->map(fn (Banco $banco) => Action::make("schema_{$banco->value}")
+                ->label('Só ' . mb_strtolower($banco->getLabel()))
+                ->color('gray')
+                ->modalHeading('Schema: ' . $banco->getLabel())
+                ->modalWidth(Width::Screen)
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Fechar')
+                ->modalContent(view('filament.dicionario.schema', ['codigo' => DiagramaSchema::geral($banco->value)])))
+                ->all());
     }
 
     public static function excluir(DeleteAction $action): DeleteAction
