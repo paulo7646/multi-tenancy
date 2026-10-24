@@ -21,6 +21,7 @@ class EditMdTabela extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            MdTabelaResource::acaoValores(),
             ViewAction::make(),
             MdTabelaResource::excluir(DeleteAction::make()),
         ];

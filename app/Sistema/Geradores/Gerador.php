@@ -162,7 +162,7 @@ class Gerador
     }
 
     /**
-     * Lista e conteúdo têm campos do sistema (CODIGO/VALOR e DESCRICAO), criados e travados aqui.
+     * Lista e conteúdo têm campos do sistema (NOME e VALOR), criados e travados aqui.
      */
     public static function garantirCamposDoSistema(MdTabela $tabela): void
     {
@@ -193,7 +193,7 @@ class Gerador
         $tabela->load('itens');
 
         if ($tipo === TipoTabela::Lista) {
-            $maior = max((int) $tabela->itens->max('codigo'), (int) collect($tabela->itens_gerados ?? [])->max('CODIGO'));
+            $maior = max((int) $tabela->itens->max('codigo'), (int) collect($tabela->itens_gerados ?? [])->max('VALOR'));
 
             foreach ($tabela->itens->whereNull('codigo') as $item) {
                 $item->forceFill(['codigo' => ++$maior])->saveQuietly();
@@ -205,7 +205,7 @@ class Gerador
         $chave = $tipo->colunaChave();
         $itens = $tabela->itens->map(fn ($item) => [
             $chave => $tipo === TipoTabela::Lista ? (int) $item->codigo : (string) $item->valor,
-            'DESCRICAO' => $item->descricao,
+            'NOME' => $item->nome,
         ])->values()->all();
 
         EnumWriter::gravar($tabela);

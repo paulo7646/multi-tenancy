@@ -11,10 +11,10 @@ use Filament\Support\Contracts\HasLabel;
  *  - Cadastro: tabela normal.
  *  - Ligação: igual ao cadastro, mas sem formulário/tela; liga duas tabelas
  *    (FK para cada uma) e aparece nas tab pages do tipo Tabela.
- *  - Lista: cada item vira um caso de enum no módulo, com código inteiro
- *    sequencial definido pelo sistema (1, 2, 3...).
- *  - Conteúdo: cada item vira um caso de enum, com o valor definido pelo usuário.
- * Os itens de lista e conteúdo são cadastrados no dicionário; uma migration
+ *  - Lista: cada item (NOME em maiúscula) vira uma constante de enum no módulo,
+ *    com VALOR inteiro sequencial definido pelo sistema (1, 2, 3...).
+ *  - Conteúdo: igual, com o VALOR definido pelo usuário.
+ * Os itens de lista e conteúdo são cadastrados no botão Valores da lista; uma migration
  * grava os registros na tabela (igual em todos os bancos).
  */
 enum TipoTabela: string implements HasLabel, HasDescription, HasIcon
@@ -39,8 +39,8 @@ enum TipoTabela: string implements HasLabel, HasDescription, HasIcon
         return match ($this) {
             self::Cadastro => 'Tabela normal.',
             self::Ligacao => 'Liga duas tabelas (ex.: PRODUTO_PEDIDO, com FK para cada uma). Não tem formulário nem tela: numa tab page do tipo Tabela, mostra os registros do outro lado da ligação.',
-            self::Lista => 'Itens fixos com código sequencial (1, 2, 3...): vira um enum do módulo.',
-            self::Conteudo => 'Itens fixos com o valor que você definir: vira um enum do módulo.',
+            self::Lista => 'Itens fixos com NOME e VALOR inteiro sequencial (1, 2, 3...) definido pelo sistema: cada NOME vira uma constante do enum do módulo.',
+            self::Conteudo => 'Itens fixos com NOME e o VALOR que você definir: cada NOME vira uma constante do enum do módulo.',
         };
     }
 
@@ -77,8 +77,7 @@ enum TipoTabela: string implements HasLabel, HasDescription, HasIcon
     public function colunaChave(): ?string
     {
         return match ($this) {
-            self::Lista => 'CODIGO',
-            self::Conteudo => 'VALOR',
+            self::Lista, self::Conteudo => 'VALOR',
             self::Cadastro, self::Ligacao => null,
         };
     }
@@ -92,12 +91,12 @@ enum TipoTabela: string implements HasLabel, HasDescription, HasIcon
     {
         return match ($this) {
             self::Lista => [
-                ['nome' => 'Código', 'nome_fisico' => 'CODIGO', 'tipo' => TipoCampo::UnsignedInteger->value, 'obrigatorio' => true, 'unico' => true],
-                ['nome' => 'Descrição', 'nome_fisico' => 'DESCRICAO', 'tipo' => TipoCampo::String->value, 'tamanho' => 100, 'obrigatorio' => true],
+                ['nome' => 'Nome', 'nome_fisico' => 'NOME', 'tipo' => TipoCampo::String->value, 'tamanho' => 60, 'obrigatorio' => true, 'unico' => true],
+                ['nome' => 'Valor', 'nome_fisico' => 'VALOR', 'tipo' => TipoCampo::UnsignedInteger->value, 'obrigatorio' => true, 'unico' => true],
             ],
             self::Conteudo => [
+                ['nome' => 'Nome', 'nome_fisico' => 'NOME', 'tipo' => TipoCampo::String->value, 'tamanho' => 60, 'obrigatorio' => true, 'unico' => true],
                 ['nome' => 'Valor', 'nome_fisico' => 'VALOR', 'tipo' => TipoCampo::String->value, 'tamanho' => 60, 'obrigatorio' => true, 'unico' => true],
-                ['nome' => 'Descrição', 'nome_fisico' => 'DESCRICAO', 'tipo' => TipoCampo::String->value, 'tamanho' => 100, 'obrigatorio' => true],
             ],
             self::Cadastro, self::Ligacao => [],
         };

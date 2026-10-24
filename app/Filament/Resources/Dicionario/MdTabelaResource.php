@@ -40,6 +40,9 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\View;
+use App\Sistema\Registro;
+use App\Sistema\Geradores\Exportador;
+use Illuminate\Support\HtmlString;
 use App\Sistema\Runtime\Traducao;
 use Livewire\Component;
 use Filament\Schemas\Schema;
@@ -83,7 +86,6 @@ class MdTabelaResource extends Resource
                         static::abaTabela(),
                         static::abaCampos(),
                         static::abaSituacoes(),
-                        static::abaItens(),
                         static::abaTraducao(Traducao::TABELA),
                         static::abaTraducao(Traducao::LOOKUP),
                         static::abaTelas('formularios'),
@@ -232,6 +234,8 @@ class MdTabelaResource extends Resource
                     ->collapsible()
                     ->cloneable()
                     ->addActionLabel('Adicionar campo')
+                    // lista/conteúdo: só os campos do sistema (NOME e VALOR); os valores entram em Valores da lista
+                    ->addable(fn (Get $get) => ! (TipoTabela::tryFrom(static::valorTipo($get('tipo')))?->temItens()))
                     ->itemLabel(fn(array $state) => filled($state['nome'] ?? null)
                         ? "{$state['nome']} · " . ($state['nome_fisico'] ?? '') . ' · ' . (TipoCampo::tryFrom($state['tipo'] ?? '')?->label() ?? '')
                         : 'Novo campo')
@@ -495,52 +499,100 @@ class MdTabelaResource extends Resource
         }
     }
 
-    protected static function abaItens(): Tab
+    /**
+     * Botão "Valores da lista" (tabelas lista/conteúdo): mostra os valores que já
+     * existem e inclui novos. Ao incluir, grava os registros (migration) e gera
+     * a constante no enum do módulo.
+     */
+    public static function acaoValores(): Action
     {
-
-        $tipo = fn(Get $get) => TipoTabela::tryFrom(static::valorTipo($get('tipo')));
-
-        return Tab::make('Itens')
+        return Action::make('valores')
+            ->label('Valores da lista')
             ->icon('heroicon-o-list-bullet')
-            ->visible(fn(Get $get) => (bool) $tipo($get)?->temItens())
-            ->schema([
-                Text::make(fn(Get $get, ?MdTabela $record) => $tipo($get) === TipoTabela::Lista
-                    ? 'Cada item vira um caso do enum ' . ($record?->exists ? $record->enumFqcn() : 'do módulo') . ', com código inteiro sequencial (1, 2, 3...) definido pelo sistema, e um registro da tabela (igual em todos os bancos).'
-                    : 'Cada item vira um caso do enum ' . ($record?->exists ? $record->enumFqcn() : 'do módulo') . ', com o valor que você definir, e um registro da tabela (igual em todos os bancos).'),
+            ->color('gray')
+            ->visible(fn (MdTabela $record) => $record->tipoTabela()->temItens())
+            ->modalHeading(fn (MdTabela $record) => "Valores — {$record->nome}")
+            ->modalSubmitActionLabel('Incluir')
+            ->modalWidth(Width::TwoExtraLarge)
+            ->schema(function (MdTabela $record) {
+                $lista = $record->tipoTabela() === TipoTabela::Lista;
+                $existentes = $record->itens()->get();
 
-                Repeater::make('itens')
-                    ->hiddenLabel()
-                    ->relationship('itens')
-                    ->orderColumn('ordem')
-                    ->reorderable()
-                    ->defaultItems(0)
-                    ->addActionLabel('Adicionar item')
-                    ->columns(3)
-                    ->schema([
-                        TextInput::make('codigo')
-                            ->label('Código')
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->placeholder('automático')
-                            ->visible(fn(Get $get) => $tipo($get) === TipoTabela::Lista || TipoTabela::tryFrom(static::valorTipo($get('../../tipo'))) === TipoTabela::Lista),
+                $linhas = $existentes->map(fn (MdTabelaItem $i) => '<tr><td style="padding:2px 12px 2px 0"><code>' . e($i->nome) . '</code></td><td>'
+                    . e($lista ? $i->codigo : $i->valor) . '</td></tr>')->implode('');
 
-                        TextInput::make('valor')
-                            ->label('Valor')
-                            ->maxLength(60)
-                            ->distinct()
-                            ->required(fn(Get $get) => TipoTabela::tryFrom(static::valorTipo($get('../../tipo'))) === TipoTabela::Conteudo)
-                            ->visible(fn(Get $get) => TipoTabela::tryFrom(static::valorTipo($get('../../tipo'))) === TipoTabela::Conteudo),
+                return [
+                    Text::make(new HtmlString($existentes->isEmpty()
+                        ? 'Nenhum valor ainda.'
+                        : '<table><thead><tr><th style="text-align:left;padding-right:12px">Nome</th><th style="text-align:left">Valor</th></tr></thead><tbody>' . $linhas . '</tbody></table>')),
 
-                        TextInput::make('descricao')
-                            ->label('Descrição')
-                            ->required()
-                            ->maxLength(100)
-                            ->distinct()
-                            ->helperText(fn(?string $state) => filled($state) ? 'Caso no enum: ' . MdTabelaItem::nomeDoCaso($state) : null)
-                            ->live(onBlur: true)
-                            ->columnSpan(2),
-                    ]),
-            ]);
+                    Repeater::make('novos')
+                        ->label('Novos valores')
+                        ->defaultItems(1)
+                        ->addActionLabel('Adicionar valor')
+                        ->columns(2)
+                        ->schema([
+                            TextInput::make('nome')
+                                ->label('Nome')
+                                ->required()
+                                ->maxLength(60)
+                                ->distinct()
+                                ->extraInputAttributes(['style' => 'text-transform: uppercase'])
+                                ->dehydrateStateUsing(fn (?string $state) => filled($state) ? MdTabelaItem::nomeDoCaso($state) : null)
+                                ->helperText(fn (?string $state) => filled($state) ? 'Constante: ' . MdTabelaItem::nomeDoCaso($state) : null)
+                                ->rule(fn () => function (string $attribute, mixed $value, Closure $fail) use ($existentes) {
+                                    if (filled($value) && $existentes->contains('nome', MdTabelaItem::nomeDoCaso($value))) {
+                                        $fail('Já existe um valor com este nome.');
+                                    }
+                                }),
+
+                            TextInput::make('valor')
+                                ->label('Valor')
+                                ->maxLength(60)
+                                ->distinct()
+                                ->disabled($lista)
+                                ->dehydrated(! $lista)
+                                ->required(! $lista)
+                                ->placeholder($lista ? 'automático (inteiro)' : null)
+                                ->rule(fn () => function (string $attribute, mixed $value, Closure $fail) use ($existentes) {
+                                    if (filled($value) && $existentes->contains('valor', (string) $value)) {
+                                        $fail('Já existe um item com este valor.');
+                                    }
+                                }),
+                        ]),
+                ];
+            })
+            ->action(function (array $data, MdTabela $record) {
+                $conteudo = $record->tipoTabela() === TipoTabela::Conteudo;
+                $ordem = (int) $record->itens()->max('ordem');
+
+                foreach ($data['novos'] ?? [] as $novo) {
+                    $record->itens()->create([
+                        'nome' => $novo['nome'],
+                        'valor' => $conteudo ? $novo['valor'] : null,
+                        'ordem' => ++$ordem,
+                    ]);
+                }
+
+                $record->unsetRelation('itens');
+
+                if (! $record->isGerada()) {
+                    Notification::make()->title('Valores guardados')->body('Eles entram na tabela e no enum quando a tabela for salva.')->success()->send();
+
+                    return;
+                }
+
+                try {
+                    $resumo = Gerador::publicarItens($record);
+                    Exportador::tabela($record);
+                    Registro::limpar();
+
+                    Notification::make()->title('Valores incluídos')->body(new HtmlString(implode('<br>', array_map('e', $resumo))))->success()->send();
+                } catch (Throwable $e) {
+                    report($e);
+                    Notification::make()->title('Os valores foram salvos, mas a geração falhou')->body($e->getMessage())->danger()->persistent()->send();
+                }
+            });
     }
 
     public static function valorTipo(mixed $tipo): ?string

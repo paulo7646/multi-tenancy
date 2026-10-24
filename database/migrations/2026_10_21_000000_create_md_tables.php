@@ -121,7 +121,7 @@ return new class extends Migration
             $table->foreignId('md_tabela_id')->constrained('md_tabelas')->cascadeOnDelete();
             $table->unsignedInteger('codigo')->nullable(); // lista: sequência fixa
             $table->string('valor', 60)->nullable(); // conteúdo: definido pelo usuário
-            $table->string('descricao', 100);
+            $table->string('nome', 60); // maiúsculo: vira a constante do enum
             $table->unsignedInteger('ordem')->default(0);
             $table->timestamps();
         });
