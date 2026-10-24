@@ -18,20 +18,12 @@ class EnumWriter
         $tabela->loadMissing(['modulo', 'itens']);
         $lista = $tabela->tipoTabela() === TipoTabela::Lista;
         $tipo = $lista ? 'int' : 'string';
-        $usados = [];
 
-        $casos = $tabela->itens->map(function (MdTabelaItem $item) use ($lista, &$usados) {
-            $nome = MdTabelaItem::nomeDoCaso($item->descricao);
-
-            for ($n = 2; in_array($nome, $usados, true); $n++) {
-                $nome = MdTabelaItem::nomeDoCaso($item->descricao) . "_{$n}";
-            }
-            $usados[] = $nome;
-
+        $casos = $tabela->itens->map(function (MdTabelaItem $item) use ($lista) {
             return [
-                'nome' => $nome,
+                'nome' => $item->nome,
                 'valor' => $lista ? (int) $item->codigo : (string) $item->valor,
-                'descricao' => $item->descricao,
+                'descricao' => ucfirst(mb_strtolower(str_replace('_', ' ', $item->nome))),
             ];
         });
 

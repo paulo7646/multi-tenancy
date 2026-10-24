@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\DB;
 class ItensDaTabela
 {
     /**
-     * @param  string  $chave  CODIGO (lista) ou VALOR (conteúdo)
-     * @param  list<array<string, mixed>>  $itens  [[CODIGO|VALOR => ..., DESCRICAO => ...]]
+     * @param  string  $chave  VALOR (lista e conteúdo)
+     * @param  list<array<string, mixed>>  $itens  [[VALOR => ..., NOME => ...]]
      */
     public static function sincronizar(string $tabela, string $chave, array $itens): void
     {
