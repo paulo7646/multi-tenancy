@@ -97,7 +97,7 @@ class LicenseRequestController extends Controller
 
             if ($limitReached) {
                 $body .= " A empresa excedeu o limite de licenças ({$tenant->activeLicensesCount()}/{$tenant->qtd_licencas} ativas). "
-                    . 'Aumente a quantidade de licenças da empresa para poder ativar esta.';
+                    .'Aumente a quantidade de licenças da empresa para poder ativar esta.';
             }
 
             $actions = [

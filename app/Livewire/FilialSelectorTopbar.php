@@ -3,9 +3,9 @@
 namespace App\Livewire;
 
 use App\Models\Filial;
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Livewire\Component;
 
 class FilialSelectorTopbar extends Component
 {

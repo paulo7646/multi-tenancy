@@ -6,6 +6,9 @@ use App\Http\Controllers\Auth\ImpersonateController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\LicenseRequestController;
 use App\Http\Middleware\CheckTenantStatus;
+use App\Webservice\Http\EntradaController;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -28,9 +31,9 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     // webservices disponibilizados: terceiros enviam JSON/XML para /ws/{webservice}/{rota}
-    Route::any('/ws/{webservice}/{rota?}', \App\Webservice\Http\EntradaController::class)
+    Route::any('/ws/{webservice}/{rota?}', EntradaController::class)
         ->where('rota', '.*')
-        ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+        ->withoutMiddleware([VerifyCsrfToken::class, ValidateCsrfToken::class])
         ->name('webservice.entrada.tenant');
 
     // Página da empresa em Vue: views/clientes/{slug}
@@ -44,7 +47,7 @@ Route::middleware([
         ->middleware('throttle:5,1')
         ->name('license.request');
 
-    Route::get('/tenant-disabled', fn() => view('tenant-disabled'))
+    Route::get('/tenant-disabled', fn () => view('tenant-disabled'))
         ->name('tenant.disabled');
 
     Route::get('/impersonate', ImpersonateController::class)

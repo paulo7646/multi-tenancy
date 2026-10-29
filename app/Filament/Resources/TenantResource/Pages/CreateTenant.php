@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\TenantResource\Pages;
 
 use App\Filament\Resources\TenantResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Hash;
 
 class CreateTenant extends CreateRecord
 {
@@ -12,9 +12,12 @@ class CreateTenant extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        // o administrador da empresa vem do formulário; a senha nunca fica em texto puro
         $data['name'] = 'admin';
-        $data['email'] = 'admin@gmail.com';
-        $data['password'] = 'admin@123';
+        $data['email'] = $data['admin_email'];
+        $data['password'] = Hash::make($data['admin_password']);
+        unset($data['admin_email'], $data['admin_password']);
+
         return $data;
     }
 

@@ -4,13 +4,14 @@ namespace App\Livewire;
 
 use App\Http\Controllers\LicenseRequestController;
 use App\Models\UserLicense;
-use Livewire\Attributes\On;
 use Livewire\Component;
 
 class LicenseMonitor extends Component
 {
     public bool $showBanner = false;
+
     public ?int $warningAt = null;
+
     public int $minutesRemaining = 30;
 
     public function mount(): void
@@ -23,14 +24,14 @@ class LicenseMonitor extends Component
     {
         $user = auth()->user();
 
-        if (!$user || !function_exists('tenant') || !tenant()) {
+        if (! $user || ! function_exists('tenant') || ! tenant()) {
             return;
         }
 
         $hasActiveLicense = UserLicense::findActive($user->email, tenant()->getTenantKey()) !== null;
 
-        if (!$hasActiveLicense) {
-            if (!session()->has('license_warning_at')) {
+        if (! $hasActiveLicense) {
+            if (! session()->has('license_warning_at')) {
                 session(['license_warning_at' => now()->timestamp]);
             }
             $this->warningAt = session('license_warning_at');
@@ -48,9 +49,10 @@ class LicenseMonitor extends Component
 
     private function updateBannerState(): void
     {
-        if (!$this->warningAt) {
+        if (! $this->warningAt) {
             $this->showBanner = false;
             $this->minutesRemaining = 30;
+
             return;
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Sistema;
 
+use App\Models\Md\MdCampo;
 use App\Models\Md\MdFormulario;
 use App\Models\Md\MdFormularioPagina;
 use App\Models\Md\MdGerenciamento;
@@ -91,7 +92,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
     /**
      * Tabela de ligação: a FK do outro lado e a tabela dela (os registros listados).
      *
-     * @return object{campo: \App\Models\Md\MdCampo, tabela: MdTabela}|null
+     * @return object{campo: MdCampo, tabela: MdTabela}|null
      */
     public function outroLado(): ?object
     {
@@ -302,7 +303,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
             ->description(fn () => match (true) {
                 $this->aguardandoRegistro() => 'Salve o registro para ver e incluir os itens ligados a ele.',
                 (bool) $this->tabPage()->sem_permissao => 'Somente consulta.',
-                default => 'Até ' . static::LIMITE . ' registros de ' . $listada->nome . '.',
+                default => 'Até '.static::LIMITE.' registros de '.$listada->nome.'.',
             })
             ->columns((new ColunasBuilder($this->gerenciamentoListada(), $this->tela(BaseResource::VISUALIZAR)))->colunas())
             ->defaultSort($model->getKeyName(), 'desc')
@@ -314,7 +315,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
                 CreateAction::make()
                     ->label('Incluir')
                     ->model($model::class)
-                    ->modalHeading('Incluir ' . $listada->nome)
+                    ->modalHeading('Incluir '.$listada->nome)
                     ->visible(fn () => ! $this->aguardandoRegistro() && $this->pode('create'))
                     ->schema(fn () => $this->formulario(BaseResource::INCLUIR))
                     ->fillForm(fn () => $this->ehLigacao() ? [] : $this->comLigacao([]))
@@ -332,7 +333,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
                     ->label($this->ehLigacao() ? 'Remover' : 'Excluir')
                     ->iconButton()
                     ->modalHeading(fn (Model $record) => $this->ehLigacao() ? 'Remover a ligação?' : 'Excluir o registro?')
-                    ->modalDescription($this->ehLigacao() ? 'Só a ligação com este registro é removida; o ' . mb_strtolower($listada->nome) . ' continua existindo.' : null)
+                    ->modalDescription($this->ehLigacao() ? 'Só a ligação com este registro é removida; o '.mb_strtolower($listada->nome).' continua existindo.' : null)
                     ->visible(fn (Model $record) => $this->pode('delete', $record))
                     ->using(fn (Model $record) => $this->excluir($record)),
             ]);
@@ -365,7 +366,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
             ->label('Vincular')
             ->icon('heroicon-o-link')
             ->color('gray')
-            ->modalHeading(fn () => 'Vincular ' . mb_strtolower($this->listada()->nome))
+            ->modalHeading(fn () => 'Vincular '.mb_strtolower($this->listada()->nome))
             ->modalSubmitActionLabel('Vincular')
             ->visible(fn () => $this->ehLigacao() && ! $this->aguardandoRegistro() && $this->pode('vincular'))
             ->schema(fn () => [

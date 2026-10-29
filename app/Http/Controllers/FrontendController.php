@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\ClienteFrontend;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class FrontendController extends Controller
 {
@@ -24,11 +25,14 @@ class FrontendController extends Controller
     /**
      * "/" do domínio da empresa -> views/clientes/{slug}
      */
-    public function tenant(): View
+    public function tenant(): View|RedirectResponse
     {
         $tenant = tenant();
 
-        abort_if(blank($tenant->slug) || ! ClienteFrontend::exists($tenant->slug), 404);
+        // empresa sem página personalizada (sem pasta) abre direto o painel
+        if (blank($tenant->slug) || ! ClienteFrontend::exists($tenant->slug)) {
+            return redirect('/admin');
+        }
 
         return view('spa', [
             'entry' => ClienteFrontend::entry($tenant->slug),

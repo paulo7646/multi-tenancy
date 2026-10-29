@@ -2,6 +2,7 @@
 
 namespace App\Webservice\Motor;
 
+use App\Webservice\Models\Evento;
 use App\Webservice\Models\Integracao;
 use App\Webservice\Models\Lote;
 use App\Webservice\Models\Objeto;
@@ -32,7 +33,13 @@ class Processador
     /** @var Collection<int, Collection<int, Objeto>> */
     protected Collection $porPai;
 
-    public function __construct(protected Integracao $integracao, protected Versao $versao) {}
+    /**
+     * @param  (callable(Evento, ContextoEvento): void)|null  $executor  quem roda cada evento (padrão: ExecutorDeEventos; trocável nos testes)
+     */
+    public function __construct(protected Integracao $integracao, protected Versao $versao, protected mixed $executor = null)
+    {
+        $this->executor ??= [ExecutorDeEventos::class, 'executar'];
+    }
 
     /**
      * Processa e grava os lotes. Retorna o status final da integração.
@@ -94,7 +101,7 @@ class Processador
         $lote = $this->lotes[array_key_last($this->abertos)]['numero'];
 
         foreach ($no->eventos as $evento) {
-            ExecutorDeEventos::executar($evento, new ContextoEvento($this->integracao, $no, $evento, $item, $dados, $lote));
+            ($this->executor)($evento, new ContextoEvento($this->integracao, $no, $evento, $item, $dados, $lote));
         }
 
         foreach ($this->porPai->get($no->id, collect()) as $filho) {

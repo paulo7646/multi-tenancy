@@ -2,47 +2,47 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Schemas\Schema;
+use App\Filament\Resources\TenantResource\Pages\CreateTenant;
+use App\Filament\Resources\TenantResource\Pages\EditTenant;
+use App\Filament\Resources\TenantResource\Pages\ListTenants;
+use App\Filament\Resources\TenantResource\Pages\ViewTenant;
+use App\Filament\Resources\TenantResource\RelationManagers\UserLicensesRelationManager;
+use App\Models\Tenant;
+use App\Models\User;
+use App\Sistema\AtualizadorDeClientes;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use Filament\Actions\Action;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Actions\ViewAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use Filament\Forms\Components\Select;
-use App\Models\User;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use App\Filament\Resources\TenantResource\Pages\ListTenants;
-use App\Filament\Resources\TenantResource\Pages\CreateTenant;
-use App\Filament\Resources\TenantResource\Pages\ViewTenant;
-use App\Filament\Resources\TenantResource\Pages\EditTenant;
-use App\Filament\Resources\TenantResource\RelationManagers\UserLicensesRelationManager;
-use App\Models\Tenant;
-use App\Sistema\AtualizadorDeClientes;
-use Filament\Notifications\Notification;
-use Throwable;
-use Filament\Resources\Resource;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Forms\Components\Toggle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Filament\Forms\Components\TextInput;
+use Throwable;
 
 class TenantResource extends Resource
 {
     protected static ?string $model = Tenant::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-office-2';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
 
     protected static ?string $pluralLabel = 'Empresas';
 
     protected static ?string $modelLabel = 'Empresa';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Empresa';
+    protected static string|\UnitEnum|null $navigationGroup = 'Empresa';
 
     public static function form(Schema $schema): Schema
     {
@@ -71,14 +71,31 @@ class TenantResource extends Resource
 
                         TextInput::make('slug')
                             ->label('Pasta do frontend')
-                            ->required()
                             ->alphaDash()
                             ->maxLength(50)
                             ->unique(ignoreRecord: true)
                             // Empresas antigas podem estar sem pasta: aí o campo fica liberado na edição
                             ->disabled(fn (string $operation, ?Tenant $record) => $operation === 'edit' && filled($record?->slug))
                             ->prefix('views/clientes/')
-                            ->helperText('Pasta Vue criada automaticamente para esta empresa. Não pode ser alterada depois.'),
+                            ->helperText('Opcional. Pasta Vue criada automaticamente para a página da empresa; não pode ser alterada depois. Sem pasta, o endereço da empresa abre direto o /admin.'),
+
+                        TextInput::make('admin_email')
+                            ->label('E-mail do administrador')
+                            ->email()
+                            ->required()
+                            ->maxLength(255)
+                            ->visibleOn('create')
+                            ->dehydrated(fn (string $operation) => $operation === 'create'),
+
+                        TextInput::make('admin_password')
+                            ->label('Senha do administrador')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->minLength(8)
+                            ->visibleOn('create')
+                            ->dehydrated(fn (string $operation) => $operation === 'create')
+                            ->helperText('Usuário super_admin criado no banco da empresa. A senha é guardada só criptografada.'),
 
                         TextInput::make('qtd_licencas')
                             ->label('Quantidade de licenças')
@@ -115,7 +132,7 @@ class TenantResource extends Resource
                 TextColumn::make('qtd_licencas')
                     ->label('Licenças ativas')
                     ->badge()
-                    ->state(fn (Tenant $record) => $record->active_licenses_count . ' / ' . ($record->qtd_licencas ?? '∞'))
+                    ->state(fn (Tenant $record) => $record->active_licenses_count.' / '.($record->qtd_licencas ?? '∞'))
                     ->color(fn (Tenant $record) => $record->qtd_licencas !== null && $record->active_licenses_count >= $record->qtd_licencas ? 'danger' : 'success'),
 
                 IconColumn::make('is_active')
@@ -142,7 +159,7 @@ class TenantResource extends Resource
                     ->color('warning')
                     ->visible(fn (Tenant $record) => (bool) auth()->user()?->can('update', $record))
                     ->requiresConfirmation()
-                    ->modalHeading(fn (Tenant $record) => 'Atualizar ' . $record->displayName())
+                    ->modalHeading(fn (Tenant $record) => 'Atualizar '.$record->displayName())
                     ->modalDescription('Roda as migrations pendentes no banco deste cliente.')
                     ->action(function (Tenant $record) {
                         try {

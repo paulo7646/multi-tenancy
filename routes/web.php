@@ -1,44 +1,18 @@
 <?php
 
 use App\Http\Controllers\FrontendController;
-use App\Livewire\Settings\Appearance;
-use App\Livewire\Settings\Password;
-use App\Livewire\Settings\Profile;
-use App\Livewire\Settings\TwoFactor;
+use App\Webservice\Http\EntradaController;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
-
 
 // Sistema principal em Vue: views/multitenant
 Route::get('/', [FrontendController::class, 'central'])->name('home');
 
 // webservices disponibilizados: terceiros enviam JSON/XML para /ws/{webservice}/{rota}
-Route::any('/ws/{webservice}/{rota?}', \App\Webservice\Http\EntradaController::class)
+Route::any('/ws/{webservice}/{rota?}', EntradaController::class)
     ->where('rota', '.*')
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->withoutMiddleware([VerifyCsrfToken::class, ValidateCsrfToken::class])
     ->name('webservice.entrada');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
-
-    Route::get('settings/profile', Profile::class)->name('settings.profile');
-    Route::get('settings/password', Password::class)->name('settings.password');
-    Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
-
-    Route::get('settings/two-factor', TwoFactor::class)
-        ->middleware(
-            when(
-                Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
-                ['password.confirm'],
-                [],
-            ),
-        )
-        ->name('two-factor.show');
-});
-
-require __DIR__ . '/auth.php';
+// login, perfil e senha ficam nos painéis do Filament (/admin)
