@@ -2,15 +2,22 @@
 
 namespace App\Providers\Filament;
 
-use Filament\Http\Middleware\Authenticate;
+use App\Filament\Pages\Dashboard;
+use App\Filament\Sistema\Pages\ModuloPage;
+use App\Sistema\Enums\Banco;
+use App\Sistema\Registro;
+use App\Webservice\Resources\AgendamentoResource;
+use App\Webservice\Resources\EventoResource;
+use App\Webservice\Resources\IntegracaoResource;
+use App\Webservice\Resources\ObjetoResource;
+use App\Webservice\Resources\OperacaoResource;
+use App\Webservice\Resources\VersaoResource;
+use App\Webservice\Resources\WebserviceResource;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use App\Sistema\Enums\Banco;
-use App\Sistema\Registro;
-use App\Filament\Sistema\Pages\ModuloPage;
-use App\Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -42,13 +49,13 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             // webservices (consumidos ou disponibilizados) e layouts de integração
             ->resources([
-                \App\Webservice\Resources\WebserviceResource::class,
-                \App\Webservice\Resources\OperacaoResource::class,
-                \App\Webservice\Resources\VersaoResource::class,
-                \App\Webservice\Resources\ObjetoResource::class,
-                \App\Webservice\Resources\EventoResource::class,
-                \App\Webservice\Resources\IntegracaoResource::class,
-                \App\Webservice\Resources\AgendamentoResource::class,
+                WebserviceResource::class,
+                OperacaoResource::class,
+                VersaoResource::class,
+                ObjetoResource::class,
+                EventoResource::class,
+                IntegracaoResource::class,
+                AgendamentoResource::class,
             ])
             // telas dos módulos da base pai (dicionário de dados)
             ->resources(Registro::resources(Banco::Central))

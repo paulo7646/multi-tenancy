@@ -42,7 +42,7 @@ class Arquivos
 
     public static function relativo(string $path): string
     {
-        return str_replace([base_path() . DIRECTORY_SEPARATOR, base_path() . '/'], '', $path);
+        return str_replace([base_path().DIRECTORY_SEPARATOR, base_path().'/'], '', $path);
     }
 
     /**
@@ -53,11 +53,11 @@ class Arquivos
         if (is_array($valor)) {
             $isList = array_is_list($valor);
 
-            return '[' . implode(', ', array_map(
-                fn ($item, $key) => ($isList ? '' : var_export($key, true) . ' => ') . static::exportar($item),
+            return '['.implode(', ', array_map(
+                fn ($item, $key) => ($isList ? '' : var_export($key, true).' => ').static::exportar($item),
                 $valor,
                 array_keys($valor),
-            )) . ']';
+            )).']';
         }
 
         return var_export($valor, true);

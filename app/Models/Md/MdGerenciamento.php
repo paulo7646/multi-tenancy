@@ -57,7 +57,7 @@ class MdGerenciamento extends Model
 
     public function resourceFqcn(): string
     {
-        return $this->tabela->namespace() . '\\' . $this->classeResource();
+        return $this->tabela->namespace().'\\'.$this->classeResource();
     }
 
     /**
@@ -71,7 +71,7 @@ class MdGerenciamento extends Model
 
     public static function permissaoDo(string $nomeFisico, string $acao): string
     {
-        return Str::snake($acao) . '_' . Str::lower($nomeFisico);
+        return Str::snake($acao).'_'.Str::lower($nomeFisico);
     }
 
     /**

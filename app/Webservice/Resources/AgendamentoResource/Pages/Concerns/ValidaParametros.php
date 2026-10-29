@@ -25,7 +25,7 @@ trait ValidaParametros
 
         if ($faltam?->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'data.parametros' => 'Informe o valor dos parâmetros obrigatórios: ' . $faltam->join(', ') . '.',
+                'data.parametros' => 'Informe o valor dos parâmetros obrigatórios: '.$faltam->join(', ').'.',
             ]);
         }
     }

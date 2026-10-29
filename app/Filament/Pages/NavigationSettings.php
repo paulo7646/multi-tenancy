@@ -35,9 +35,9 @@ class NavigationSettings extends Page
     /** Valor do "Mover para" que leva o item para o topo (sem grupo) */
     protected const TOPO = '__topo';
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-bars-3-bottom-left';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bars-3-bottom-left';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Configurações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Configurações';
 
     protected static ?string $navigationLabel = 'Navegação';
 
@@ -145,7 +145,7 @@ class NavigationSettings extends Page
 
                                 static::itensRepeater('items', $catalog, '../../../../'),
                             ])
-                            ->itemLabel(fn (array $state) => ($state['name'] ?? 'Novo grupo') . '  ·  ' . count($state['items'] ?? []) . ' ' . (count($state['items'] ?? []) === 1 ? 'item' : 'itens'))
+                            ->itemLabel(fn (array $state) => ($state['name'] ?? 'Novo grupo').'  ·  '.count($state['items'] ?? []).' '.(count($state['items'] ?? []) === 1 ? 'item' : 'itens'))
                             ->addActionLabel('Novo grupo')
                             ->reorderableWithDragAndDrop()
                             ->collapsible()
@@ -200,7 +200,7 @@ class NavigationSettings extends Page
             ->itemLabel(function (array $state) use ($catalog) {
                 $label = filled($state['label'] ?? null) ? $state['label'] : ($catalog[$state['item'] ?? '']['label'] ?? ($state['item'] ?? ''));
 
-                return $label . (($state['hidden'] ?? false) ? '  ·  oculto' : '');
+                return $label.(($state['hidden'] ?? false) ? '  ·  oculto' : '');
             })
             ->addable(false)
             ->deletable(false)
@@ -359,7 +359,7 @@ class NavigationSettings extends Page
 
         Notification::make()
             ->title('Menu salvo')
-            ->body($perdidos->isNotEmpty() ? $perdidos->count() . ' item(ns) de grupos removidos foram para o topo.' : null)
+            ->body($perdidos->isNotEmpty() ? $perdidos->count().' item(ns) de grupos removidos foram para o topo.' : null)
             ->success()
             ->send();
 
@@ -369,6 +369,6 @@ class NavigationSettings extends Page
 
     protected static function iconPlaceholder(?string $icon): string
     {
-        return $icon ? 'Padrão: ' . str_replace('heroicon-o-', '', $icon) : 'Sem ícone';
+        return $icon ? 'Padrão: '.str_replace('heroicon-o-', '', $icon) : 'Sem ícone';
     }
 }

@@ -12,6 +12,7 @@ use Illuminate\Console\Command;
 class ExpireLicenses extends Command
 {
     protected $signature = 'licenses:expire';
+
     protected $description = 'Mark expired licenses as inactive and sync to tenant databases';
 
     public function handle(): int

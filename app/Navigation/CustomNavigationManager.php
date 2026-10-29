@@ -5,6 +5,7 @@ namespace App\Navigation;
 use App\Models\NavigationGroup as NavigationGroupSetting;
 use App\Models\NavigationItem as NavigationItemSetting;
 use App\Sistema\Runtime\ModuloNavegacao;
+use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationManager;
 
 /**
@@ -111,7 +112,7 @@ class CustomNavigationManager extends NavigationManager
     protected function tirarIconesDeGruposComIcone(): void
     {
         $comIcone = collect($this->navigationGroups)
-            ->filter(fn ($grupo) => $grupo instanceof \Filament\Navigation\NavigationGroup && filled($grupo->getIcon()))
+            ->filter(fn ($grupo) => $grupo instanceof NavigationGroup && filled($grupo->getIcon()))
             ->map(fn ($grupo) => $grupo->getLabel())
             ->all();
 

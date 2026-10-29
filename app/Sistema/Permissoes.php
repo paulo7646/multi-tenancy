@@ -97,7 +97,7 @@ class Permissoes
 
         try {
             DB::table(config("cache.stores.{$store}.table", 'cache'))
-                ->where('key', 'like', '%' . config('permission.cache.key') . '%')
+                ->where('key', 'like', '%'.config('permission.cache.key').'%')
                 ->delete();
         } catch (Throwable) {
             // banco sem tabela de cache: nada a limpar

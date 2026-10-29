@@ -2,20 +2,20 @@
 
 namespace App\Filament\Resources\TenantResource\RelationManagers;
 
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Actions\CreateAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use App\Filament\Resources\UserLicenseResource;
 use App\Models\UserLicense;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -38,7 +38,7 @@ class UserLicensesRelationManager extends RelationManager
         return UserLicense::query()
             ->where(function (Builder $query) use ($tenantId) {
                 $query->where('tenant_id', $tenantId)
-                      ->orWhereNull('tenant_id');
+                    ->orWhereNull('tenant_id');
             })
             ->orderByRaw('CASE WHEN tenant_id IS NULL THEN 1 ELSE 0 END')
             ->orderBy('created_at', 'desc');

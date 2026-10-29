@@ -17,11 +17,12 @@ use RuntimeException;
 class ModelWriter
 {
     public const INICIO = '// <estrutura> gerado pelo dicionário de dados: não edite este bloco';
+
     public const FIM = '// </estrutura>';
 
     public static function path(MdTabela $tabela): string
     {
-        return $tabela->caminho($tabela->classeModel() . '.php');
+        return $tabela->caminho($tabela->classeModel().'.php');
     }
 
     public static function gravar(MdTabela $tabela): void
@@ -36,10 +37,10 @@ class ModelWriter
         }
 
         $codigo = file_get_contents($path);
-        $padrao = '/' . preg_quote(static::INICIO, '/') . '.*?' . preg_quote(static::FIM, '/') . '/s';
+        $padrao = '/'.preg_quote(static::INICIO, '/').'.*?'.preg_quote(static::FIM, '/').'/s';
 
         if (! preg_match($padrao, $codigo)) {
-            throw new RuntimeException('Os marcadores <estrutura> foram removidos de ' . Arquivos::relativo($path) . '. Restaure-os para o dicionário conseguir atualizar o model.');
+            throw new RuntimeException('Os marcadores <estrutura> foram removidos de '.Arquivos::relativo($path).'. Restaure-os para o dicionário conseguir atualizar o model.');
         }
 
         Arquivos::gravar($path, preg_replace_callback($padrao, fn () => $estrutura, $codigo, 1));
@@ -56,7 +57,7 @@ class ModelWriter
         $campos = $tabela->campos;
         $lista = fn (array $valores) => $valores === []
             ? '[]'
-            : "[\n" . implode("\n", array_map(fn ($v) => "        '{$v}',", $valores)) . "\n    ]";
+            : "[\n".implode("\n", array_map(fn ($v) => "        '{$v}',", $valores))."\n    ]";
 
         $fillable = $campos->pluck('nome_fisico')->all();
         if ($tabela->controla_situacao) {
@@ -86,7 +87,7 @@ PHP)
         $coluna = MdTabela::COLUNA_SITUACAO;
         $atributos = $padrao ? "\n    protected \$attributes = ['{$coluna}' => {$padrao}];\n" : '';
 
-        return static::INICIO . <<<PHP
+        return static::INICIO.<<<PHP
 
     protected static string \$mdTabela = '{$tabela->nome_fisico}';
 {$conexao}
@@ -103,7 +104,7 @@ PHP)
         ];
     }
 {$relacoes}
-PHP . "\n    " . static::FIM;
+PHP."\n    ".static::FIM;
     }
 
     protected static function esqueleto(MdTabela $tabela, string $estrutura): string

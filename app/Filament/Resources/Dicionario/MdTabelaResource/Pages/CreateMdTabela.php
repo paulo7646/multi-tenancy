@@ -53,7 +53,7 @@ class CreateMdTabela extends CreateRecord
                 'nome' => $record->nome,
                 'titulo' => $record->nome,
                 'nome_fisico' => $record->nome_fisico,
-                'nome_arquivo' => 'View' . $record->nomeClasse(),
+                'nome_arquivo' => 'View'.$record->nomeClasse(),
                 'paginado' => false,
                 'colunas' => 2,
             ]);
@@ -65,7 +65,7 @@ class CreateMdTabela extends CreateRecord
                 'nome' => $record->nome,
                 'titulo' => $record->nome,
                 'nome_fisico' => $record->nome_fisico,
-                'nome_arquivo' => $record->nomeClasse() . 'Resource',
+                'nome_arquivo' => $record->nomeClasse().'Resource',
             ]);
 
             $resumo = [...$resumo, ...Gerador::publicarFormulario($formulario), ...Gerador::publicarGerenciamento($gerenciamento)];

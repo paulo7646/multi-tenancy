@@ -10,16 +10,15 @@ use App\Models\Md\MdFormularioPagina;
 use App\Models\Md\MdTabela;
 use App\Sistema\Enums\TipoCampo;
 use App\Sistema\Enums\TipoComponente;
-use App\Sistema\Enums\TipoTabPage;
 use App\Sistema\Enums\TipoTabela;
-use App\Sistema\Runtime\Ligacao;
+use App\Sistema\Enums\TipoTabPage;
+use App\Sistema\Runtime\FormularioBuilder;
 use App\Sistema\Runtime\Layout;
+use App\Sistema\Runtime\Ligacao;
 use App\Sistema\Runtime\Traducao;
 use Closure;
-use App\Sistema\Runtime\FormularioBuilder;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Filament\Support\Enums\Width;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
@@ -30,12 +29,13 @@ use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Text;
-use Filament\Schemas\Components\View;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -53,7 +53,7 @@ class MdFormularioResource extends Resource
 
     protected static ?string $model = MdFormulario::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-text';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?string $modelLabel = 'Formulário';
 
@@ -90,19 +90,19 @@ class MdFormularioResource extends Resource
                                     ->live()
                                     ->afterStateUpdated(fn (Get $get, Set $set) => static::sugerir($get, $set))
                                     ->disabledOn('edit'),
-        
+
                                 TextInput::make('nome')->required()->maxLength(60),
-        
+
                                 TextInput::make('titulo')
                                     ->label('Título')
                                     ->required()
                                     ->maxLength(100)
                                     ->helperText('Aparece no topo da tela.'),
-        
+
                                 Campos::nomeFisico()
                                     ->unique(ignoreRecord: true)
                                     ->disabledOn('edit'),
-        
+
                                 Hidden::make('nome_arquivo'),
 
                                 Select::make('colunas')
@@ -148,7 +148,7 @@ class MdFormularioResource extends Resource
         return Tab::make('Componentes')
             ->icon('heroicon-o-squares-plus')
             ->schema([
-                Text::make('Componentes da tab "' . MdFormulario::TAB_GERAL . '". Para outras tabs, use a aba Tab pages.'),
+                Text::make('Componentes da tab "'.MdFormulario::TAB_GERAL.'". Para outras tabs, use a aba Tab pages.'),
 
                 static::repeaterComponentes(
                     Repeater::make('componentes')
@@ -178,7 +178,7 @@ class MdFormularioResource extends Resource
             ->icon('heroicon-o-folder')
             ->badge(fn (Get $get) => count($get('tabPages') ?? []) ?: null)
             ->schema([
-                Text::make('Os componentes sem tab page aparecem na tab "' . MdFormulario::TAB_GERAL . '". Arraste para mudar a ordem das tabs.'),
+                Text::make('Os componentes sem tab page aparecem na tab "'.MdFormulario::TAB_GERAL.'". Arraste para mudar a ordem das tabs.'),
 
                 Repeater::make('tabPages')
                     ->hiddenLabel()
@@ -188,7 +188,7 @@ class MdFormularioResource extends Resource
                     ->collapsible()
                     ->defaultItems(0)
                     ->addActionLabel('Adicionar tab page')
-                    ->itemLabel(fn (array $state) => (($state['nome'] ?? null) ?: 'Nova tab page') . ' · ' . (TipoTabPage::tryFrom((string) static::valorEnum($state['tipo'] ?? null))?->getLabel() ?? ''))
+                    ->itemLabel(fn (array $state) => (($state['nome'] ?? null) ?: 'Nova tab page').' · '.(TipoTabPage::tryFrom((string) static::valorEnum($state['tipo'] ?? null))?->getLabel() ?? ''))
                     ->schema([
                         Tabs::make('tabpage')->tabs([
                             Tab::make('Geral')
@@ -209,7 +209,7 @@ class MdFormularioResource extends Resource
                                         ->distinct()
                                         ->notIn([Str::upper(MdFormulario::TAB_GERAL)])
                                         ->helperText(fn (Get $get) => $tipo($get) === TipoTabPage::Customizada
-                                            ? 'Método no Resource: ' . MdFormularioPagina::metodoCustomizado((string) $get('nome_fisico')) . '()'
+                                            ? 'Método no Resource: '.MdFormularioPagina::metodoCustomizado((string) $get('nome_fisico')).'()'
                                             : null),
 
                                     Select::make('tipo')
@@ -254,7 +254,7 @@ class MdFormularioResource extends Resource
 
                                             $outro = Ligacao::outroLado($alvo, $tabela($get));
 
-                                            return 'Tabela de ligação: a lista mostra ' . ($outro ? "os registros de {$outro->tabela->nome} ligados a este" : 'o outro lado da ligação (a tabela precisa de uma FK para cada lado)') . '.';
+                                            return 'Tabela de ligação: a lista mostra '.($outro ? "os registros de {$outro->tabela->nome} ligados a este" : 'o outro lado da ligação (a tabela precisa de uma FK para cada lado)').'.';
                                         })
                                         // sugere a ligação: a FK da tabela escolhida que aponta para a tabela deste formulário
                                         ->afterStateUpdated(function (?string $state, Get $get, Set $set) use ($tabela) {
@@ -293,7 +293,7 @@ class MdFormularioResource extends Resource
                                         TipoTabPage::Campos => 'Campos da tabela deste formulário.',
                                         TipoTabPage::Pai => 'Campos da tabela pai (só consulta). Escolha a ligação (FK) na aba Geral.',
                                         TipoTabPage::Tabela => 'A lista mostra as colunas do gerenciamento da tabela de destino: não há componentes aqui.',
-                                        TipoTabPage::Customizada => 'Os campos são incluídos por código, no método ' . MdFormularioPagina::metodoCustomizado((string) $get('nome_fisico')) . '() do Resource.',
+                                        TipoTabPage::Customizada => 'Os campos são incluídos por código, no método '.MdFormularioPagina::metodoCustomizado((string) $get('nome_fisico')).'() do Resource.',
                                     }),
 
                                     static::repeaterComponentes(
@@ -335,7 +335,7 @@ class MdFormularioResource extends Resource
             ->itemLabel(function (array $state, Get $get) use ($fonte) {
                 $info = static::campoDoComponente($fonte($get), $state['campo'] ?? null);
 
-                return $info ? $info['nome'] . ' · ' . (TipoComponente::tryFrom((string) ($state['componente'] ?? ''))?->getLabel() ?? 'consulta') : 'Novo componente';
+                return $info ? $info['nome'].' · '.(TipoComponente::tryFrom((string) ($state['componente'] ?? ''))?->getLabel() ?? 'consulta') : 'Novo componente';
             })
             ->mutateRelationshipDataBeforeFillUsing(function (array $data) {
                 // sem valor gravado: segue o campo da tabela
@@ -557,14 +557,14 @@ class MdFormularioResource extends Resource
     public static function sugestoes(MdTabela $tabela, array $atual = []): array
     {
         $quantos = MdFormulario::where('md_tabela_id', $tabela->id)->count();
-        $nomeFisico = MdFormulario::where('nome_fisico', $tabela->nome_fisico)->exists() ? "{$tabela->nome_fisico}_" . ($quantos + 1) : $tabela->nome_fisico;
-        $arquivo = 'View' . $tabela->nomeClasse();
+        $nomeFisico = MdFormulario::where('nome_fisico', $tabela->nome_fisico)->exists() ? "{$tabela->nome_fisico}_".($quantos + 1) : $tabela->nome_fisico;
+        $arquivo = 'View'.$tabela->nomeClasse();
 
         return [
             'nome' => ($atual['nome'] ?? null) ?: $tabela->nome,
             'titulo' => ($atual['titulo'] ?? null) ?: $tabela->nome,
             'nome_fisico' => ($atual['nome_fisico'] ?? null) ?: $nomeFisico,
-            'nome_arquivo' => ($atual['nome_arquivo'] ?? null) ?: (in_array($arquivo, Campos::classesEmUso($tabela, 'view'), true) ? $arquivo . ($quantos + 1) : $arquivo),
+            'nome_arquivo' => ($atual['nome_arquivo'] ?? null) ?: (in_array($arquivo, Campos::classesEmUso($tabela, 'view'), true) ? $arquivo.($quantos + 1) : $arquivo),
             'componentes' => static::componentesPadrao($tabela),
         ];
     }
@@ -685,7 +685,7 @@ class MdFormularioResource extends Resource
 
             if ($repetidos->isNotEmpty()) {
                 $nomes = static::camposDaTabela($tabela)->only($repetidos->all())->pluck('nome');
-                $fail('Cada campo aparece em uma tab só. Repetidos: ' . $nomes->join(', ') . '.');
+                $fail('Cada campo aparece em uma tab só. Repetidos: '.$nomes->join(', ').'.');
 
                 return;
             }
@@ -698,7 +698,7 @@ class MdFormularioResource extends Resource
                 ->pluck('nome');
 
             if ($faltam->isNotEmpty()) {
-                $fail('Campos obrigatórios (sem valor padrão) precisam ter componente: ' . $faltam->join(', ') . '.');
+                $fail('Campos obrigatórios (sem valor padrão) precisam ter componente: '.$faltam->join(', ').'.');
             }
         };
     }
@@ -734,7 +734,7 @@ class MdFormularioResource extends Resource
             ->label('Pré-visualizar')
             ->icon('heroicon-o-eye')
             ->color('gray')
-            ->modalHeading(fn (Component $livewire) => 'Prévia: ' . ($livewire->form->getRawState()['titulo'] ?? null ?: 'formulário'))
+            ->modalHeading(fn (Component $livewire) => 'Prévia: '.($livewire->form->getRawState()['titulo'] ?? null ?: 'formulário'))
             ->modalDescription('Assim o formulário vai aparecer para o usuário. Clique com o botão direito num campo para ajustar o layout e a ordem.')
             ->modalWidth(fn (Component $livewire) => match ((int) ($livewire->form->getRawState()['colunas'] ?? 2)) {
                 1 => Width::ThreeExtraLarge,
@@ -828,7 +828,7 @@ class MdFormularioResource extends Resource
             ->all();
 
         return Action::make('ajustarPrevia')
-            ->modalHeading(fn (array $arguments, Component $livewire) => 'Ajustar campo: ' . ($nomes($livewire)[$arguments['campo'] ?? ''] ?? ''))
+            ->modalHeading(fn (array $arguments, Component $livewire) => 'Ajustar campo: '.($nomes($livewire)[$arguments['campo'] ?? ''] ?? ''))
             ->modalWidth(Width::Medium)
             ->modalSubmitActionLabel('Salvar')
             ->fillForm(fn (array $arguments, Component $livewire) => $livewire->previaAjusteAtual((string) ($arguments['campo'] ?? '')))
@@ -839,7 +839,7 @@ class MdFormularioResource extends Resource
                     ->selectablePlaceholder(false)
                     ->live()
                     ->afterStateUpdated(fn (Set $set, ?string $state) => $set('posicao', count($livewire->posicoesNaAba((string) ($arguments['campo'] ?? ''), $state, []))))
-                    ->helperText('Campos da tabela: "' . MdFormulario::TAB_GERAL . '" ou tab pages de campos. Campos da tabela pai: tab pages com a mesma ligação.'),
+                    ->helperText('Campos da tabela: "'.MdFormulario::TAB_GERAL.'" ou tab pages de campos. Campos da tabela pai: tab pages com a mesma ligação.'),
 
                 Select::make('posicao')
                     ->label('Ordem na tab')

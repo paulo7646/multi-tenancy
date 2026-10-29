@@ -14,6 +14,7 @@ use App\Sistema\Rules\Cpf;
 use BadMethodCallException;
 use Carbon\Carbon;
 use DateTimeInterface;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -349,7 +350,7 @@ class ModelProperty
 
         if ($filha !== null) {
             if (! isset($filhas[$filha])) {
-                throw new EventoException("{$filha} não é filha de {$this->tabela->nome_fisico}. Filhas: " . (implode(', ', array_keys($filhas)) ?: 'nenhuma') . '.');
+                throw new EventoException("{$filha} não é filha de {$this->tabela->nome_fisico}. Filhas: ".(implode(', ', array_keys($filhas)) ?: 'nenhuma').'.');
             }
 
             if (! $carregadas->has($filha)) {
@@ -596,7 +597,7 @@ class ModelProperty
             return $this;
         }
 
-        throw new BadMethodCallException('Método ' . static::class . "::{$metodo}() não existe. Use set/get + o tipo do campo (setString, getDecimal...) ou setCampo/getCampo.");
+        throw new BadMethodCallException('Método '.static::class."::{$metodo}() não existe. Use set/get + o tipo do campo (setString, getDecimal...) ou setCampo/getCampo.");
     }
 
     public static function tipoDoMetodo(string $sufixo): ?TipoCampo
@@ -642,7 +643,7 @@ class ModelProperty
         }
 
         return $this->campos->get($campo)?->tipo
-            ?? throw new EventoException("O campo {$campo} não existe em {$this->tabela->nome_fisico}. Campos: " . $this->campos->keys()->join(', ') . '.');
+            ?? throw new EventoException("O campo {$campo} não existe em {$this->tabela->nome_fisico}. Campos: ".$this->campos->keys()->join(', ').'.');
     }
 
     protected function conferirTipo(TipoCampo $tipo, string $campo, string $metodo): void
@@ -657,7 +658,7 @@ class ModelProperty
             return;
         }
 
-        $sugestao = preg_replace('/^(set|get).*/i', '$1', $metodo) . ucfirst($doCampo->value);
+        $sugestao = preg_replace('/^(set|get).*/i', '$1', $metodo).ucfirst($doCampo->value);
 
         throw new EventoException("O campo {$campo} é do tipo {$doCampo->label()}: use {$sugestao}() (ou setCampo/getCampo).");
     }
@@ -673,7 +674,7 @@ class ModelProperty
         }
 
         $md = $this->campos->get($campo);
-        $erro = fn (string $esperado) => new EventoException("{$this->tabela->nome_fisico}.{$campo}: valor " . var_export($valor, true) . " inválido ({$esperado}).");
+        $erro = fn (string $esperado) => new EventoException("{$this->tabela->nome_fisico}.{$campo}: valor ".var_export($valor, true)." inválido ({$esperado}).");
 
         if ($tipo->isInteger() || in_array($tipo, [TipoCampo::Year, TipoCampo::ForeignId], true)) {
             if (! is_int($valor) && ! (is_string($valor) && preg_match('/^-?\d+$/', trim($valor))) && ! (is_float($valor) && floor($valor) === $valor)) {
@@ -747,7 +748,7 @@ class ModelProperty
         $digitosInteiros = strlen(ltrim(explode('.', ltrim($formatado, '-'))[0], '0'));
 
         if ($digitosInteiros > $precisao - $escala) {
-            throw $erro('no máximo ' . ($precisao - $escala) . " dígitos antes da vírgula e {$escala} casas decimais");
+            throw $erro('no máximo '.($precisao - $escala)." dígitos antes da vírgula e {$escala} casas decimais");
         }
 
         return $formatado;
@@ -803,7 +804,7 @@ class ModelProperty
             throw $erro('hora: HH:MM ou HH:MM:SS');
         }
 
-        return "{$m[1]}:{$m[2]}:" . ($m[4] ?? '00');
+        return "{$m[1]}:{$m[2]}:".($m[4] ?? '00');
     }
 
     protected function lista(mixed $valor, \Closure $erro): array
@@ -823,7 +824,7 @@ class ModelProperty
         $fora = array_diff($valores, array_map('strval', $md?->opcoes ?? []));
 
         if ($fora !== []) {
-            throw $erro('opções: ' . implode(', ', $md?->opcoes ?? []));
+            throw $erro('opções: '.implode(', ', $md?->opcoes ?? []));
         }
 
         return $valores;
@@ -834,7 +835,7 @@ class ModelProperty
         $opcoes = array_map('strval', $md?->opcoes ?? []);
 
         if (! in_array((string) $valor, $opcoes, true)) {
-            throw $erro('opções: ' . implode(', ', $opcoes));
+            throw $erro('opções: '.implode(', ', $opcoes));
         }
 
         return (string) $valor;
@@ -876,7 +877,7 @@ class ModelProperty
         return $texto;
     }
 
-    protected function regraPassa(\Illuminate\Contracts\Validation\ValidationRule $regra, string $valor): bool
+    protected function regraPassa(ValidationRule $regra, string $valor): bool
     {
         $passou = true;
         $regra->validate('valor', $valor, function () use (&$passou) {
@@ -885,5 +886,4 @@ class ModelProperty
 
         return $passou;
     }
-
 }

@@ -14,13 +14,13 @@ class CheckUserLicense
     {
         $user = $request->user();
 
-        if (!$user || !function_exists('tenant') || !tenant()) {
+        if (! $user || ! function_exists('tenant') || ! tenant()) {
             return $next($request);
         }
 
         $license = UserLicense::findActive($user->email, tenant()->getTenantKey());
 
-        if (!$license) {
+        if (! $license) {
             auth()->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

@@ -2,31 +2,29 @@
 
 namespace App\Filament\Client\Resources;
 
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
-use App\Models\UserLicense;
 use App\Enums\LicenseStatus;
-use App\Filament\Client\Resources\UserResource\Pages\ListUsers;
 use App\Filament\Client\Resources\UserResource\Pages\CreateUser;
-use App\Filament\Client\Resources\UserResource\Pages\ViewUser;
 use App\Filament\Client\Resources\UserResource\Pages\EditUser;
+use App\Filament\Client\Resources\UserResource\Pages\ListUsers;
+use App\Filament\Client\Resources\UserResource\Pages\ViewUser;
 use App\Models\Filial;
-use App\Models\Licenca;
 use App\Models\User;
+use App\Models\UserLicense;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-
 
 class UserResource extends BaseResource
 {
     protected static ?string $model = User::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $navigationLabel = 'Usuarios';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Configurações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Configurações';
 
     public static function form(Schema $schema): Schema
     {
@@ -47,10 +45,10 @@ class UserResource extends BaseResource
                     ->searchable(),
                 Select::make('filial_id')
                     ->label('Filial')
-                    ->options(fn() => Filial::where('ativo', true)->orderBy('nome')->pluck('nome', 'id'))
+                    ->options(fn () => Filial::where('ativo', true)->orderBy('nome')->pluck('nome', 'id'))
                     ->searchable()
                     ->nullable()
-                    ->hidden(fn() => auth()->user()->getActiveFilialId())
+                    ->hidden(fn () => auth()->user()->getActiveFilialId())
                     ->placeholder('Sem filial (acesso a todas)'),
             ]);
     }
@@ -67,13 +65,13 @@ class UserResource extends BaseResource
                 TextColumn::make('licenca.nome')
                     ->label('Licença')
                     ->badge()
-                    ->color(fn($record) => $record->licenca?->color ?? 'gray'),
+                    ->color(fn ($record) => $record->licenca?->color ?? 'gray'),
                 TextColumn::make('license_status')
                     ->label('Status da Licença')
                     ->badge()
                     ->getStateUsing(function ($record) {
                         $tenantId = tenant()?->getTenantKey();
-                        if (!$tenantId) {
+                        if (! $tenantId) {
                             return 'Sem Licença';
                         }
 
@@ -82,7 +80,7 @@ class UserResource extends BaseResource
                             ->orderByRaw('CASE WHEN tenant_id IS NOT NULL THEN 0 ELSE 1 END')
                             ->first();
 
-                        if (!$license) {
+                        if (! $license) {
                             return 'Sem Licença';
                         }
 

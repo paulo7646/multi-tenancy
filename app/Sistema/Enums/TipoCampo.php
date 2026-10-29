@@ -167,13 +167,13 @@ enum TipoCampo: string
         $type = $this->storageType();
 
         return match (true) {
-            $type === self::String, $type === self::Enum => 'varchar(' . ($length ?: 255) . ')',
-            $type === self::Char => 'char(' . ($length ?: 255) . ')',
+            $type === self::String, $type === self::Enum => 'varchar('.($length ?: 255).')',
+            $type === self::Char => 'char('.($length ?: 255).')',
             in_array($type, [self::Text, self::TinyText, self::MediumText, self::LongText], true) => 'text',
             in_array($type, [self::TinyInteger, self::SmallInteger, self::UnsignedTinyInteger, self::UnsignedSmallInteger], true) => 'smallint',
             in_array($type, [self::BigInteger, self::UnsignedBigInteger, self::ForeignId], true) => 'bigint',
             $type->isInteger(), $type === self::Year => 'integer',
-            $type === self::Decimal => 'decimal(' . ($precision ?: 10) . ', ' . ($scale ?? 2) . ')',
+            $type === self::Decimal => 'decimal('.($precision ?: 10).', '.($scale ?? 2).')',
             $type === self::Float, $type === self::Double => 'double precision',
             $type === self::Boolean => 'boolean',
             $type === self::Date => 'date',
@@ -308,7 +308,7 @@ enum TipoCampo: string
             $this->isDate() => 'date',
             $this->isDateTime() => 'datetime',
             $this->isJson() => 'array',
-            $this === self::Decimal => 'decimal:' . ($scale ?? 2),
+            $this === self::Decimal => 'decimal:'.($scale ?? 2),
             in_array($this, [self::Float, self::Double], true) => 'float',
             $this->isInteger(), $this === self::Year, $this === self::ForeignId => 'integer',
             default => null,

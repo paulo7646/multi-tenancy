@@ -2,23 +2,20 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\ViewAction;
-use Filament\Actions\EditAction;
+use App\Filament\Resources\DomainResource\Pages\CreateDomain;
+use App\Filament\Resources\DomainResource\Pages\EditDomain;
+use App\Filament\Resources\DomainResource\Pages\ListDomains;
+use App\Filament\Resources\DomainResource\Pages\ViewDomain;
+use App\Models\Domain;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use App\Filament\Resources\DomainResource\Pages\ListDomains;
-use App\Filament\Resources\DomainResource\Pages\CreateDomain;
-use App\Filament\Resources\DomainResource\Pages\ViewDomain;
-use App\Filament\Resources\DomainResource\Pages\EditDomain;
-use App\Filament\Resources\DomainResource\RelationManagers;
-use App\Models\Domain;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DomainResource extends Resource
 {
@@ -28,9 +25,9 @@ class DomainResource extends Resource
 
     protected static ?string $modelLabel = 'Dominio';
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-globe-alt';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Empresa';
+    protected static string|\UnitEnum|null $navigationGroup = 'Empresa';
 
     public static function form(Schema $schema): Schema
     {

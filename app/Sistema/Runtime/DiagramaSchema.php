@@ -78,7 +78,7 @@ class DiagramaSchema
         $linhas = ['erDiagram'];
 
         foreach ($tabelas as $tabela) {
-            $linhas[] = '    ' . static::nome($tabela) . ' {';
+            $linhas[] = '    '.static::nome($tabela).' {';
             $linhas[] = '        bigint id PK';
 
             foreach ($tabela->campos as $campo) {
@@ -87,9 +87,9 @@ class DiagramaSchema
                     $campo->unico ? 'UK' : null,
                 ]);
 
-                $linhas[] = '        ' . static::tipo($campo) . ' ' . static::identificador($campo->nome_fisico)
-                    . ($chaves ? ' ' . implode(', ', $chaves) : '')
-                    . ' "' . static::texto($campo->nome) . ($campo->obrigatorio ? ' *' : '') . '"';
+                $linhas[] = '        '.static::tipo($campo).' '.static::identificador($campo->nome_fisico)
+                    .($chaves ? ' '.implode(', ', $chaves) : '')
+                    .' "'.static::texto($campo->nome).($campo->obrigatorio ? ' *' : '').'"';
             }
 
             $linhas[] = '    }';
@@ -106,7 +106,7 @@ class DiagramaSchema
                 $ladoPai = $campo->obrigatorio ? '||' : '|o';
                 $ladoFilha = $campo->unico ? 'o|' : 'o{';
 
-                $linhas[] = '    ' . static::nome($pai) . " {$ladoPai}--{$ladoFilha} " . static::nome($tabela) . ' : "' . static::texto($campo->nome_fisico) . '"';
+                $linhas[] = '    '.static::nome($pai)." {$ladoPai}--{$ladoFilha} ".static::nome($tabela).' : "'.static::texto($campo->nome_fisico).'"';
             }
         }
 
@@ -130,7 +130,7 @@ class DiagramaSchema
         $tipo = $campo->tipo->storageType();
 
         return match (true) {
-            $tipo === TipoCampo::String => 'varchar' . ($campo->tamanho ? "({$campo->tamanho})" : ''),
+            $tipo === TipoCampo::String => 'varchar'.($campo->tamanho ? "({$campo->tamanho})" : ''),
             // o Mermaid não aceita vírgula no tipo: decimal(10,2) quebraria o diagrama
             $tipo === TipoCampo::Decimal => 'decimal',
             $campo->isFk() => 'bigint',

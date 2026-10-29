@@ -10,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
 /**
  * Onde a tabela é criada: na base pai (banco central) ou em cada cliente (tenant).
  */
-enum Banco: string implements HasLabel, HasDescription, HasIcon, HasColor
+enum Banco: string implements HasColor, HasDescription, HasIcon, HasLabel
 {
     case Central = 'central';
     case Tenant = 'tenant';

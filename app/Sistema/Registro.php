@@ -34,7 +34,7 @@ class Registro
      */
     public static function modulo(string $modulo): Modulo
     {
-        return static::$cache['modulo:' . mb_strtolower($modulo)] ??= Modulo::query()
+        return static::$cache['modulo:'.mb_strtolower($modulo)] ??= Modulo::query()
             ->whereRaw('lower(prefixo) = ?', [mb_strtolower($modulo)])
             ->orWhereRaw('lower(nome) = ?', [mb_strtolower($modulo)])
             ->orWhereRaw('lower(pasta) = ?', [mb_strtolower($modulo)])
@@ -47,7 +47,7 @@ class Registro
     public static function tabela(string $modulo, string $nome): MdTabela
     {
         $modulo = static::modulo($modulo);
-        $chave = "tabela:{$modulo->id}:" . mb_strtolower($nome);
+        $chave = "tabela:{$modulo->id}:".mb_strtolower($nome);
 
         return static::$cache[$chave] ??= $modulo->tabelas()->with('modulo')->get()->first(
             // sem diferenciar maiúscula: OP_PRODUTO, op_produto, produto ou ModelProduto
@@ -94,7 +94,7 @@ class Registro
         $class = $gerenciamento->resourceFqcn();
 
         // sem as páginas (arquivo apagado à mão) o painel nem sobe: ignora até gerar de novo
-        return class_exists($class) && is_subclass_of($class, BaseResource::class) && class_exists($class . '\\Pages\\Listar')
+        return class_exists($class) && is_subclass_of($class, BaseResource::class) && class_exists($class.'\\Pages\\Listar')
             ? $class
             : null;
     }

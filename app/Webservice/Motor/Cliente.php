@@ -41,7 +41,7 @@ class Cliente
             }
 
             match ($parametro->local) {
-                'url' => $url = str_replace('{' . $parametro->nome . '}', rawurlencode((string) $valor), $url),
+                'url' => $url = str_replace('{'.$parametro->nome.'}', rawurlencode((string) $valor), $url),
                 'corpo' => $corpo[$parametro->nome] = $valor,
                 'header' => $headers[$parametro->nome] = $valor,
                 default => $query[$parametro->nome] = $valor,
@@ -56,11 +56,11 @@ class Cliente
                 'json' => $corpo ?: null,
             ]));
         } catch (Throwable $e) {
-            throw new ProcessamentoException("Não foi possível chamar {$url}: " . $e->getMessage(), previous: $e);
+            throw new ProcessamentoException("Não foi possível chamar {$url}: ".$e->getMessage(), previous: $e);
         }
 
         if (! $resposta->successful()) {
-            throw new ProcessamentoException("{$url} respondeu HTTP {$resposta->status()}: " . mb_substr(trim($resposta->body()), 0, 300));
+            throw new ProcessamentoException("{$url} respondeu HTTP {$resposta->status()}: ".mb_substr(trim($resposta->body()), 0, 300));
         }
 
         return $resposta->body();
@@ -89,7 +89,7 @@ class Cliente
      */
     protected static function tokenOAuth2(int|string $webservice, array $credenciais): string
     {
-        $chave = 'webservice-oauth2-' . (function_exists('tenant') && tenant() ? tenant('id') : 'central') . "-{$webservice}";
+        $chave = 'webservice-oauth2-'.(function_exists('tenant') && tenant() ? tenant('id') : 'central')."-{$webservice}";
 
         // store central: o cache do cliente usa tags, que o driver de banco não suporta
         return Cache::store('central')->remember($chave, 300, function () use ($credenciais) {
@@ -101,7 +101,7 @@ class Cliente
             ]));
 
             if (! $resposta->successful() || blank($resposta->json('access_token'))) {
-                throw new ProcessamentoException('Não foi possível obter o token OAuth2 (HTTP ' . $resposta->status() . ').');
+                throw new ProcessamentoException('Não foi possível obter o token OAuth2 (HTTP '.$resposta->status().').');
             }
 
             return (string) $resposta->json('access_token');

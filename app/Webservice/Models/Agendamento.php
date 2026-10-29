@@ -77,7 +77,7 @@ class Agendamento extends Model
             'minutos' => "*/{$n} * * * *",
             'horas' => "0 */{$n} * * *",
             'diario' => "{$minuto} {$hora} * * *",
-            'semanal' => "{$minuto} {$hora} * * " . (int) $this->dia_semana,
+            'semanal' => "{$minuto} {$hora} * * ".(int) $this->dia_semana,
             default => (string) $this->cron,
         };
     }

@@ -6,19 +6,20 @@ use App\Filament\Resources\Dicionario\Concerns\AcessoDicionario;
 use App\Filament\Resources\Dicionario\MdTabelaResource\Pages;
 use App\Models\Md\MdStatus;
 use App\Models\Md\MdTabela;
+use App\Models\Md\MdTabelaItem;
 use App\Models\Md\Modulo;
 use App\Navigation\NavigationCatalog;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Enums\TipoCampo;
 use App\Sistema\Enums\TipoTabela;
-use App\Models\Md\MdTabelaItem;
+use App\Sistema\Geradores\Exportador;
+use App\Sistema\Geradores\Gerador;
+use App\Sistema\Registro;
+use App\Sistema\Runtime\DiagramaSchema;
+use App\Sistema\Runtime\Traducao;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
-use App\Sistema\Runtime\DiagramaSchema;
-use Filament\Support\Enums\Width;
-use Illuminate\Database\Eloquent\Collection;
-use App\Sistema\Geradores\Gerador;
-use Closure;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -32,26 +33,24 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\View;
-use App\Sistema\Registro;
-use App\Sistema\Geradores\Exportador;
-use Illuminate\Support\HtmlString;
-use App\Sistema\Runtime\Traducao;
-use Livewire\Component;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Schema as DbSchema;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Livewire\Component;
 use Throwable;
 
 /**
@@ -64,7 +63,7 @@ class MdTabelaResource extends Resource
 
     protected static ?string $model = MdTabela::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-table-cells';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-table-cells';
 
     protected static ?string $modelLabel = 'Tabela';
 
@@ -99,7 +98,7 @@ class MdTabelaResource extends Resource
 
     protected static function abaTabela(): Tab
     {
-        $gerada = fn(?MdTabela $record) => (bool) $record?->isGerada();
+        $gerada = fn (?MdTabela $record) => (bool) $record?->isGerada();
 
         return Tab::make('Tabela')
             ->icon('heroicon-o-table-cells')
@@ -129,20 +128,20 @@ class MdTabelaResource extends Resource
                                     ->required()
                                     ->maxLength(60)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn(Get $get, Set $set, ?MdTabela $record) => static::sugerirNomeFisico($get, $set, $record)),
+                                    ->afterStateUpdated(fn (Get $get, Set $set, ?MdTabela $record) => static::sugerirNomeFisico($get, $set, $record)),
                                 Campos::nomeFisico()
                                     ->placeholder('OP_PRODUTO')
                                     ->notIn([...Campos::TABELAS_RESERVADAS, ...array_map('mb_strtoupper', Campos::TABELAS_RESERVADAS)])
                                     ->unique(ignoreRecord: true)
                                     ->rules([
-                                        fn(Get $get) => function (string $attribute, $value, Closure $fail) use ($get) {
+                                        fn (Get $get) => function (string $attribute, $value, Closure $fail) use ($get) {
                                             $prefixo = Modulo::find($get('modulo_id'))?->prefixo;
 
                                             if ($prefixo && ! str_starts_with(mb_strtoupper((string) $value), MdTabela::prefixoFisico($prefixo))) {
-                                                $fail('Deve começar com o prefixo do módulo: ' . MdTabela::prefixoFisico($prefixo));
+                                                $fail('Deve começar com o prefixo do módulo: '.MdTabela::prefixoFisico($prefixo));
                                             }
                                         },
-                                        fn(Get $get, ?MdTabela $record) => function (string $attribute, $value, Closure $fail) use ($get, $record) {
+                                        fn (Get $get, ?MdTabela $record) => function (string $attribute, $value, Closure $fail) use ($get, $record) {
                                             if ($record?->isGerada()) {
                                                 return;
                                             }
@@ -154,7 +153,7 @@ class MdTabelaResource extends Resource
                                             }
                                         },
                                     ])
-                                    ->helperText(fn(?MdTabela $record) => $record?->isGerada()
+                                    ->helperText(fn (?MdTabela $record) => $record?->isGerada()
                                         ? "Model: {$record->classeModel()}"
                                         : 'Fica fixo depois de salvar (é a tabela no banco e a pasta dos arquivos).')
                                     ->disabled($gerada),
@@ -183,9 +182,9 @@ class MdTabelaResource extends Resource
                                             ->required()
                                             ->inline()
                                             ->live()
-                                            ->helperText(fn(Get $get) => TipoTabela::tryFrom(static::valorTipo($get('tipo')))?->getDescription())
+                                            ->helperText(fn (Get $get) => TipoTabela::tryFrom(static::valorTipo($get('tipo')))?->getDescription())
                                             // gerada: só dá para trocar entre cadastro e ligação (a estrutura no banco é a mesma)
-                                            ->disableOptionWhen(fn(string $value, ?MdTabela $record) => (bool) $record?->isGerada()
+                                            ->disableOptionWhen(fn (string $value, ?MdTabela $record) => (bool) $record?->isGerada()
                                                 && ! ($record->tipoTabela()->editavel() && TipoTabela::from($value)->editavel())),
 
                                         ToggleButtons::make('banco')
@@ -220,7 +219,7 @@ class MdTabelaResource extends Resource
     {
         return Tab::make('Campos')
             ->icon('heroicon-o-list-bullet')
-            ->badge(fn(Get $get) => count($get('campos') ?? []) ?: null)
+            ->badge(fn (Get $get) => count($get('campos') ?? []) ?: null)
             ->schema([
                 Hidden::make('nome_fisico_sugerido')->dehydrated(false),
                 Hidden::make('nome_controller_sugerido')->dehydrated(false),
@@ -236,13 +235,13 @@ class MdTabelaResource extends Resource
                     ->addActionLabel('Adicionar campo')
                     // lista/conteúdo: só os campos do sistema (NOME e VALOR); os valores entram em Valores da lista
                     ->addable(fn (Get $get) => ! (TipoTabela::tryFrom(static::valorTipo($get('tipo')))?->temItens()))
-                    ->itemLabel(fn(array $state) => filled($state['nome'] ?? null)
-                        ? "{$state['nome']} · " . ($state['nome_fisico'] ?? '') . ' · ' . (TipoCampo::tryFrom($state['tipo'] ?? '')?->label() ?? '')
+                    ->itemLabel(fn (array $state) => filled($state['nome'] ?? null)
+                        ? "{$state['nome']} · ".($state['nome_fisico'] ?? '').' · '.(TipoCampo::tryFrom($state['tipo'] ?? '')?->label() ?? '')
                         : 'Novo campo')
                     // campos do sistema (lista/conteúdo) não podem ser apagados
-                    ->deleteAction(fn(Action $action) => $action->hidden(fn(array $arguments, Repeater $component) => (bool) ($component->getRawItemState($arguments['item'])['sistema'] ?? false)))
+                    ->deleteAction(fn (Action $action) => $action->hidden(fn (array $arguments, Repeater $component) => (bool) ($component->getRawItemState($arguments['item'])['sistema'] ?? false)))
                     ->schema([
-                        Hidden::make('uid')->default(fn() => (string) Str::uuid()),
+                        Hidden::make('uid')->default(fn () => (string) Str::uuid()),
                         Hidden::make('sistema')->default(false),
 
                         Tabs::make('Geral')
@@ -264,7 +263,7 @@ class MdTabelaResource extends Resource
                                         Campos::nomeFisico()
                                             ->notIn(Campos::COLUNAS_RESERVADAS)
                                             ->distinct()
-                                            ->disabled(fn(Get $get) => (bool) $get('sistema'))
+                                            ->disabled(fn (Get $get) => (bool) $get('sistema'))
                                             ->validationMessages(['not_in' => 'ID, CREATED_AT, UPDATED_AT e MD_STATUS_ID são criados pelo sistema.']),
 
                                         Select::make('tipo')
@@ -272,7 +271,7 @@ class MdTabelaResource extends Resource
                                             ->default(TipoCampo::String->value)
                                             ->required()
                                             ->searchable()
-                                            ->disabled(fn(Get $get) => (bool) $get('sistema'))
+                                            ->disabled(fn (Get $get) => (bool) $get('sistema'))
                                             ->live(),
 
                                         TextInput::make('tamanho')
@@ -280,8 +279,8 @@ class MdTabelaResource extends Resource
                                             ->integer()
                                             ->minValue(1)
                                             ->maxValue(10485760)
-                                            ->placeholder(fn(Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->defaultLength())
-                                            ->visible(fn(Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->storageType()->hasLength()),
+                                            ->placeholder(fn (Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->defaultLength())
+                                            ->visible(fn (Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->storageType()->hasLength()),
 
                                         TextInput::make('precisao')
                                             ->label('Precisão (dígitos)')
@@ -290,7 +289,7 @@ class MdTabelaResource extends Resource
                                             ->minValue(1)
                                             ->maxValue(65)
                                             ->placeholder('10')
-                                            ->visible(fn(Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->hasPrecision()),
+                                            ->visible(fn (Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->hasPrecision()),
 
                                         TextInput::make('escala')
                                             ->label('Casas decimais')
@@ -299,44 +298,44 @@ class MdTabelaResource extends Resource
                                             ->minValue(0)
                                             ->maxValue(30)
                                             ->placeholder('2')
-                                            ->visible(fn(Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->hasScale()),
+                                            ->visible(fn (Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->hasScale()),
 
                                         TagsInput::make('opcoes')
                                             ->label('Opções')
                                             ->placeholder('Digite e tecle Enter')
-                                            ->required(fn(Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->hasChoices())
-                                            ->visible(fn(Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->hasChoices())
+                                            ->required(fn (Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->hasChoices())
+                                            ->visible(fn (Get $get) => TipoCampo::tryFrom((string) $get('tipo'))?->hasChoices())
                                             ->columnSpan(2),
 
                                         Select::make('fk_tabela_id')
                                             ->label('Tabela da chave estrangeira')
-                                            ->options(fn(Get $get) => MdTabela::query()
+                                            ->options(fn (Get $get) => MdTabela::query()
                                                 ->where('banco', static::valorBanco($get('../../banco')))
                                                 ->whereNotNull('generated_at')
                                                 ->orderBy('nome_fisico')
                                                 ->get()
-                                                ->mapWithKeys(fn(MdTabela $t) => [$t->id => "{$t->nome} ({$t->nome_fisico})"])
+                                                ->mapWithKeys(fn (MdTabela $t) => [$t->id => "{$t->nome} ({$t->nome_fisico})"])
                                                 ->all())
                                             ->helperText('Só tabelas já geradas, do mesmo banco.')
-                                            ->required(fn(Get $get) => $get('tipo') === TipoCampo::ForeignId->value)
-                                            ->visible(fn(Get $get) => $get('tipo') === TipoCampo::ForeignId->value)
+                                            ->required(fn (Get $get) => $get('tipo') === TipoCampo::ForeignId->value)
+                                            ->visible(fn (Get $get) => $get('tipo') === TipoCampo::ForeignId->value)
                                             ->searchable(),
 
                                         Select::make('fk_on_delete')
                                             ->label('Ao excluir o registro apontado')
                                             ->options(['restrict' => 'Impedir a exclusão', 'cascade' => 'Excluir junto', 'null' => 'Deixar vazio'])
                                             // tabela de ligação: apagou um dos lados, a linha de ligação vai junto
-                                            ->default(fn(Get $get) => TipoTabela::tryFrom(static::valorTipo($get('../../tipo'))) === TipoTabela::Ligacao ? 'cascade' : 'restrict')
-                                            ->helperText(fn(Get $get) => TipoTabela::tryFrom(static::valorTipo($get('../../tipo'))) === TipoTabela::Ligacao
+                                            ->default(fn (Get $get) => TipoTabela::tryFrom(static::valorTipo($get('../../tipo'))) === TipoTabela::Ligacao ? 'cascade' : 'restrict')
+                                            ->helperText(fn (Get $get) => TipoTabela::tryFrom(static::valorTipo($get('../../tipo'))) === TipoTabela::Ligacao
                                                 ? 'Em tabela de ligação, use "Excluir junto": senão o registro apontado não pode ser excluído enquanto estiver ligado.'
                                                 : null)
                                             ->required()
-                                            ->visible(fn(Get $get) => $get('tipo') === TipoCampo::ForeignId->value),
+                                            ->visible(fn (Get $get) => $get('tipo') === TipoCampo::ForeignId->value),
 
                                         TextInput::make('padrao')
                                             ->label('Valor padrão')
                                             ->maxLength(255)
-                                            ->visible(fn(Get $get) => ! in_array($get('tipo'), [TipoCampo::ForeignId->value, TipoCampo::Password->value, TipoCampo::File->value, TipoCampo::Image->value], true)),
+                                            ->visible(fn (Get $get) => ! in_array($get('tipo'), [TipoCampo::ForeignId->value, TipoCampo::Password->value, TipoCampo::File->value, TipoCampo::Image->value], true)),
 
                                         TextInput::make('ajuda')
                                             ->label('Texto de ajuda')
@@ -348,8 +347,8 @@ class MdTabelaResource extends Resource
                                     ->columns(4)
                                     ->icon('heroicon-o-adjustments-horizontal')
                                     ->schema([
-                                        Toggle::make('obrigatorio')->label('Obrigatório')->inline(false)->disabled(fn(Get $get) => (bool) $get('sistema')),
-                                        Toggle::make('unico')->label('Único')->inline(false)->disabled(fn(Get $get) => (bool) $get('sistema')),
+                                        Toggle::make('obrigatorio')->label('Obrigatório')->inline(false)->disabled(fn (Get $get) => (bool) $get('sistema')),
+                                        Toggle::make('unico')->label('Único')->inline(false)->disabled(fn (Get $get) => (bool) $get('sistema')),
                                         Toggle::make('indice')->label('Índice')->inline(false),
                                         Toggle::make('sem_componente')->label('Não cria componente')->inline(false),
                                     ]),
@@ -363,7 +362,7 @@ class MdTabelaResource extends Resource
     {
         return Tab::make('Situação')
             ->icon('heroicon-o-flag')
-            ->visible(fn(Get $get) => (bool) $get('controla_situacao'))
+            ->visible(fn (Get $get) => (bool) $get('controla_situacao'))
             ->schema([
                 Repeater::make('situacoes')
                     ->hiddenLabel()
@@ -372,10 +371,10 @@ class MdTabelaResource extends Resource
                     ->orderColumn('ordem')
                     ->reorderable()
                     ->addActionLabel('Adicionar situação')
-                    ->minItems(fn(Get $get) => $get('controla_situacao') ? 1 : 0)
+                    ->minItems(fn (Get $get) => $get('controla_situacao') ? 1 : 0)
                     ->columns(2)
                     ->rules([
-                        fn() => function (string $attribute, $value, Closure $fail) {
+                        fn () => function (string $attribute, $value, Closure $fail) {
                             if (collect($value)->where('padrao', true)->count() > 1) {
                                 $fail('Marque só uma situação como padrão.');
                             }
@@ -384,8 +383,8 @@ class MdTabelaResource extends Resource
                     ->schema([
                         Select::make('md_status_id')
                             ->label('Situação')
-                            ->options(fn() => MdStatus::orderBy('nome')->get()->mapWithKeys(fn(MdStatus $s) => [
-                                $s->id => ($s->icone ? NavigationCatalog::iconLabel($s->icone) : '') . ' ' . e($s->nome),
+                            ->options(fn () => MdStatus::orderBy('nome')->get()->mapWithKeys(fn (MdStatus $s) => [
+                                $s->id => ($s->icone ? NavigationCatalog::iconLabel($s->icone) : '').' '.e($s->nome),
                             ])->all())
                             ->allowHtml()
                             ->required()
@@ -412,15 +411,15 @@ class MdTabelaResource extends Resource
                 Repeater::make($tipo === Traducao::LOOKUP ? 'traducoesLookup' : 'traducoesTabela')
                     ->hiddenLabel()
                     ->relationship($tipo === Traducao::LOOKUP ? 'traducoesLookup' : 'traducoesTabela')
-                    ->mutateRelationshipDataBeforeCreateUsing(fn(array $data) => [...$data, 'tipo' => $tipo])
+                    ->mutateRelationshipDataBeforeCreateUsing(fn (array $data) => [...$data, 'tipo' => $tipo])
                     ->orderColumn('ordem')
                     ->reorderable()
                     ->collapsible()
                     ->defaultItems(0)
                     ->addActionLabel('Adicionar tradução')
-                    ->itemLabel(fn(array $state, Component $livewire) => ($state['nome'] ?? 'Nova tradução') . (($state['padrao'] ?? false) ? '  ·  padrão' : '') . '  ·  ' . static::exemploTraducao($state['campos'] ?? [], $livewire))
+                    ->itemLabel(fn (array $state, Component $livewire) => ($state['nome'] ?? 'Nova tradução').(($state['padrao'] ?? false) ? '  ·  padrão' : '').'  ·  '.static::exemploTraducao($state['campos'] ?? [], $livewire))
                     ->rules([
-                        fn() => function (string $attribute, $value, Closure $fail) {
+                        fn () => function (string $attribute, $value, Closure $fail) {
                             if (collect($value)->where('padrao', true)->count() > 1) {
                                 $fail('Marque só uma tradução como padrão.');
                             }
@@ -442,7 +441,7 @@ class MdTabelaResource extends Resource
                                             ->label('Campos (em ordem)')
                                             ->simple(
                                                 Select::make('campo')
-                                                    ->options(fn(Component $livewire) => static::opcoesTraducao($livewire))
+                                                    ->options(fn (Component $livewire) => static::opcoesTraducao($livewire))
                                                     ->required()
                                                     ->distinct(),
                                             )
@@ -469,7 +468,6 @@ class MdTabelaResource extends Resource
             ]);
     }
 
-
     protected static function sugerirNomeFisico(Get $get, Set $set, ?MdTabela $record): void
     {
         if ($record?->isGerada()) {
@@ -486,11 +484,11 @@ class MdTabelaResource extends Resource
 
         // só troca se estiver vazio ou ainda for a última sugestão automática
         if ($atual === '' || $atual === $get('nome_fisico_sugerido')) {
-            $set('nome_fisico', MdTabela::prefixoFisico($prefixo) . $nome);
-            $set('nome_fisico_sugerido', MdTabela::prefixoFisico($prefixo) . $nome);
+            $set('nome_fisico', MdTabela::prefixoFisico($prefixo).$nome);
+            $set('nome_fisico_sugerido', MdTabela::prefixoFisico($prefixo).$nome);
         }
 
-        $controller = 'Controller' . Str::studly($nome);
+        $controller = 'Controller'.Str::studly($nome);
         $atualController = (string) $get('nome_controller');
 
         if ($atualController === '' || $atualController === $get('nome_controller_sugerido')) {
@@ -518,13 +516,13 @@ class MdTabelaResource extends Resource
                 $lista = $record->tipoTabela() === TipoTabela::Lista;
                 $existentes = $record->itens()->get();
 
-                $linhas = $existentes->map(fn (MdTabelaItem $i) => '<tr><td style="padding:2px 12px 2px 0"><code>' . e($i->nome) . '</code></td><td>'
-                    . e($lista ? $i->codigo : $i->valor) . '</td></tr>')->implode('');
+                $linhas = $existentes->map(fn (MdTabelaItem $i) => '<tr><td style="padding:2px 12px 2px 0"><code>'.e($i->nome).'</code></td><td>'
+                    .e($lista ? $i->codigo : $i->valor).'</td></tr>')->implode('');
 
                 return [
                     Text::make(new HtmlString($existentes->isEmpty()
                         ? 'Nenhum valor ainda.'
-                        : '<table><thead><tr><th style="text-align:left;padding-right:12px">Nome</th><th style="text-align:left">Valor</th></tr></thead><tbody>' . $linhas . '</tbody></table>')),
+                        : '<table><thead><tr><th style="text-align:left;padding-right:12px">Nome</th><th style="text-align:left">Valor</th></tr></thead><tbody>'.$linhas.'</tbody></table>')),
 
                     Repeater::make('novos')
                         ->label('Novos valores')
@@ -539,7 +537,7 @@ class MdTabelaResource extends Resource
                                 ->distinct()
                                 ->extraInputAttributes(['style' => 'text-transform: uppercase'])
                                 ->dehydrateStateUsing(fn (?string $state) => filled($state) ? MdTabelaItem::nomeDoCaso($state) : null)
-                                ->helperText(fn (?string $state) => filled($state) ? 'Constante: ' . MdTabelaItem::nomeDoCaso($state) : null)
+                                ->helperText(fn (?string $state) => filled($state) ? 'Constante: '.MdTabelaItem::nomeDoCaso($state) : null)
                                 ->rule(fn () => function (string $attribute, mixed $value, Closure $fail) use ($existentes) {
                                     if (filled($value) && $existentes->contains('nome', MdTabelaItem::nomeDoCaso($value))) {
                                         $fail('Já existe um valor com este nome.');
@@ -595,7 +593,7 @@ class MdTabelaResource extends Resource
             });
     }
 
-        /**
+    /**
      * Botão Gerar constantes: recria os enums das tabelas lista/conteúdo do módulo.
      */
     public static function acaoConstantes(): Action
@@ -632,9 +630,9 @@ class MdTabelaResource extends Resource
     protected static function opcoesTraducao(Component $livewire): array
     {
         return collect($livewire->data['campos'] ?? [])
-            ->filter(fn($c) => filled($c['uid'] ?? null) && filled($c['nome_fisico'] ?? null)
+            ->filter(fn ($c) => filled($c['uid'] ?? null) && filled($c['nome_fisico'] ?? null)
                 && ($tipo = TipoCampo::tryFrom((string) ($c['tipo'] ?? ''))) && Traducao::aceita($tipo))
-            ->mapWithKeys(fn($c) => [$c['uid'] => ($c['nome'] ?? $c['nome_fisico']) . " ({$c['nome_fisico']})"])
+            ->mapWithKeys(fn ($c) => [$c['uid'] => ($c['nome'] ?? $c['nome_fisico'])." ({$c['nome_fisico']})"])
             ->all();
     }
 
@@ -642,7 +640,7 @@ class MdTabelaResource extends Resource
     {
         $nomes = collect($livewire->data['campos'] ?? [])->keyBy('uid');
         // no formulário, cada item do repeater simples vem como ['campo' => uid]
-        $partes = collect($uids)->map(fn($uid) => $nomes->get(is_array($uid) ? ($uid['campo'] ?? null) : $uid)['nome_fisico'] ?? null)->filter()->values();
+        $partes = collect($uids)->map(fn ($uid) => $nomes->get(is_array($uid) ? ($uid['campo'] ?? null) : $uid)['nome_fisico'] ?? null)->filter()->values();
 
         return $partes->isEmpty() ? 'id (sem tradução)' : $partes->join(Traducao::SEPARADOR);
     }
@@ -654,15 +652,15 @@ class MdTabelaResource extends Resource
     {
         return Tab::make($tipo === 'formularios' ? 'Formulários' : 'Gerenciamentos')
             ->icon($tipo === 'formularios' ? 'heroicon-o-document-text' : 'heroicon-o-queue-list')
-            ->visible(fn(?MdTabela $record) => (bool) $record?->exists)
-            ->badge(fn(?MdTabela $record) => $record ? ($tipo === 'formularios' ? $record->formularios()->count() : $record->gerenciamentos()->count()) ?: null : null)
+            ->visible(fn (?MdTabela $record) => (bool) $record?->exists)
+            ->badge(fn (?MdTabela $record) => $record ? ($tipo === 'formularios' ? $record->formularios()->count() : $record->gerenciamentos()->count()) ?: null : null)
             ->schema([
                 View::make('filament.sistema.tabela-telas')
-                    ->viewData(fn(?MdTabela $record) => [
+                    ->viewData(fn (?MdTabela $record) => [
                         'tipo' => $tipo,
                         'itens' => $record ? ($tipo === 'formularios' ? $record->formularios()->orderBy('id')->get() : $record->gerenciamentos()->with('formulario')->orderBy('ordem')->get()) : collect(),
                         'urlNovo' => $record ? ($tipo === 'formularios' ? MdFormularioResource::getUrl('create', ['tabela' => $record->id]) : MdGerenciamentoResource::getUrl('create', ['tabela' => $record->id])) : null,
-                        'urlEditar' => fn($item) => $tipo === 'formularios' ? MdFormularioResource::getUrl('edit', ['record' => $item]) : MdGerenciamentoResource::getUrl('edit', ['record' => $item]),
+                        'urlEditar' => fn ($item) => $tipo === 'formularios' ? MdFormularioResource::getUrl('edit', ['record' => $item]) : MdGerenciamentoResource::getUrl('edit', ['record' => $item]),
                     ]),
             ]);
     }
@@ -677,7 +675,7 @@ class MdTabelaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn($query) => $query->with('modulo')->withCount('campos'))
+            ->modifyQueryUsing(fn ($query) => $query->with('modulo')->withCount('campos'))
             ->defaultSort('nome_fisico')
             ->columns([
                 TextColumn::make('modulo.nome')->label('Módulo')->badge()->sortable(),
@@ -703,7 +701,7 @@ class MdTabelaResource extends Resource
                     ->label('Schema')
                     ->icon('heroicon-o-share')
                     ->color('gray')
-                    ->modalHeading(fn (Collection $records) => 'Schema: ' . $records->pluck('nome_fisico')->join(', ') . ' e tabelas filhas')
+                    ->modalHeading(fn (Collection $records) => 'Schema: '.$records->pluck('nome_fisico')->join(', ').' e tabelas filhas')
                     ->modalWidth(Width::Screen)
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Fechar')
@@ -730,9 +728,9 @@ class MdTabelaResource extends Resource
             ->modalContent(fn () => view('filament.dicionario.schema', ['codigo' => DiagramaSchema::geral()]))
             // por banco: as FKs só ligam tabelas do mesmo banco
             ->extraModalFooterActions(fn () => collect(Banco::cases())->map(fn (Banco $banco) => Action::make("schema_{$banco->value}")
-                ->label('Só ' . mb_strtolower($banco->getLabel()))
+                ->label('Só '.mb_strtolower($banco->getLabel()))
                 ->color('gray')
-                ->modalHeading('Schema: ' . $banco->getLabel())
+                ->modalHeading('Schema: '.$banco->getLabel())
                 ->modalWidth(Width::Screen)
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel('Fechar')

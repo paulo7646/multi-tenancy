@@ -100,6 +100,6 @@ class EntradaController extends Controller
     protected static function chaveDoToken(Webservice $ws, string $token): string
     {
         // store central: o cache do cliente usa tags, que o driver de banco não suporta
-        return 'webservice-oauth2-entrada-' . (function_exists('tenant') && tenant() ? tenant('id') : 'central') . '-' . $ws->getKey() . '-' . hash('sha256', $token);
+        return 'webservice-oauth2-entrada-'.(function_exists('tenant') && tenant() ? tenant('id') : 'central').'-'.$ws->getKey().'-'.hash('sha256', $token);
     }
 }

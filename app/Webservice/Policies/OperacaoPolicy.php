@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Webservice\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Webservice\Models\Operacao;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class OperacaoPolicy
 {
     use HandlesAuthorization;
-    
+
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('view_any_operacao');
@@ -71,5 +71,4 @@ class OperacaoPolicy
     {
         return $authUser->can('reorder_operacao');
     }
-
 }

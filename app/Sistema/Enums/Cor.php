@@ -10,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
  * Cores para ícones de situação e botões. As cores do tema (primary,
  * success...) acompanham o painel; as demais são da paleta do Tailwind.
  */
-enum Cor: string implements HasLabel, HasColor
+enum Cor: string implements HasColor, HasLabel
 {
     case Primary = 'primary';
     case Success = 'success';
@@ -76,7 +76,7 @@ enum Cor: string implements HasLabel, HasColor
     {
         return match ($this) {
             self::Primary, self::Success, self::Warning, self::Danger, self::Info, self::Gray => $this->value,
-            default => constant(Color::class . '::' . $this->name),
+            default => constant(Color::class.'::'.$this->name),
         };
     }
 

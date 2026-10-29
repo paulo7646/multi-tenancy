@@ -39,8 +39,8 @@ trait VerificaMigration
             Notification::make()
                 ->title('A alteração não pode ser aplicada no banco')
                 ->body(new HtmlString(collect($e->problems)
-                    ->map(fn (array $lista, string $onde) => '<strong>' . e($onde) . '</strong><br>' . collect($lista)->map(fn ($p) => '• ' . e($p))->join('<br>'))
-                    ->join('<br><br>') . '<br><br>Nada foi gravado.'))
+                    ->map(fn (array $lista, string $onde) => '<strong>'.e($onde).'</strong><br>'.collect($lista)->map(fn ($p) => '• '.e($p))->join('<br>'))
+                    ->join('<br><br>').'<br><br>Nada foi gravado.'))
                 ->danger()
                 ->persistent()
                 ->send();

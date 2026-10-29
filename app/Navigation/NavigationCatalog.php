@@ -67,7 +67,7 @@ class NavigationCatalog
     {
         return collect(Heroicon::cases())
             ->filter(fn (Heroicon $icon) => str_starts_with($icon->name, 'Outlined'))
-            ->mapWithKeys(fn (Heroicon $icon) => ['heroicon-' . $icon->value => substr($icon->value, 2)])
+            ->mapWithKeys(fn (Heroicon $icon) => ['heroicon-'.$icon->value => substr($icon->value, 2)])
             ->all();
     }
 
@@ -91,9 +91,9 @@ class NavigationCatalog
     public static function iconLabel(string $icon): string
     {
         return '<span style="display:inline-flex;align-items:center;gap:.5rem">'
-            . svg($icon, '', ['style' => 'width:1.25rem;height:1.25rem'])->toHtml()
-            . e(str_replace('heroicon-o-', '', $icon))
-            . '</span>';
+            .svg($icon, '', ['style' => 'width:1.25rem;height:1.25rem'])->toHtml()
+            .e(str_replace('heroicon-o-', '', $icon))
+            .'</span>';
     }
 
     public static function groupName(string|UnitEnum|null $group): ?string
@@ -108,7 +108,7 @@ class NavigationCatalog
     public static function iconName(string|BackedEnum|Htmlable|null $icon): ?string
     {
         return match (true) {
-            $icon instanceof Heroicon => 'heroicon-' . $icon->value,
+            $icon instanceof Heroicon => 'heroicon-'.$icon->value,
             $icon instanceof BackedEnum => (string) $icon->value,
             $icon instanceof Htmlable => null,
             default => $icon,

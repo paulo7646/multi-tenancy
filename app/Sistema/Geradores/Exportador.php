@@ -136,7 +136,7 @@ class Exportador
 
     protected static function gravar(string $caminho, array $dados): void
     {
-        Arquivos::gravar($caminho, json_encode($dados, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n");
+        Arquivos::gravar($caminho, json_encode($dados, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\n");
     }
 
     protected static function ler(string $caminho): array

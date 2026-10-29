@@ -2,16 +2,17 @@
 
 namespace App\Webservice\Resources;
 
+use App\Webservice\Models\Integracao;
 use App\Webservice\Models\Operacao;
+use App\Webservice\Motor\Integrador;
 use App\Webservice\RelationManagers\ParametrosRelationManager;
 use App\Webservice\RelationManagers\VersoesRelationManager;
 use App\Webservice\Resources\OperacaoResource\Pages\EditOperacao;
-use App\Webservice\Motor\Integrador;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 
 /**
@@ -93,7 +94,7 @@ class OperacaoResource extends ResourceFilho
                 $integracao = Integrador::executar($record, $data['valores'] ?? []);
 
                 $notificacao = Notification::make()
-                    ->title('Integração #' . $integracao->getKey() . ': ' . (\App\Webservice\Models\Integracao::STATUS[$integracao->status] ?? $integracao->status))
+                    ->title('Integração #'.$integracao->getKey().': '.(Integracao::STATUS[$integracao->status] ?? $integracao->status))
                     ->body($integracao->erro)
                     ->actions([Action::make('ver')->label('Abrir')->url(IntegracaoResource::getUrl('view', ['record' => $integracao]))]);
 

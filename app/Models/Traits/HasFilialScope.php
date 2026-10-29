@@ -2,9 +2,9 @@
 
 namespace App\Models\Traits;
 
+use App\Models\Filial;
 use App\Models\Scopes\FilialScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Filial;
 
 trait HasFilialScope
 {
@@ -21,7 +21,7 @@ trait HasFilialScope
             // Verifica se há um usuário autenticado no contexto atual (evita erros no CLI/Jobs)
             if (auth()->hasUser()) {
                 $filialId = auth()->user()->getActiveFilialId();
-                
+
                 // Aplica a filial ativa se o campo filial_id estiver vazio (null)
                 // Isso previne que um admin de filial crie registros "órfãos" e tome erro 404
                 if ($filialId && empty($model->filial_id)) {

@@ -43,6 +43,6 @@ class AtualizadorDeClientes
 
         return $resultado['aplicadas'] === 0
             ? "O banco {$alvo} já está atualizado."
-            : "{$resultado['aplicadas']} migration(s) aplicada(s) " . ($todos ? 'nos clientes.' : 'no cliente.');
+            : "{$resultado['aplicadas']} migration(s) aplicada(s) ".($todos ? 'nos clientes.' : 'no cliente.');
     }
 }

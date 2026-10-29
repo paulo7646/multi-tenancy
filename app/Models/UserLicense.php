@@ -10,7 +10,6 @@ use Illuminate\Validation\ValidationException;
 
 class UserLicense extends Model
 {
-
     protected $connection = 'central';
 
     protected $fillable = [
@@ -60,7 +59,7 @@ class UserLicense extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', LicenseStatus::Active)
-            ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
     }
 
     public static function findActive(string $email, string $tenantId): ?static

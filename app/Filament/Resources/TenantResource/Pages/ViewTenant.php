@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\TenantResource\Pages;
 
-use Filament\Actions\EditAction;
 use App\Filament\Resources\TenantResource;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewTenant extends ViewRecord

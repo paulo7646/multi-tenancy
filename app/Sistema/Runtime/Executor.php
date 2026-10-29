@@ -49,7 +49,7 @@ class Executor
     {
         if (! method_exists($botoes, $metodo)) {
             Notification::make()
-                ->title("{$titulo}: método {$metodo}() não existe em " . get_class($botoes))
+                ->title("{$titulo}: método {$metodo}() não existe em ".get_class($botoes))
                 ->body('Salve o formulário/gerenciamento no dicionário para gerar o método.')
                 ->warning()
                 ->send();

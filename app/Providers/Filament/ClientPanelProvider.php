@@ -2,17 +2,24 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Sistema\Pages\ModuloPage;
 use App\Http\Middleware\CheckTenantStatus;
 use App\Http\Middleware\CheckUserLicense;
+use App\Sistema\Enums\Banco;
+use App\Sistema\Registro;
+use App\Webservice\Resources\AgendamentoResource;
+use App\Webservice\Resources\EventoResource;
+use App\Webservice\Resources\IntegracaoResource;
+use App\Webservice\Resources\ObjetoResource;
+use App\Webservice\Resources\OperacaoResource;
+use App\Webservice\Resources\VersaoResource;
+use App\Webservice\Resources\WebserviceResource;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use CrescentPurchasing\FilamentAuditing\FilamentAuditingPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use App\Sistema\Enums\Banco;
-use App\Sistema\Registro;
-use App\Filament\Sistema\Pages\ModuloPage;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -43,13 +50,13 @@ class ClientPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Client/Resources'), for: 'App\\Filament\\Client\\Resources')
             // webservices (consumidos ou disponibilizados) e layouts de integração
             ->resources([
-                \App\Webservice\Resources\WebserviceResource::class,
-                \App\Webservice\Resources\OperacaoResource::class,
-                \App\Webservice\Resources\VersaoResource::class,
-                \App\Webservice\Resources\ObjetoResource::class,
-                \App\Webservice\Resources\EventoResource::class,
-                \App\Webservice\Resources\IntegracaoResource::class,
-                \App\Webservice\Resources\AgendamentoResource::class,
+                WebserviceResource::class,
+                OperacaoResource::class,
+                VersaoResource::class,
+                ObjetoResource::class,
+                EventoResource::class,
+                IntegracaoResource::class,
+                AgendamentoResource::class,
             ])
             // telas dos módulos dos clientes (dicionário de dados)
             ->resources(Registro::resources(Banco::Tenant))
@@ -83,18 +90,18 @@ class ClientPanelProvider extends PanelProvider
                 InitializeTenancyByDomain::class,
                 PreventAccessFromCentralDomains::class,
                 CheckTenantStatus::class,
-            ], isPersistent: TRUE)
+            ], isPersistent: true)
             ->authMiddleware([
                 Authenticate::class,
                 CheckUserLicense::class,
             ])
             ->renderHook(
                 PanelsRenderHook::BODY_START,
-                fn() => view('components.license-monitor-hook'),
+                fn () => view('components.license-monitor-hook'),
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
-                fn() => view('components.filial-selector-topbar-hook'),
+                fn () => view('components.filial-selector-topbar-hook'),
             );
     }
 }

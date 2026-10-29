@@ -129,6 +129,6 @@ class SchemaSnapshot
      */
     public static function constraintName(string $table, string $uid, string $suffix): string
     {
-        return "{$table}_" . substr(str_replace('-', '', $uid), 0, 8) . "_{$suffix}";
+        return "{$table}_".substr(str_replace('-', '', $uid), 0, 8)."_{$suffix}";
     }
 }

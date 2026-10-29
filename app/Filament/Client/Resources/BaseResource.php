@@ -2,11 +2,11 @@
 
 namespace App\Filament\Client\Resources;
 
-use Filament\Actions\ViewAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 

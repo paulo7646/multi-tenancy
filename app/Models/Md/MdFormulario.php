@@ -7,6 +7,7 @@ use App\Sistema\Runtime\Layout;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -110,10 +111,10 @@ class MdFormulario extends Model
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, MdFormularioComponente>  $componentes
+     * @param  Collection<int, MdFormularioComponente>  $componentes
      * @return list<array<string, mixed>>
      */
-    protected static function arvore(\Illuminate\Support\Collection $componentes): array
+    protected static function arvore(Collection $componentes): array
     {
         return $componentes->whereNull('pai_id')->sortBy('ordem')
             ->map(function (MdFormularioComponente $c) use ($componentes) {

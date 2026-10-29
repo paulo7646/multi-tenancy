@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\DomainResource\Pages;
 
-use Filament\Actions\ViewAction;
-use Filament\Actions\DeleteAction;
 use App\Filament\Resources\DomainResource;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditDomain extends EditRecord

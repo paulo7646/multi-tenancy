@@ -6,8 +6,8 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class CreateTenantUser implements ShouldQueue
 {

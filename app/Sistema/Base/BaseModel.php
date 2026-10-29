@@ -172,8 +172,8 @@ abstract class BaseModel extends Model
         $nomes = $nomes === null ? null : array_map('mb_strtoupper', $nomes);
 
         if ($nomes !== null && ($desconhecidas = array_diff($nomes, array_keys($filhas))) !== []) {
-            throw new RuntimeException('Não são filhas de ' . static::$mdTabela . ': ' . implode(', ', $desconhecidas)
-                . '. Filhas: ' . (implode(', ', array_keys($filhas)) ?: 'nenhuma') . '.');
+            throw new RuntimeException('Não são filhas de '.static::$mdTabela.': '.implode(', ', $desconhecidas)
+                .'. Filhas: '.(implode(', ', array_keys($filhas)) ?: 'nenhuma').'.');
         }
 
         foreach ($filhas as $nome => [$tabela, $coluna]) {

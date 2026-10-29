@@ -66,7 +66,7 @@ class MigrationWriter
         $lines = ['$table->id();'];
 
         foreach ($fields as $field) {
-            $lines[] = static::column($field) . ';';
+            $lines[] = static::column($field).';';
         }
 
         $lines[] = '$table->timestamps();';
@@ -90,19 +90,19 @@ class MigrationWriter
             $after = $new[$id] ?? null;
 
             if ($before['foreign'] && (! $after || $after['foreign'] !== $before['foreign'])) {
-                $constraintsOff[] = "\$table->dropForeign('" . SchemaSnapshot::constraintName($table, $id, 'foreign') . "');";
+                $constraintsOff[] = "\$table->dropForeign('".SchemaSnapshot::constraintName($table, $id, 'foreign')."');";
             }
 
             if ($before['unique'] && (! $after || ! $after['unique'])) {
-                $constraintsOff[] = "\$table->dropUnique('" . SchemaSnapshot::constraintName($table, $id, 'unique') . "');";
+                $constraintsOff[] = "\$table->dropUnique('".SchemaSnapshot::constraintName($table, $id, 'unique')."');";
             }
 
             if ($before['index'] && (! $after || ! $after['index'])) {
-                $constraintsOff[] = "\$table->dropIndex('" . SchemaSnapshot::constraintName($table, $id, 'index') . "');";
+                $constraintsOff[] = "\$table->dropIndex('".SchemaSnapshot::constraintName($table, $id, 'index')."');";
             }
 
             if ($before['options'] !== null && (! $after || $after['options'] !== $before['options'])) {
-                $sql[] = static::statement('alter table ' . static::quote($table) . ' drop constraint if exists ' . static::quote(SchemaSnapshot::constraintName($table, $id, 'check')));
+                $sql[] = static::statement('alter table '.static::quote($table).' drop constraint if exists '.static::quote(SchemaSnapshot::constraintName($table, $id, 'check')));
             }
 
             if (! $after) {
@@ -126,18 +126,18 @@ class MigrationWriter
                 $cast = static::cast($after);
                 $column = static::quote($after['name']);
 
-                $guards[] = "MigrationGuard::castable('{$table}', '{$current}', " . var_export($cast, true) . ');';
-                $sql[] = static::statement('alter table ' . static::quote($table) . " alter column {$column} drop default");
-                $sql[] = static::statement('alter table ' . static::quote($table) . " alter column {$column} type {$cast} using {$column}::{$cast}");
+                $guards[] = "MigrationGuard::castable('{$table}', '{$current}', ".var_export($cast, true).');';
+                $sql[] = static::statement('alter table '.static::quote($table)." alter column {$column} drop default");
+                $sql[] = static::statement('alter table '.static::quote($table)." alter column {$column} type {$cast} using {$column}::{$cast}");
             }
 
             if ($before['nullable'] && ! $after['nullable'] && $after['default'] !== null) {
                 $sql[] = "DB::table('{$table}')->whereNull('{$after['name']}')->update(['{$after['name']}' => "
-                    . static::export(SchemaSnapshot::castDefault(TipoCampo::from($after['type']), $after['default'])) . ']);';
+                    .static::export(SchemaSnapshot::castDefault(TipoCampo::from($after['type']), $after['default'])).']);';
             }
 
             if (static::columnChanged($before, $after)) {
-                $changes[] = static::column($after) . '->change();';
+                $changes[] = static::column($after).'->change();';
             }
 
             if ($after['unique'] && ! $before['unique']) {
@@ -149,7 +149,7 @@ class MigrationWriter
             }
 
             if ($after['options'] !== null && $after['options'] !== $before['options']) {
-                $guards[] = "MigrationGuard::onlyOptions('{$table}', '{$current}', " . static::export($after['options']) . ');';
+                $guards[] = "MigrationGuard::onlyOptions('{$table}', '{$current}', ".static::export($after['options']).');';
             }
         }
 
@@ -162,7 +162,7 @@ class MigrationWriter
                     $guards[] = "MigrationGuard::emptyTable('{$table}', '{$after['name']}');";
                 }
 
-                $adds[] = static::column($after) . ';';
+                $adds[] = static::column($after).';';
             }
 
             array_push($constraintsOn, ...static::addConstraints($table, $id, $before, $after));
@@ -197,11 +197,11 @@ class MigrationWriter
                 continue;
             }
 
-            $values = implode(', ', array_map(fn ($option) => "'" . str_replace("'", "''", (string) $option) . "'", $after['options']));
+            $values = implode(', ', array_map(fn ($option) => "'".str_replace("'", "''", (string) $option)."'", $after['options']));
 
-            $statements[] = static::statement('alter table ' . static::quote($table)
-                . ' add constraint ' . static::quote(SchemaSnapshot::constraintName($table, (string) $id, 'check'))
-                . ' check (' . static::quote($after['name']) . " in ({$values}))");
+            $statements[] = static::statement('alter table '.static::quote($table)
+                .' add constraint '.static::quote(SchemaSnapshot::constraintName($table, (string) $id, 'check'))
+                .' check ('.static::quote($after['name'])." in ({$values}))");
         }
 
         return $statements;
@@ -215,11 +215,11 @@ class MigrationWriter
         $lines = [];
 
         if ($after['unique'] && ! ($before['unique'] ?? false)) {
-            $lines[] = "\$table->unique('{$after['name']}', '" . SchemaSnapshot::constraintName($table, $id, 'unique') . "');";
+            $lines[] = "\$table->unique('{$after['name']}', '".SchemaSnapshot::constraintName($table, $id, 'unique')."');";
         }
 
         if ($after['index'] && ! ($before['index'] ?? false)) {
-            $lines[] = "\$table->index('{$after['name']}', '" . SchemaSnapshot::constraintName($table, $id, 'index') . "');";
+            $lines[] = "\$table->index('{$after['name']}', '".SchemaSnapshot::constraintName($table, $id, 'index')."');";
         }
 
         if ($after['foreign'] && ($before['foreign'] ?? null) !== $after['foreign']) {
@@ -229,8 +229,8 @@ class MigrationWriter
                 default => 'restrictOnDelete',
             };
 
-            $lines[] = "\$table->foreign('{$after['name']}', '" . SchemaSnapshot::constraintName($table, $id, 'foreign') . "')"
-                . "->references('id')->on('{$after['foreign']['table']}')->{$onDelete}();";
+            $lines[] = "\$table->foreign('{$after['name']}', '".SchemaSnapshot::constraintName($table, $id, 'foreign')."')"
+                ."->references('id')->on('{$after['foreign']['table']}')->{$onDelete}();";
         }
 
         return $lines;
@@ -274,7 +274,7 @@ class MigrationWriter
         $code .= $field['nullable'] ? '->nullable()' : '->nullable(false)';
 
         if ($field['default'] !== null) {
-            $code .= '->default(' . static::export(SchemaSnapshot::castDefault($type, $field['default'])) . ')';
+            $code .= '->default('.static::export(SchemaSnapshot::castDefault($type, $field['default'])).')';
         }
 
         return $code;
@@ -282,7 +282,7 @@ class MigrationWriter
 
     protected static function statement(string $sql): string
     {
-        return 'DB::statement(' . var_export($sql, true) . ');';
+        return 'DB::statement('.var_export($sql, true).');';
     }
 
     protected static function schemaBlock(string $method, string $table, array $lines): ?string
@@ -292,19 +292,19 @@ class MigrationWriter
         }
 
         return "Schema::{$method}('{$table}', function (Blueprint \$table) {\n            "
-            . implode("\n            ", $lines)
-            . "\n        });";
+            .implode("\n            ", $lines)
+            ."\n        });";
     }
 
     protected static function quote(string $identifier): string
     {
-        return '"' . str_replace('"', '""', $identifier) . '"';
+        return '"'.str_replace('"', '""', $identifier).'"';
     }
 
     protected static function export(mixed $value): string
     {
         if (is_array($value)) {
-            return '[' . implode(', ', array_map(fn ($item) => static::export($item), $value)) . ']';
+            return '['.implode(', ', array_map(fn ($item) => static::export($item), $value)).']';
         }
 
         return var_export($value, true);

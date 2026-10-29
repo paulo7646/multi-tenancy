@@ -2,29 +2,29 @@
 
 namespace App\Filament\Client\Resources;
 
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Toggle;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Filters\TernaryFilter;
-use App\Filament\Client\Resources\FilialResource\Pages\ListFiliais;
 use App\Filament\Client\Resources\FilialResource\Pages\CreateFilial;
-use App\Filament\Client\Resources\FilialResource\Pages\ViewFilial;
 use App\Filament\Client\Resources\FilialResource\Pages\EditFilial;
+use App\Filament\Client\Resources\FilialResource\Pages\ListFiliais;
+use App\Filament\Client\Resources\FilialResource\Pages\ViewFilial;
 use App\Models\Filial;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class FilialResource extends BaseResource
 {
     protected static ?string $model = Filial::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-storefront';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-storefront';
 
     protected static ?string $navigationLabel = 'Filiais';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Configurações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Configurações';
 
     public static function form(Schema $schema): Schema
     {

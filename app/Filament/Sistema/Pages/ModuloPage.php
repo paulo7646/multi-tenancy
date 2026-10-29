@@ -44,7 +44,7 @@ class ModuloPage extends Page
         return Modulo::where('prefixo', $this->modulo)->firstOrFail();
     }
 
-    public function getTitle(): string | Htmlable
+    public function getTitle(): string|Htmlable
     {
         return $this->md()->nome;
     }

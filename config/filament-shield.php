@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Filament\Sistema\Pages\ModuloPage;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
@@ -216,7 +217,7 @@ return [
         'exclude' => [
             Dashboard::class,
             // visão geral do módulo: acesso pela permissão modulo_{prefixo}
-            App\Filament\Sistema\Pages\ModuloPage::class,
+            ModuloPage::class,
         ],
     ],
 

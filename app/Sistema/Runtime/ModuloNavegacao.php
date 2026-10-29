@@ -10,6 +10,7 @@ use App\Sistema\Enums\Banco;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\HtmlString;
 use Throwable;
 
 /**
@@ -65,7 +66,7 @@ class ModuloNavegacao
     /**
      * Ícone do item: o do gerenciamento ou o da tabela, na cor da tabela.
      */
-    public static function icone(MdGerenciamento $gerenciamento): string|\Illuminate\Support\HtmlString
+    public static function icone(MdGerenciamento $gerenciamento): string|HtmlString
     {
         $tabela = $gerenciamento->tabela;
 

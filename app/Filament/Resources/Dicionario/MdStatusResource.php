@@ -28,7 +28,7 @@ class MdStatusResource extends Resource
 
     protected static ?string $model = MdStatus::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-flag';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-flag';
 
     protected static ?string $modelLabel = 'Situação';
 

@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Dicionario\MdFormularioResource\Pages;
 
 use App\Filament\Resources\Dicionario\Concerns\PublicaNoDicionario;
-use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
 use App\Filament\Resources\Dicionario\MdFormularioResource;
+use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
 use App\Sistema\Geradores\Gerador;
 use App\Sistema\Runtime\Layout;
 use Filament\Actions\DeleteAction;

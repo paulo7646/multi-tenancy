@@ -10,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
  * Fluxo da licença de usuário:
  * Cadastrada (solicitada pela empresa) -> Em análise -> Ativa / Desativada
  */
-enum LicenseStatus: string implements HasLabel, HasColor, HasIcon
+enum LicenseStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Requested = 'requested';
     case InReview = 'in_review';

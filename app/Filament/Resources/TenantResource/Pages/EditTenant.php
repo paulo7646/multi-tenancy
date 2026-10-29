@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\TenantResource\Pages;
 
-use Filament\Actions\ViewAction;
-use Filament\Actions\DeleteAction;
 use App\Filament\Resources\TenantResource;
 use App\Jobs\CreateTenantFrontend;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditTenant extends EditRecord

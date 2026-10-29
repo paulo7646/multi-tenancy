@@ -2,30 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms\Components\Select;
-use Filament\Schemas\Components\Utilities\Get;
-use Closure;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Actions\ActionGroup;
-use Filament\Actions\Action;
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Actions\ViewAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use App\Filament\Resources\UserLicenseResource\Pages\ListUserLicenses;
-use App\Filament\Resources\UserLicenseResource\Pages\CreateUserLicense;
-use App\Filament\Resources\UserLicenseResource\Pages\ViewUserLicense;
-use App\Filament\Resources\UserLicenseResource\Pages\EditUserLicense;
 use App\Enums\LicenseStatus;
+use App\Filament\Resources\UserLicenseResource\Pages\CreateUserLicense;
+use App\Filament\Resources\UserLicenseResource\Pages\EditUserLicense;
+use App\Filament\Resources\UserLicenseResource\Pages\ListUserLicenses;
+use App\Filament\Resources\UserLicenseResource\Pages\ViewUserLicense;
 use App\Models\Tenant;
 use App\Models\UserLicense;
+use Closure;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
@@ -33,7 +33,7 @@ class UserLicenseResource extends Resource
 {
     protected static ?string $model = UserLicense::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-ticket';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-ticket';
 
     protected static ?string $navigationLabel = 'Licenças de Usuário';
 
@@ -41,7 +41,7 @@ class UserLicenseResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Licenças de Usuário';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Empresa';
+    protected static string|\UnitEnum|null $navigationGroup = 'Empresa';
 
     /**
      * Badge no menu com as solicitações que ainda não foram analisadas.
@@ -192,7 +192,7 @@ class UserLicenseResource extends Resource
                     }),
                 TextInput::make('license_key')
                     ->label('Chave da Licença')
-                    ->default(fn() => Str::uuid()->toString())
+                    ->default(fn () => Str::uuid()->toString())
                     ->readOnly()
                     ->required(),
                 static::statusField(),

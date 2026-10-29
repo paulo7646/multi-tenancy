@@ -46,7 +46,7 @@ class Gerador
             return;
         }
 
-        $arquivo = storage_path('framework/md-check-' . bin2hex(random_bytes(6)) . '.php');
+        $arquivo = storage_path('framework/md-check-'.bin2hex(random_bytes(6)).'.php');
         Arquivos::gravar($arquivo, $codigo);
 
         try {
@@ -95,7 +95,7 @@ class Gerador
         $resumo = [];
 
         if ($codigo !== null) {
-            $resumo[] = static::gravarEAplicar($tabela->banco, ($tabela->isGerada() ? 'alter' : 'create') . "_{$tabela->nome_fisico}_table", $codigo);
+            $resumo[] = static::gravarEAplicar($tabela->banco, ($tabela->isGerada() ? 'alter' : 'create')."_{$tabela->nome_fisico}_table", $codigo);
         }
 
         $novos = array_diff(array_keys($snapshot['fields']), array_keys($tabela->generated_schema['fields'] ?? []));
@@ -128,7 +128,7 @@ class Gerador
         Exportador::tabela($tabela);
         Registro::limpar();
 
-        return [...$resumo, 'Model ' . Arquivos::relativo(ModelWriter::path($tabela)), 'Controller ' . Arquivos::relativo(ClassesWriter::controllerPath($tabela)), ...array_map(fn ($a) => "Botões {$a}", $botoes)];
+        return [...$resumo, 'Model '.Arquivos::relativo(ModelWriter::path($tabela)), 'Controller '.Arquivos::relativo(ClassesWriter::controllerPath($tabela)), ...array_map(fn ($a) => "Botões {$a}", $botoes)];
     }
 
     /**
@@ -142,8 +142,8 @@ class Gerador
 
         if ($referencias->isNotEmpty()) {
             throw new RuntimeException('Esta tabela é chave estrangeira em: '
-                . $referencias->map(fn ($campo) => "{$campo->tabela->nome_fisico}.{$campo->nome_fisico}")->join(', ')
-                . '. Remova esses campos antes.');
+                .$referencias->map(fn ($campo) => "{$campo->tabela->nome_fisico}.{$campo->nome_fisico}")->join(', ')
+                .'. Remova esses campos antes.');
         }
 
         // as telas (gerenciamentos) saem junto com a tabela: as permissões delas também
@@ -235,7 +235,7 @@ class Gerador
 
             $tabela->setRelation('modulo', $modulo);
             EnumWriter::gravar($tabela);
-            $resumo[] = 'Enum ' . Arquivos::relativo($tabela->enumPath());
+            $resumo[] = 'Enum '.Arquivos::relativo($tabela->enumPath());
         }
 
         return $resumo;
@@ -311,7 +311,7 @@ PHP;
         Exportador::tabela($gerenciamento->tabela);
         Registro::limpar();
 
-        return array_filter(['Resource ' . Arquivos::relativo(ClassesWriter::resourcePath($gerenciamento)), $permissoes, ...array_map(fn ($a) => "Botões {$a}", $botoes)]);
+        return array_filter(['Resource '.Arquivos::relativo(ClassesWriter::resourcePath($gerenciamento)), $permissoes, ...array_map(fn ($a) => "Botões {$a}", $botoes)]);
     }
 
     /**
@@ -323,17 +323,17 @@ PHP;
     public static function permissoesGerenciamento(MdGerenciamento $gerenciamento): ?string
     {
         $banco = $gerenciamento->tabela->banco;
-        $nome = 'permissao_resource_' . strtolower($gerenciamento->nome_fisico);
+        $nome = 'permissao_resource_'.strtolower($gerenciamento->nome_fisico);
 
-        if (glob($banco->migrationsPath() . "/*_{$nome}.php") !== []) {
+        if (glob($banco->migrationsPath()."/*_{$nome}.php") !== []) {
             return null;
         }
 
         $permissoes = $gerenciamento->permissoes();
 
         $codigo = static::arquivoMigration(
-            'Permissoes::criar(' . Arquivos::exportar($permissoes) . ', ' . Arquivos::exportar(static::papeis($gerenciamento->tabela->modulo->roles)) . ');',
-            'Permissoes::remover(...' . Arquivos::exportar($permissoes) . ');',
+            'Permissoes::criar('.Arquivos::exportar($permissoes).', '.Arquivos::exportar(static::papeis($gerenciamento->tabela->modulo->roles)).');',
+            'Permissoes::remover(...'.Arquivos::exportar($permissoes).');',
         );
 
         return static::gravarEAplicar($banco, $nome, $codigo);
@@ -347,15 +347,15 @@ PHP;
         $banco = $gerenciamento->tabela->banco;
         $slug = strtolower($gerenciamento->nome_fisico);
 
-        if (glob($banco->migrationsPath() . "/*_permissao_resource_{$slug}.php") === []) {
+        if (glob($banco->migrationsPath()."/*_permissao_resource_{$slug}.php") === []) {
             return;
         }
 
         $permissoes = $gerenciamento->permissoes();
 
         static::gravarEAplicar($banco, "remover_resource_{$slug}", static::arquivoMigration(
-            'Permissoes::remover(...' . Arquivos::exportar($permissoes) . ');',
-            'Permissoes::criar(' . Arquivos::exportar($permissoes) . ', []);',
+            'Permissoes::remover(...'.Arquivos::exportar($permissoes).');',
+            'Permissoes::criar('.Arquivos::exportar($permissoes).', []);',
         ));
     }
 
@@ -391,10 +391,10 @@ PHP;
             $permissao = $modulo->permissao();
             $down = $anteriores === null
                 ? "Permissoes::remover('{$permissao}');"
-                : "Permissoes::sincronizar('{$permissao}', " . Arquivos::exportar($anteriores) . ');';
+                : "Permissoes::sincronizar('{$permissao}', ".Arquivos::exportar($anteriores).');';
 
             $codigo = static::arquivoMigration(
-                "Permissoes::sincronizar('{$permissao}', " . Arquivos::exportar($roles) . ');',
+                "Permissoes::sincronizar('{$permissao}', ".Arquivos::exportar($roles).');',
                 $down,
             );
 
@@ -419,7 +419,7 @@ PHP;
         if ($modulo->roles_gerados !== null) {
             $codigo = static::arquivoMigration(
                 "Permissoes::remover('{$modulo->permissao()}');",
-                "Permissoes::sincronizar('{$modulo->permissao()}', " . Arquivos::exportar(static::papeis($modulo->roles_gerados)) . ');',
+                "Permissoes::sincronizar('{$modulo->permissao()}', ".Arquivos::exportar(static::papeis($modulo->roles_gerados)).');',
             );
 
             static::gravarEAplicar($modulo->banco, "remover_modulo_{$modulo->prefixo}", $codigo);
@@ -470,7 +470,7 @@ PHP;
     protected static function gravarEAplicar(Banco $banco, string $nome, string $codigo): string
     {
         $pasta = $banco->migrationsPath();
-        $base = date('Y_m_d_His') . "_{$nome}";
+        $base = date('Y_m_d_His')."_{$nome}";
         $arquivo = "{$pasta}/{$base}.php";
 
         for ($i = 2; is_file($arquivo); $i++) {
@@ -492,7 +492,7 @@ PHP;
                 Arquivos::apagar($arquivo);
             }
 
-            throw new RuntimeException("Migration {$relativo} falhou: " . static::erroAmigavel($e), previous: $e);
+            throw new RuntimeException("Migration {$relativo} falhou: ".static::erroAmigavel($e), previous: $e);
         }
 
         return "Migration {$relativo} (aplicada aqui; no cliente: php artisan {$banco->comandoMigrate()})";
@@ -549,12 +549,12 @@ PHP;
                 $tabela = MdTabela::where('nome_fisico', $m[1])->value('nome') ?? $m[1];
 
                 return "Não dá para excluir: existem registros em \"{$tabela}\" ligados a este. "
-                    . 'Remova as ligações antes, ou no dicionário mude a chave estrangeira para "Excluir junto".';
+                    .'Remova as ligações antes, ou no dicionário mude a chave estrangeira para "Excluir junto".';
             }
 
             $mensagem = preg_replace('/^SQLSTATE\[\w+\]: [^:]+: \d+ /', '', $original);
 
-            return 'O banco recusou a alteração: ' . trim(strtok($mensagem, "\n"));
+            return 'O banco recusou a alteração: '.trim(strtok($mensagem, "\n"));
         }
 
         return $e->getMessage();

@@ -12,10 +12,10 @@ class FilialScope implements Scope
     {
         if (auth()->hasUser()) {
             $filialId = auth()->user()->getActiveFilialId();
-            
+
             if ($filialId) {
                 $builder->where(
-                    $model->getTable() . '.filial_id',
+                    $model->getTable().'.filial_id',
                     $filialId
                 );
             }

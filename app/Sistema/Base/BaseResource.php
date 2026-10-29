@@ -27,6 +27,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\Column;
+use Filament\Tables\Filters\BaseFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Auth\Access\Response;
@@ -58,7 +59,9 @@ abstract class BaseResource extends Resource
     }
 
     public const INCLUIR = 'incluir';
+
     public const ALTERAR = 'alterar';
+
     public const VISUALIZAR = 'visualizar';
 
     /** Nome físico do gerenciamento no dicionário (definido no Resource gerado) */
@@ -124,7 +127,7 @@ abstract class BaseResource extends Resource
         return $coluna;
     }
 
-    /** @return list<\Filament\Tables\Filters\BaseFilter> filtros extras, além dos do dicionário */
+    /** @return list<BaseFilter> filtros extras, além dos do dicionário */
     public function filtros(): array
     {
         return [];
@@ -231,12 +234,12 @@ abstract class BaseResource extends Resource
         return static::md()->titulo;
     }
 
-    public static function getNavigationGroup(): string | UnitEnum | null
+    public static function getNavigationGroup(): string|UnitEnum|null
     {
         return static::md()->tabela->modulo->nome;
     }
 
-    public static function getNavigationIcon(): string | BackedEnum | Htmlable | null
+    public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
     {
         return ModuloNavegacao::icone(static::md());
     }
@@ -253,7 +256,7 @@ abstract class BaseResource extends Resource
 
     public static function getSlug(?Panel $panel = null): string
     {
-        return 'm/' . Str::lower(static::$gerenciamento);
+        return 'm/'.Str::lower(static::$gerenciamento);
     }
 
     // ------------------------------------------------------------------
@@ -278,7 +281,7 @@ abstract class BaseResource extends Resource
      * Módulo liberado para o papel + permissão do Shield. Lista e conteúdo
      * são cadastrados no dicionário: aqui só se consulta.
      */
-    public static function getAuthorizationResponse(string | UnitEnum $action, ?Model $record = null): Response
+    public static function getAuthorizationResponse(string|UnitEnum $action, ?Model $record = null): Response
     {
         $action = $action instanceof BackedEnum ? (string) $action->value : ($action instanceof UnitEnum ? $action->name : $action);
 
@@ -496,13 +499,13 @@ abstract class BaseResource extends Resource
 
     public static function getPages(): array
     {
-        $pages = static::class . '\\Pages\\';
+        $pages = static::class.'\\Pages\\';
 
         return [
-            'index' => ($pages . 'Listar')::route('/'),
-            'create' => ($pages . 'Criar')::route('/create'),
-            'view' => ($pages . 'Visualizar')::route('/{record}'),
-            'edit' => ($pages . 'Alterar')::route('/{record}/edit'),
+            'index' => ($pages.'Listar')::route('/'),
+            'create' => ($pages.'Criar')::route('/create'),
+            'view' => ($pages.'Visualizar')::route('/{record}'),
+            'edit' => ($pages.'Alterar')::route('/{record}/edit'),
         ];
     }
 }

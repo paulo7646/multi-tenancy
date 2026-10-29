@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Hash;
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
@@ -48,7 +48,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         return $this->userLicenses()
             ->active()
-            ->when($except, fn($q) => $q->whereKeyNot($except))
+            ->when($except, fn ($q) => $q->whereKeyNot($except))
             ->count();
     }
 
@@ -65,7 +65,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function licenseLimitMessage(): string
     {
         return "A empresa {$this->displayName()} já tem {$this->activeLicensesCount()} de {$this->qtd_licencas} licenças ativas. "
-            . 'Aumente a quantidade de licenças da empresa para ativar esta.';
+            .'Aumente a quantidade de licenças da empresa para ativar esta.';
     }
 
     public function isActive(): bool
@@ -77,7 +77,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'password',
         'remember_token',
     ];
-
 
     public function setPasswordAttribute($value)
     {

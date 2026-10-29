@@ -7,50 +7,50 @@ use App\Models\Md\MdCampo;
 use App\Models\Md\MdFormulario;
 use App\Models\Md\MdFormularioPagina;
 use App\Models\Md\MdTabela;
-use App\Sistema\Enums\TipoTabPage;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Livewire;
-use Filament\Schemas\Components\Text;
-use Filament\Schemas\Components\Utilities\Get;
-use Illuminate\Support\Str;
 use App\Sistema\Base\BaseResource;
 use App\Sistema\Enums\TipoCampo;
 use App\Sistema\Enums\TipoComponente;
+use App\Sistema\Enums\TipoTabPage;
 use App\Sistema\Registro;
 use App\Sistema\Rules\Cnpj;
 use App\Sistema\Rules\Cpf;
 use App\Sistema\Schema\SchemaSnapshot;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\CodeEditor;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\Slider;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\CodeEditor;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Slider;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\RawJs;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Monta os componentes do Filament de um formulário a partir dos componentes
@@ -166,7 +166,7 @@ class FormularioBuilder
             return null;
         }
 
-        $componente = TextEntry::make('tabpage_' . Str::lower($definicao['nome_fisico']) . '_' . Str::lower($campo->nome_fisico))
+        $componente = TextEntry::make('tabpage_'.Str::lower($definicao['nome_fisico']).'_'.Str::lower($campo->nome_fisico))
             ->label($campo->nome)
             ->placeholder('—');
 
@@ -218,7 +218,7 @@ class FormularioBuilder
         }
 
         if ($this->previa || ! $definicao['id']) {
-            return Text::make('Lista de registros de ' . ($destino?->nome ?? '(tabela não escolhida)') . ', com incluir, alterar e excluir.')
+            return Text::make('Lista de registros de '.($destino?->nome ?? '(tabela não escolhida)').', com incluir, alterar e excluir.')
                 ->columnSpanFull();
         }
 
@@ -226,7 +226,7 @@ class FormularioBuilder
             'tabPageId' => $definicao['id'],
             'registroId' => $this->view->registro?->getKey(),
         ])
-            ->key('tabpage-' . Str::lower($definicao['nome_fisico']))
+            ->key('tabpage-'.Str::lower($definicao['nome_fisico']))
             ->columnSpanFull();
     }
 
@@ -325,7 +325,7 @@ class FormularioBuilder
                 $componente->extraInputAttributes(['style' => "height: {$altura}px;"], merge: true);
             }
         } elseif ($largura || $altura) {
-            $componente->extraAttributes(['style' => ($largura ? "width: {$largura}px; max-width: 100%; " : '') . ($altura ? "min-height: {$altura}px;" : '')], merge: true);
+            $componente->extraAttributes(['style' => ($largura ? "width: {$largura}px; max-width: 100%; " : '').($altura ? "min-height: {$altura}px;" : '')], merge: true);
         }
 
         return $componente;
@@ -401,7 +401,7 @@ class FormularioBuilder
         $tipo = $campo->tipo;
         $nome = $campo->nome_fisico;
         $tamanho = $campo->tamanho ?: $tipo->defaultLength();
-        $pasta = 'md/' . $this->formulario->tabela->nome_fisico;
+        $pasta = 'md/'.$this->formulario->tabela->nome_fisico;
         $comp = TipoComponente::resolver($tipoComponente, $tipo);
 
         $componente = match ($comp) {
@@ -443,7 +443,7 @@ class FormularioBuilder
         if (filled($mascara) && $componente instanceof TextInput && $comp->aceitaMascara()) {
             $mascara === '$dinheiro'
                 // valor com milhar e decimais: 1.234,56 (grava 1234.56)
-                ? $componente->mask(RawJs::make('$money($input, \',\', \'.\', ' . ($campo->escala ?? 2) . ')'))->stripCharacters('.')
+                ? $componente->mask(RawJs::make('$money($input, \',\', \'.\', '.($campo->escala ?? 2).')'))->stripCharacters('.')
                     ->dehydrateStateUsing(fn ($state) => is_string($state) ? str_replace(',', '.', $state) : $state)
                 : $componente->mask($mascara);
         }
@@ -555,7 +555,7 @@ class FormularioBuilder
                 ->tooltip('Incluir (F3)')
                 ->extraAttributes(['data-atalho' => 'f3']))
             ->suffixAction(
-                Action::make('visualizar_' . mb_strtolower($campo->nome_fisico))
+                Action::make('visualizar_'.mb_strtolower($campo->nome_fisico))
                     ->icon('heroicon-o-eye')
                     ->tooltip('Visualizar (F4)')
                     ->extraAttributes(['data-atalho' => 'f4'])

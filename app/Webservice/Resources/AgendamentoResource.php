@@ -33,9 +33,9 @@ class AgendamentoResource extends Resource
 {
     protected static ?string $model = Agendamento::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clock';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clock';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Integrações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Integrações';
 
     protected static ?string $navigationLabel = 'Agendamentos';
 

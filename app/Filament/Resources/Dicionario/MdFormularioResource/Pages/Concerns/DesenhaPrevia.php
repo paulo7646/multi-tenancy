@@ -8,6 +8,7 @@ use App\Models\Md\MdTabela;
 use App\Sistema\Enums\TipoTabPage;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -183,10 +184,10 @@ trait DesenhaPrevia
         $itens = collect($this->previa)->filter(fn (array $i) => $i['aba'] === $aba)->values();
         $mesmaTab = $itens->contains(fn (array $i) => $i['campo'] === $campo);
 
-        $posicoes = $itens->mapWithKeys(fn (array $i, int $indice) => [$indice + 1 => ($indice + 1) . 'º — ' . ($nomes[$i['campo']] ?? 'campo')])->all();
+        $posicoes = $itens->mapWithKeys(fn (array $i, int $indice) => [$indice + 1 => ($indice + 1).'º — '.($nomes[$i['campo']] ?? 'campo')])->all();
 
         if (! $mesmaTab) {
-            $posicoes[count($posicoes) + 1] = (count($posicoes) + 1) . 'º — no fim';
+            $posicoes[count($posicoes) + 1] = (count($posicoes) + 1).'º — no fim';
         }
 
         return $posicoes;
@@ -208,11 +209,11 @@ trait DesenhaPrevia
     /**
      * Devolve às posições da tab as quebras de antes (null = mantém as de cada campo).
      *
-     * @param  \Illuminate\Support\Collection<int, array>  $itens
+     * @param  Collection<int, array>  $itens
      * @param  list<bool>|null  $quebras
-     * @return \Illuminate\Support\Collection<int, array>
+     * @return Collection<int, array>
      */
-    protected function reaplicarQuebras(\Illuminate\Support\Collection $itens, ?string $aba, ?array $quebras): \Illuminate\Support\Collection
+    protected function reaplicarQuebras(Collection $itens, ?string $aba, ?array $quebras): Collection
     {
         if ($quebras === null) {
             return $itens;

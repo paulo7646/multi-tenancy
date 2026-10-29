@@ -5,10 +5,10 @@ namespace App\Sistema\Geradores;
 use App\Models\Md\MdFormulario;
 use App\Models\Md\MdFormularioBotao;
 use App\Models\Md\MdFormularioPagina;
-use App\Sistema\Enums\TipoTabPage;
 use App\Models\Md\MdGerenciamento;
 use App\Models\Md\MdGerenciamentoBotao;
 use App\Models\Md\MdTabela;
+use App\Sistema\Enums\TipoTabPage;
 
 /**
  * Gera as classes de personalização de cada tabela, na pasta dela:
@@ -30,12 +30,12 @@ class ClassesWriter
 
     public static function resourcePath(MdGerenciamento $gerenciamento): string
     {
-        return $gerenciamento->tabela->caminho($gerenciamento->classeResource() . '.php');
+        return $gerenciamento->tabela->caminho($gerenciamento->classeResource().'.php');
     }
 
     public static function paginasPath(MdGerenciamento $gerenciamento): string
     {
-        return $gerenciamento->tabela->caminho($gerenciamento->classeResource() . '/Pages');
+        return $gerenciamento->tabela->caminho($gerenciamento->classeResource().'/Pages');
     }
 
     public static function botoesPath(MdTabela $tabela, string $classe): string
@@ -45,7 +45,7 @@ class ClassesWriter
 
     public static function controllerPath(MdTabela $tabela): string
     {
-        return $tabela->caminho($tabela->classeController() . '.php');
+        return $tabela->caminho($tabela->classeController().'.php');
     }
 
     /**
@@ -138,13 +138,13 @@ class {$classe} extends BaseResource
 PHP);
 
         // "\{" não interpola dentro do heredoc: os nomes completos são montados antes
-        $namespacePaginas = $namespace . '\\' . $classe . '\\Pages';
-        $resourceFqcn = $namespace . '\\' . $classe;
+        $namespacePaginas = $namespace.'\\'.$classe.'\\Pages';
+        $resourceFqcn = $namespace.'\\'.$classe;
 
         foreach (static::PAGINAS as $pagina => $base) {
-            $baseFqcn = 'App\\Sistema\\Base\\Pages\\' . $base;
+            $baseFqcn = 'App\\Sistema\\Base\\Pages\\'.$base;
 
-            Arquivos::gravarSeNaoExistir(static::paginasPath($gerenciamento) . "/{$pagina}.php", <<<PHP
+            Arquivos::gravarSeNaoExistir(static::paginasPath($gerenciamento)."/{$pagina}.php", <<<PHP
 <?php
 
 namespace {$namespacePaginas};
@@ -192,7 +192,7 @@ PHP);
             $codigo = file_get_contents($path);
 
             $novos = $tabPages
-                ->reject(fn (MdFormularioPagina $p) => preg_match('/function\s+' . preg_quote(MdFormularioPagina::metodoCustomizado($p->nome_fisico), '/') . '\s*\(/i', $codigo))
+                ->reject(fn (MdFormularioPagina $p) => preg_match('/function\s+'.preg_quote(MdFormularioPagina::metodoCustomizado($p->nome_fisico), '/').'\s*\(/i', $codigo))
                 ->map(fn (MdFormularioPagina $p) => <<<PHP
 
     /**
@@ -211,7 +211,7 @@ PHP)
                 ->implode('');
 
             if ($novos !== '') {
-                Arquivos::gravar($path, substr_replace($codigo, rtrim($novos) . "\n", strrpos($codigo, '}'), 0));
+                Arquivos::gravar($path, substr_replace($codigo, rtrim($novos)."\n", strrpos($codigo, '}'), 0));
                 $alterados[] = Arquivos::relativo($path);
             }
         }
@@ -237,7 +237,7 @@ PHP)
 
         foreach ($tabela->gerenciamentos()->with('botoes')->get() as $gerenciamento) {
             foreach ($gerenciamento->botoes as $botao) {
-                $botoes->push([$botao, "gerenciamento \"{$gerenciamento->titulo}\", " . static::ondeFica($botao), $botao->assinatura($model)]);
+                $botoes->push([$botao, "gerenciamento \"{$gerenciamento->titulo}\", ".static::ondeFica($botao), $botao->assinatura($model)]);
             }
         }
 
@@ -251,7 +251,7 @@ PHP)
 
             $novos = $itens
                 ->unique(fn (array $item) => $item[0]->nome_fisico)
-                ->reject(fn (array $item) => preg_match('/function\s+' . preg_quote($item[0]->nome_fisico, '/') . '\s*\(/i', $codigo))
+                ->reject(fn (array $item) => preg_match('/function\s+'.preg_quote($item[0]->nome_fisico, '/').'\s*\(/i', $codigo))
                 ->map(fn (array $item) => static::metodo(...$item))
                 ->implode("\n");
 

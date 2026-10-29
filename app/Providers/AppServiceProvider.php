@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use App\Models\UserLicense;
-use App\Sistema\Base\BaseResource;
 use App\Navigation\CustomNavigationManager;
 use App\Observers\UserLicenseObserver;
+use App\Sistema\Base\BaseResource;
 use BezhanSalleh\FilamentShield\Facades\FilamentShield;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
 use CrescentPurchasing\FilamentAuditing\Filament\Resources\Audits\AuditResource;
@@ -53,16 +53,16 @@ class AppServiceProvider extends ServiceProvider
             function (string $entity, ?string $affix, string $subject, string $case, string $separator) use ($legacySubjects) {
                 return match (true) {
                     // telas do dicionário: view_any_op_produto, create_op_produto...
-                    is_subclass_of($entity, BaseResource::class) => Str::snake($affix) . '_' . $entity::sujeitoPermissao(),
-                    is_subclass_of($entity, Resource::class) => Str::snake($affix) . '_' . ($legacySubjects[$entity] ?? Str::of($entity)
+                    is_subclass_of($entity, BaseResource::class) => Str::snake($affix).'_'.$entity::sujeitoPermissao(),
+                    is_subclass_of($entity, Resource::class) => Str::snake($affix).'_'.($legacySubjects[$entity] ?? Str::of($entity)
                         ->afterLast('Resources\\')
                         ->before('Resource')
                         ->replace('\\', '')
                         ->snake()
                         ->replace('_', '::')
                         ->toString()),
-                    is_subclass_of($entity, Page::class) => 'page_' . class_basename($entity),
-                    is_subclass_of($entity, Widget::class) => 'widget_' . class_basename($entity),
+                    is_subclass_of($entity, Page::class) => 'page_'.class_basename($entity),
+                    is_subclass_of($entity, Widget::class) => 'widget_'.class_basename($entity),
                     default => null,
                 };
             }

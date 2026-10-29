@@ -142,7 +142,7 @@ enum TipoComponente: string implements HasLabel
 
     public static function padrao(TipoCampo $tipo): self
     {
-        return static::para($tipo)[0];
+        return self::para($tipo)[0];
     }
 
     /**
@@ -151,17 +151,17 @@ enum TipoComponente: string implements HasLabel
      */
     public static function resolver(?string $componente, ?TipoCampo $tipo): self
     {
-        $aceitos = $tipo ? static::para($tipo) : static::paraSituacao();
-        $escolhido = static::tryFrom((string) $componente);
+        $aceitos = $tipo ? self::para($tipo) : self::paraSituacao();
+        $escolhido = self::tryFrom((string) $componente);
 
         return $escolhido && in_array($escolhido, $aceitos, true) ? $escolhido : $aceitos[0];
     }
 
     public static function resolverGrupo(?string $componente): self
     {
-        $escolhido = static::tryFrom((string) $componente);
+        $escolhido = self::tryFrom((string) $componente);
 
-        return $escolhido && in_array($escolhido, static::grupos(), true) ? $escolhido : self::Secao;
+        return $escolhido && in_array($escolhido, self::grupos(), true) ? $escolhido : self::Secao;
     }
 
     /**

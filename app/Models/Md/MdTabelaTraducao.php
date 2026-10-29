@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MdTabelaTraducao extends Model
 {
     public const TABELA = 'tabela';
+
     public const LOOKUP = 'lookup';
 
     protected $connection = 'central';

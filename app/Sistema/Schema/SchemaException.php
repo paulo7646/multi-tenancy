@@ -17,7 +17,7 @@ class SchemaException extends RuntimeException
     public function __construct(public readonly array $problems)
     {
         parent::__construct(collect($problems)
-            ->map(fn (array $list, string $where) => "[{$where}]\n- " . implode("\n- ", $list))
+            ->map(fn (array $list, string $where) => "[{$where}]\n- ".implode("\n- ", $list))
             ->join("\n"));
     }
 }

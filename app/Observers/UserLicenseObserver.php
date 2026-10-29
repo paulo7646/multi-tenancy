@@ -3,7 +3,9 @@
 namespace App\Observers;
 
 use App\Enums\LicenseStatus;
+use App\Models\Licenca;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Models\UserLicense;
 
 class UserLicenseObserver
@@ -30,10 +32,10 @@ class UserLicenseObserver
                 $license->status === LicenseStatus::Inactive => 'Licença Suspensa',
                 default => 'Sem Licença', // cadastrada / em análise
             };
-            $licencaId = \App\Models\Licenca::where('nome', $licencaName)->value('id');
+            $licencaId = Licenca::where('nome', $licencaName)->value('id');
 
             if ($licencaId) {
-                \App\Models\User::where('email', $license->user_email)
+                User::where('email', $license->user_email)
                     ->update(['licenca_id' => $licencaId]);
             }
         });

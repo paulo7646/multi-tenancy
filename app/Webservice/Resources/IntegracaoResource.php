@@ -24,9 +24,9 @@ class IntegracaoResource extends Resource
 {
     protected static ?string $model = Integracao::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-arrows-right-left';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Integrações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Integrações';
 
     protected static ?string $navigationLabel = 'Integrações';
 

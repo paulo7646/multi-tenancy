@@ -32,7 +32,7 @@ class EnumWriter
         $declaracoes = $casos->map(fn ($c) => "    case {$c['nome']} = {$exportar($c['valor'])};")->implode("\n");
         $rotulos = $casos->map(fn ($c) => "            {$exportar($c['valor'])} => {$exportar($c['descricao'])},")->implode("\n");
 
-        $namespace = $tabela->modulo->namespace() . '\\Enums';
+        $namespace = $tabela->modulo->namespace().'\\Enums';
         $classe = $tabela->nomeClasse();
         $origem = $lista ? 'código sequencial' : 'valor definido no cadastro';
 

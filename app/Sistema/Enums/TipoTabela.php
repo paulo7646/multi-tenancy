@@ -17,7 +17,7 @@ use Filament\Support\Contracts\HasLabel;
  * Os itens de lista e conteúdo são cadastrados no botão Valores da lista; uma migration
  * grava os registros na tabela (igual em todos os bancos).
  */
-enum TipoTabela: string implements HasLabel, HasDescription, HasIcon
+enum TipoTabela: string implements HasDescription, HasIcon, HasLabel
 {
     case Cadastro = 'cadastro';
     case Ligacao = 'ligacao';

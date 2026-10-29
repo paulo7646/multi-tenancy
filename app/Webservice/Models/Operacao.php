@@ -43,6 +43,6 @@ class Operacao extends Model
 
     public function url(): string
     {
-        return rtrim((string) $this->webservice?->host, '/') . '/' . ltrim($this->rota, '/');
+        return rtrim((string) $this->webservice?->host, '/').'/'.ltrim($this->rota, '/');
     }
 }

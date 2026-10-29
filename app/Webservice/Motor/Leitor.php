@@ -17,7 +17,7 @@ class Leitor
         $dados = json_decode($conteudo, true);
 
         if (! is_array($dados)) {
-            throw new ProcessamentoException('O retorno não é um JSON válido: ' . json_last_error_msg() . '.');
+            throw new ProcessamentoException('O retorno não é um JSON válido: '.json_last_error_msg().'.');
         }
 
         return $dados;
@@ -34,7 +34,7 @@ class Leitor
         libxml_use_internal_errors($anterior);
 
         if ($xml === false) {
-            throw new ProcessamentoException('O retorno não é um XML válido' . ($erros ? ': ' . trim($erros[0]->message) : '.'));
+            throw new ProcessamentoException('O retorno não é um XML válido'.($erros ? ': '.trim($erros[0]->message) : '.'));
         }
 
         return json_decode(json_encode($xml), true) ?? [];

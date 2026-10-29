@@ -110,7 +110,7 @@ class MdTabela extends Model
 
     public function namespace(): string
     {
-        return $this->modulo->namespace() . '\\' . $this->nome_fisico;
+        return $this->modulo->namespace().'\\'.$this->nome_fisico;
     }
 
     public function caminho(string $arquivo = ''): string
@@ -123,7 +123,7 @@ class MdTabela extends Model
      */
     public static function prefixoFisico(?string $prefixo): string
     {
-        return mb_strtoupper((string) $prefixo) . '_';
+        return mb_strtoupper((string) $prefixo).'_';
     }
 
     /**
@@ -148,7 +148,7 @@ class MdTabela extends Model
 
     public function classeModel(): string
     {
-        return 'Model' . $this->nomeClasse();
+        return 'Model'.$this->nomeClasse();
     }
 
     /**
@@ -156,7 +156,7 @@ class MdTabela extends Model
      */
     public function classeController(): string
     {
-        return $this->nome_controller ?: 'Controller' . $this->nomeClasse();
+        return $this->nome_controller ?: 'Controller'.$this->nomeClasse();
     }
 
     public function controllerFqcn(): string
@@ -166,7 +166,7 @@ class MdTabela extends Model
 
     public function modelFqcn(): string
     {
-        return $this->namespace() . '\\' . $this->classeModel();
+        return $this->namespace().'\\'.$this->classeModel();
     }
 
     /**
@@ -174,12 +174,12 @@ class MdTabela extends Model
      */
     public function enumFqcn(): string
     {
-        return $this->modulo->namespace() . '\\Enums\\' . $this->nomeClasse();
+        return $this->modulo->namespace().'\\Enums\\'.$this->nomeClasse();
     }
 
     public function enumPath(): string
     {
-        return $this->modulo->caminho('Enums/' . $this->nomeClasse() . '.php');
+        return $this->modulo->caminho('Enums/'.$this->nomeClasse().'.php');
     }
 
     /**
@@ -187,12 +187,12 @@ class MdTabela extends Model
      */
     public function classeBotoesPadrao(): string
     {
-        return 'Botoes' . $this->nomeClasse();
+        return 'Botoes'.$this->nomeClasse();
     }
 
     public function classeFqcn(string $classe): string
     {
-        return $this->namespace() . '\\' . $classe;
+        return $this->namespace().'\\'.$classe;
     }
 
     /**
@@ -234,6 +234,6 @@ class MdTabela extends Model
             return $icone;
         }
 
-        return new HtmlString(svg($icone, '', ['style' => 'width: 100%; height: 100%; color: ' . Cor::css($cor)])->toHtml());
+        return new HtmlString(svg($icone, '', ['style' => 'width: 100%; height: 100%; color: '.Cor::css($cor)])->toHtml());
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Dicionario\MdFormularioResource\Pages;
 
 use App\Filament\Resources\Dicionario\Concerns\PublicaNoDicionario;
-use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
 use App\Filament\Resources\Dicionario\MdFormularioResource;
+use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
 use App\Models\Md\MdTabela;
 use App\Sistema\Geradores\Gerador;
 use Filament\Resources\Pages\CreateRecord;

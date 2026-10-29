@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 class Traducao
 {
     public const TABELA = MdTabelaTraducao::TABELA;
+
     public const LOOKUP = MdTabelaTraducao::LOOKUP;
 
     public const SEPARADOR = ' - ';
@@ -130,7 +131,7 @@ class Traducao
 
         return $query->where(function (Builder $q) use ($tabela, $tipo, $termo, $grammar, $traducaoId) {
             foreach (static::colunas($tabela, $tipo, $traducaoId) as $coluna) {
-                $q->orWhereRaw('cast(' . $grammar->wrap($q->getModel()->qualifyColumn($coluna)) . ' as text) ilike ?', ['%' . $termo . '%']);
+                $q->orWhereRaw('cast('.$grammar->wrap($q->getModel()->qualifyColumn($coluna)).' as text) ilike ?', ['%'.$termo.'%']);
             }
         });
     }

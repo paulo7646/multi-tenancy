@@ -4,13 +4,14 @@ namespace App\Filament\Resources\Dicionario;
 
 use App\Filament\Resources\Dicionario\Concerns\AcessoDicionario;
 use App\Filament\Resources\Dicionario\MdGerenciamentoResource\Pages;
-use App\Sistema\Registro;
 use App\Models\Md\MdCampo;
 use App\Models\Md\MdFormulario;
 use App\Models\Md\MdGerenciamento;
 use App\Models\Md\MdTabela;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Enums\TipoCampo;
+use App\Sistema\Geradores\Gerador;
+use App\Sistema\Registro;
 use App\Sistema\Runtime\ColunasBuilder;
 use App\Sistema\Runtime\FiltrosBuilder;
 use App\Sistema\Runtime\Traducao;
@@ -42,7 +43,7 @@ class MdGerenciamentoResource extends Resource
 
     protected static ?string $model = MdGerenciamento::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-queue-list';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-queue-list';
 
     protected static ?string $modelLabel = 'Gerenciamento';
 
@@ -76,25 +77,25 @@ class MdGerenciamentoResource extends Resource
                                     ->live()
                                     ->afterStateUpdated(fn (Get $get, Set $set) => static::sugerir($get, $set))
                                     ->disabledOn('edit'),
-        
+
                                 Select::make('md_formulario_id')
                                     ->label('Formulário')
                                     ->options(fn (Get $get) => MdFormulario::where('md_tabela_id', $get('md_tabela_id'))->pluck('titulo', 'id')->all())
                                     ->helperText('Usado para incluir, alterar e visualizar.'),
-        
+
                                 TextInput::make('nome')->required()->maxLength(60),
-        
+
                                 TextInput::make('titulo')
                                     ->label('Título')
                                     ->required()
                                     ->maxLength(100)
                                     ->helperText('Nome no menu e no topo da listagem.'),
-        
+
                                 Campos::nomeFisico()
                                     ->unique(ignoreRecord: true)
                                     ->helperText('Endereço da tela: /admin/m/{nome físico}.')
                                     ->disabledOn('edit'),
-        
+
                                 Campos::nomeArquivo('Classe do Resource')
                                     ->regex('/^[A-Z][A-Za-z0-9_]*Resource$/')
                                     ->validationMessages(['regex' => 'Nome de classe terminando em Resource (ex.: ProdutoResource).'])
@@ -102,9 +103,9 @@ class MdGerenciamentoResource extends Resource
                                     ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule, Get $get) => $rule->where('md_tabela_id', $get('md_tabela_id')))
                                     ->helperText('Resource do Filament da tela (permissões no Shield). Fica fixo depois de criar.')
                                     ->disabledOn('edit'),
-        
+
                                 Campos::icone()->helperText('Sem ícone aqui, o menu usa o ícone (e a cor) da tabela.'),
-        
+
                                 TextInput::make('ordem')
                                     ->numeric()
                                     ->integer()
@@ -179,7 +180,7 @@ class MdGerenciamentoResource extends Resource
                                     ->reorderable()
                                     ->collapsible()
                                     ->addActionLabel('Adicionar botão')
-                                    ->itemLabel(fn (array $state) => ($state['titulo'] ?? 'Novo botão') . ' · ' . static::ondeFica($state))
+                                    ->itemLabel(fn (array $state) => ($state['titulo'] ?? 'Novo botão').' · '.static::ondeFica($state))
                                     ->columns(4)
                                     ->schema(MdFormularioResource::camposBotao(
                                         $tabela,
@@ -257,7 +258,7 @@ class MdGerenciamentoResource extends Resource
 
         return match (true) {
             ! $tipo => null,
-            $tipo->isForeign() => 'Combo com até ' . FiltrosBuilder::LIMITE_FK . ' registros da tabela apontada, pesquisável pela tradução de lookup.',
+            $tipo->isForeign() => 'Combo com até '.FiltrosBuilder::LIMITE_FK.' registros da tabela apontada, pesquisável pela tradução de lookup.',
             $tipo->isDate() || $tipo->isDateTime() => 'Datas "de" e "até". Sem "de": desde 01/01/1900. Sem "até": até hoje.',
             $tipo === TipoCampo::Boolean => 'Combo Sim / Não.',
             $tipo->hasChoices() => 'Combo com as opções do campo (pode marcar várias).',
@@ -286,13 +287,13 @@ class MdGerenciamentoResource extends Resource
     public static function sugestoes(MdTabela $tabela, array $atual = []): array
     {
         $quantos = MdGerenciamento::where('md_tabela_id', $tabela->id)->count();
-        $arquivo = $tabela->nomeClasse() . 'Resource';
+        $arquivo = $tabela->nomeClasse().'Resource';
 
         return [
             'nome' => ($atual['nome'] ?? null) ?: $tabela->nome,
             'titulo' => ($atual['titulo'] ?? null) ?: $tabela->nome,
-            'nome_fisico' => ($atual['nome_fisico'] ?? null) ?: (MdGerenciamento::where('nome_fisico', $tabela->nome_fisico)->exists() ? "{$tabela->nome_fisico}_" . ($quantos + 1) : $tabela->nome_fisico),
-            'nome_arquivo' => ($atual['nome_arquivo'] ?? null) ?: (in_array($arquivo, Campos::classesEmUso($tabela, 'gerenciamento'), true) ? $arquivo . ($quantos + 1) : $arquivo),
+            'nome_fisico' => ($atual['nome_fisico'] ?? null) ?: (MdGerenciamento::where('nome_fisico', $tabela->nome_fisico)->exists() ? "{$tabela->nome_fisico}_".($quantos + 1) : $tabela->nome_fisico),
+            'nome_arquivo' => ($atual['nome_arquivo'] ?? null) ?: (in_array($arquivo, Campos::classesEmUso($tabela, 'gerenciamento'), true) ? $arquivo.($quantos + 1) : $arquivo),
             'md_formulario_id' => ($atual['md_formulario_id'] ?? null) ?: $tabela->formularios()->value('id'),
             'colunas' => ColunasBuilder::padrao($tabela->campos()->get(), $tabela->controla_situacao),
         ];
@@ -338,7 +339,7 @@ class MdGerenciamentoResource extends Resource
     {
         return $action
             ->modalDescription('Remove o gerenciamento do dicionário (e do menu) e as permissões dele. O arquivo da classe (com o seu código) é mantido.')
-            ->before(fn (MdGerenciamento $record) => \App\Sistema\Geradores\Gerador::excluirGerenciamento($record->loadMissing('tabela.modulo')));
+            ->before(fn (MdGerenciamento $record) => Gerador::excluirGerenciamento($record->loadMissing('tabela.modulo')));
     }
 
     public static function getPages(): array

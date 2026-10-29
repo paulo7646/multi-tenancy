@@ -11,8 +11,8 @@ use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
-use Livewire\Component;
 use Illuminate\Support\Str;
+use Livewire\Component;
 
 /**
  * Campos reaproveitados nas telas do dicionário.
@@ -60,7 +60,7 @@ class Campos
         $tom = $cor->getColor();
         $css = is_array($tom) ? ($tom[500] ?? reset($tom)) : "var(--{$tom}-500)";
 
-        return '<span style="display:inline-flex;align-items:center;gap:.5rem"><span style="width:.9rem;height:.9rem;border-radius:9999px;background:' . e($css) . '"></span>' . e($cor->getLabel()) . '</span>';
+        return '<span style="display:inline-flex;align-items:center;gap:.5rem"><span style="width:.9rem;height:.9rem;border-radius:9999px;background:'.e($css).'"></span>'.e($cor->getLabel()).'</span>';
     }
 
     /**

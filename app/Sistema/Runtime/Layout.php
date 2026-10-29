@@ -19,6 +19,7 @@ namespace App\Sistema\Runtime;
 class Layout
 {
     public const CAMPO = 'campo';
+
     public const GRUPO = 'grupo';
 
     /**

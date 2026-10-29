@@ -54,6 +54,6 @@ class MdFormularioPagina extends Model
      */
     public static function metodoCustomizado(string $nomeFisico): string
     {
-        return 'tabpage' . Str::studly(Str::lower($nomeFisico));
+        return 'tabpage'.Str::studly(Str::lower($nomeFisico));
     }
 }

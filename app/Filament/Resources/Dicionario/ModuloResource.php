@@ -35,7 +35,7 @@ class ModuloResource extends Resource
 
     protected static ?string $model = Modulo::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-squares-2x2';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-squares-2x2';
 
     protected static ?string $modelLabel = 'Módulo';
 
@@ -91,7 +91,6 @@ class ModuloResource extends Resource
                         ->helperText('As tabelas do módulo ficam neste banco, e o módulo aparece no menu do painel dele. Fica fixo depois que o módulo tiver tabelas.')
                         ->disabled($temTabelas)
                         ->columnSpan(2),
-
 
                     TextInput::make('ordem')
                         ->numeric()

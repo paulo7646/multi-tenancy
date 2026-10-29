@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\DomainResource\Pages;
 
-use Filament\Actions\EditAction;
 use App\Filament\Resources\DomainResource;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewDomain extends ViewRecord

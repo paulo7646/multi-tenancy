@@ -107,7 +107,7 @@ class FiltrosBuilder
             ])
             ->query(fn (Builder $query, array $data) => $query->when(filled($data['valor'] ?? null), fn ($q) => $q->where($campo->nome_fisico, $data['valor'])))
             ->indicateUsing(fn (array $data) => filled($data['valor'] ?? null)
-                ? "{$nome}: " . Traducao::texto($model->newQuery()->find($data['valor']), $destino, Traducao::LOOKUP)
+                ? "{$nome}: ".Traducao::texto($model->newQuery()->find($data['valor']), $destino, Traducao::LOOKUP)
                 : null);
     }
 
@@ -167,7 +167,7 @@ class FiltrosBuilder
                 ->when(filled($data['de'] ?? null), fn ($q) => $q->where($coluna, '>=', $data['de']))
                 ->when(filled($data['ate'] ?? null), fn ($q) => $q->where($coluna, '<=', $data['ate'])))
             ->indicateUsing(fn (array $data) => filled($data['de'] ?? null) || filled($data['ate'] ?? null)
-                ? "{$nome}: " . ($data['de'] ?? '...') . ' até ' . ($data['ate'] ?? '...')
+                ? "{$nome}: ".($data['de'] ?? '...').' até '.($data['ate'] ?? '...')
                 : null);
     }
 
@@ -187,7 +187,7 @@ class FiltrosBuilder
                 return $multiplo ? $query->whereIn($coluna, (array) $valor) : $query->where($coluna, $converter ? $converter($valor) : $valor);
             })
             ->indicateUsing(fn (array $data) => filled($data['valor'] ?? null)
-                ? "{$nome}: " . collect((array) $data['valor'])->map(fn ($v) => $opcoes[$v] ?? $v)->join(', ')
+                ? "{$nome}: ".collect((array) $data['valor'])->map(fn ($v) => $opcoes[$v] ?? $v)->join(', ')
                 : null);
     }
 
@@ -205,7 +205,7 @@ class FiltrosBuilder
                     $w->orWhereJsonContains($coluna, $opcao);
                 }
             })))
-            ->indicateUsing(fn (array $data) => filled($data['valor'] ?? null) ? "{$nome}: " . implode(', ', (array) $data['valor']) : null);
+            ->indicateUsing(fn (array $data) => filled($data['valor'] ?? null) ? "{$nome}: ".implode(', ', (array) $data['valor']) : null);
     }
 
     protected function contem(string $chave, string $nome, string $coluna): Filter
@@ -214,7 +214,7 @@ class FiltrosBuilder
             ->schema([
                 TextInput::make('valor')->label("{$nome} contém"),
             ])
-            ->query(fn (Builder $query, array $data) => $query->when(filled($data['valor'] ?? null), fn ($q) => $q->where($coluna, 'ilike', '%' . $data['valor'] . '%')))
+            ->query(fn (Builder $query, array $data) => $query->when(filled($data['valor'] ?? null), fn ($q) => $q->where($coluna, 'ilike', '%'.$data['valor'].'%')))
             ->indicateUsing(fn (array $data) => filled($data['valor'] ?? null) ? "{$nome} contém \"{$data['valor']}\"" : null);
     }
 

@@ -27,9 +27,9 @@ class WebserviceResource extends Resource
 {
     protected static ?string $model = Webservice::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-globe-alt';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Integrações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Integrações';
 
     protected static ?string $navigationLabel = 'Webservices';
 

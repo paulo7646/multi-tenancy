@@ -55,7 +55,7 @@ class MigrationGuard
 
         if ($invalid > 0) {
             $examples = DB::table($table)->whereRaw($where, [$cast])->limit(3)->pluck($column)
-                ->map(fn ($value) => '"' . $value . '"')->join(', ');
+                ->map(fn ($value) => '"'.$value.'"')->join(', ');
 
             static::fail($table, $column, "{$invalid} registro(s) não convertem para o tipo {$cast}. Exemplos: {$examples}.");
         }
@@ -87,7 +87,7 @@ class MigrationGuard
         $outside = DB::table($table)->whereNotNull($column)->whereNotIn($column, $options)->count();
 
         if ($outside > 0) {
-            static::fail($table, $column, "{$outside} registro(s) usam opções que não estão na lista (" . implode(', ', $options) . ').');
+            static::fail($table, $column, "{$outside} registro(s) usam opções que não estão na lista (".implode(', ', $options).').');
         }
     }
 
@@ -100,6 +100,6 @@ class MigrationGuard
 
     protected static function quote(string $identifier): string
     {
-        return '"' . str_replace('"', '""', $identifier) . '"';
+        return '"'.str_replace('"', '""', $identifier).'"';
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\UserLicenseResource\Pages;
 
-use Filament\Actions\EditAction;
 use App\Filament\Resources\UserLicenseResource;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewUserLicense extends ViewRecord

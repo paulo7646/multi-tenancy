@@ -8,6 +8,7 @@ use App\Webservice\Resources\ObjetoResource\Pages\EditObjeto;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 
 /**
@@ -36,7 +37,7 @@ class ObjetoResource extends ResourceFilho
     /**
      * Campos do objeto (também usados no cadastro rápido da versão).
      *
-     * @return list<\Filament\Schemas\Components\Component>
+     * @return list<Component>
      */
     public static function campos(?int $versaoId = null, ?int $exceto = null): array
     {

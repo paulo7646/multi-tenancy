@@ -58,7 +58,7 @@ class Integracao extends Model
 
     public function guardarArquivo(string $conteudo): void
     {
-        $caminho = "webservice/integracoes/{$this->getKey()}." . ($this->formato === 'xml' ? 'xml' : 'json');
+        $caminho = "webservice/integracoes/{$this->getKey()}.".($this->formato === 'xml' ? 'xml' : 'json');
 
         Storage::disk('local')->put($caminho, $conteudo);
         $this->update(['arquivo' => $caminho]);
