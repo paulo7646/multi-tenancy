@@ -41,6 +41,16 @@ class ClientPanelProvider extends PanelProvider
             ])
             ->viteTheme('resources/css/filament/client/theme.css')
             ->discoverResources(in: app_path('Filament/Client/Resources'), for: 'App\\Filament\\Client\\Resources')
+            // webservices (consumidos ou disponibilizados) e layouts de integração
+            ->resources([
+                \App\Webservice\Resources\WebserviceResource::class,
+                \App\Webservice\Resources\OperacaoResource::class,
+                \App\Webservice\Resources\VersaoResource::class,
+                \App\Webservice\Resources\ObjetoResource::class,
+                \App\Webservice\Resources\EventoResource::class,
+                \App\Webservice\Resources\IntegracaoResource::class,
+                \App\Webservice\Resources\AgendamentoResource::class,
+            ])
             // telas dos módulos dos clientes (dicionário de dados)
             ->resources(Registro::resources(Banco::Tenant))
             ->discoverPages(in: app_path('Filament/Client/Pages'), for: 'App\\Filament\\Client\\Pages')

@@ -12,6 +12,12 @@ use Laravel\Fortify\Features;
 // Sistema principal em Vue: views/multitenant
 Route::get('/', [FrontendController::class, 'central'])->name('home');
 
+// webservices disponibilizados: terceiros enviam JSON/XML para /ws/{webservice}/{rota}
+Route::any('/ws/{webservice}/{rota?}', \App\Webservice\Http\EntradaController::class)
+    ->where('rota', '.*')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->name('webservice.entrada');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

@@ -9,3 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('licenses:expire')->hourly();
+
+Schedule::command('webservice:agendamentos')->everyMinute()->withoutOverlapping();

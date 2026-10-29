@@ -40,6 +40,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            // webservices (consumidos ou disponibilizados) e layouts de integração
+            ->resources([
+                \App\Webservice\Resources\WebserviceResource::class,
+                \App\Webservice\Resources\OperacaoResource::class,
+                \App\Webservice\Resources\VersaoResource::class,
+                \App\Webservice\Resources\ObjetoResource::class,
+                \App\Webservice\Resources\EventoResource::class,
+                \App\Webservice\Resources\IntegracaoResource::class,
+                \App\Webservice\Resources\AgendamentoResource::class,
+            ])
             // telas dos módulos da base pai (dicionário de dados)
             ->resources(Registro::resources(Banco::Central))
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

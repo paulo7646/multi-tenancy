@@ -27,6 +27,12 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
+    // webservices disponibilizados: terceiros enviam JSON/XML para /ws/{webservice}/{rota}
+    Route::any('/ws/{webservice}/{rota?}', \App\Webservice\Http\EntradaController::class)
+        ->where('rota', '.*')
+        ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+        ->name('webservice.entrada.tenant');
+
     // Página da empresa em Vue: views/clientes/{slug}
     Route::get('/', [FrontendController::class, 'tenant'])
         ->middleware(CheckTenantStatus::class);
