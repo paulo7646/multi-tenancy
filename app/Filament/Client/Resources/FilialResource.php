@@ -16,7 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
-class FilialResource extends BaseResource
+class FilialResource extends BaseClientResource
 {
     protected static ?string $model = Filial::class;
 

@@ -12,8 +12,7 @@ cliente) e PostgreSQL.
 ```bash
 composer install
 npm install
-cp .env.example .env        # ajuste APP_NAME, APP_URL e o banco
-php artisan key:generate
+php artisan template:init "Nome do Projeto"   # cria o .env, ajusta nome, domínio e banco, gera a chave
 php artisan migrate          # banco central
 php artisan shield:super-admin
 php artisan shield:generate --all
@@ -65,7 +64,13 @@ lote é uma transação com rollback). Agendamentos rodam pelo comando
 
 Depois de um deploy com migrations novas: botão **Atualizar** em cada empresa,
 **Atualizar todos os clientes** no dashboard, ou
-`php artisan tenants:migrate`.
+`php artisan tenants:migrate`. A lista de empresas mostra quantas migrations
+faltam em cada banco.
+
+Com `WEBSERVICE_FILA=true` no `.env` (e `php artisan queue:work` rodando), o
+botão Executar e o Atualizar todos rodam em segundo plano. Outras opções:
+`WEBSERVICE_RETENCAO_DIAS` (integrações mais antigas são apagadas todo dia pelo
+`webservice:limpar`) e `WEBSERVICE_LIMITE_POR_MINUTO` (limite da entrada `/ws`).
 
 ## Testes
 
@@ -78,7 +83,7 @@ banco de desenvolvimento.
 
 ## Criar um projeto novo a partir do template
 
-1. Copie o repositório e ajuste `APP_NAME`, `APP_URL` e `composer.json`/`package.json`.
-2. Esvazie `database/md/*.json` do que não for do núcleo (módulos e tabelas).
-3. Apague `views/clientes/*` de exemplo e crie as páginas do projeto.
-4. Rode a instalação acima.
+1. Copie o repositório (cada projeto tem o seu).
+2. `php artisan template:init "Nome do Projeto"` ajusta `.env`, chave e deixa o dicionário vazio.
+3. Apague os exemplos de `views/clientes/*` e crie as páginas do projeto, se houver.
+4. Crie o banco central no PostgreSQL e siga a instalação acima.

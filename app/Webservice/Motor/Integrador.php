@@ -50,6 +50,27 @@ class Integrador
         return $integracao->refresh();
     }
 
+    /**
+     * Processa de novo o arquivo de uma integração (por exemplo, depois de corrigir o layout
+     * ou o cadastro que causou o erro). Gera uma integração nova; a original fica no histórico.
+     */
+    public static function reprocessar(Integracao $original): Integracao
+    {
+        $operacao = $original->operacao ?? throw new ProcessamentoException('A operação desta integração foi excluída.');
+        $conteudo = $original->conteudo() ?? throw new ProcessamentoException('O arquivo desta integração não existe mais.');
+
+        $integracao = static::abrir($operacao, 'manual', $original->parametros ?? [], null);
+
+        try {
+            $integracao->guardarArquivo($conteudo);
+            static::processar($integracao, $operacao, $conteudo);
+        } catch (Throwable $e) {
+            static::falhar($integracao, $e);
+        }
+
+        return $integracao->refresh();
+    }
+
     protected static function abrir(Operacao $operacao, string $origem, array $valores, ?int $agendamentoId): Integracao
     {
         return Integracao::create([

@@ -135,6 +135,24 @@ class TenantResource extends Resource
                     ->state(fn (Tenant $record) => $record->active_licenses_count.' / '.($record->qtd_licencas ?? '∞'))
                     ->color(fn (Tenant $record) => $record->qtd_licencas !== null && $record->active_licenses_count >= $record->qtd_licencas ? 'danger' : 'success'),
 
+                TextColumn::make('migrations_pendentes')
+                    ->label('Banco')
+                    ->badge()
+                    ->state(function (Tenant $record) {
+                        try {
+                            $pendentes = AtualizadorDeClientes::pendentes($record);
+                        } catch (Throwable) {
+                            return 'sem acesso';
+                        }
+
+                        return $pendentes === 0 ? 'Atualizado' : "{$pendentes} pendente(s)";
+                    })
+                    ->color(fn (?string $state) => match (true) {
+                        $state === 'Atualizado' => 'success',
+                        $state === 'sem acesso' => 'gray',
+                        default => 'warning',
+                    }),
+
                 IconColumn::make('is_active')
                     ->label('Status')
                     ->boolean()

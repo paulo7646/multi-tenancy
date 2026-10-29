@@ -10,7 +10,7 @@ use Filament\Actions\ViewAction;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 
-abstract class BaseResource extends Resource
+abstract class BaseClientResource extends Resource
 {
     public static function tableWithDefaults(Table $table, array $columns): Table
     {

@@ -33,6 +33,7 @@ Route::middleware([
     // webservices disponibilizados: terceiros enviam JSON/XML para /ws/{webservice}/{rota}
     Route::any('/ws/{webservice}/{rota?}', EntradaController::class)
         ->where('rota', '.*')
+        ->middleware('throttle:webservice')
         ->withoutMiddleware([VerifyCsrfToken::class, ValidateCsrfToken::class])
         ->name('webservice.entrada.tenant');
 

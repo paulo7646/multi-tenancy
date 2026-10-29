@@ -2,6 +2,7 @@
 
 namespace App\Webservice\Resources;
 
+use App\Webservice\Jobs\ExecutarOperacao;
 use App\Webservice\Models\Integracao;
 use App\Webservice\Models\Operacao;
 use App\Webservice\Motor\Integrador;
@@ -91,6 +92,14 @@ class OperacaoResource extends ResourceFilho
                 ->values()
                 ->all())
             ->action(function (array $data, Operacao $record) {
+                if (config('webservice.fila')) {
+                    ExecutarOperacao::dispatch($record->getKey(), $data['valores'] ?? []);
+
+                    Notification::make()->title('Execução na fila')->body('Acompanhe o resultado em Integrações.')->success()->send();
+
+                    return;
+                }
+
                 $integracao = Integrador::executar($record, $data['valores'] ?? []);
 
                 $notificacao = Notification::make()

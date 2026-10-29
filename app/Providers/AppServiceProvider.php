@@ -13,6 +13,9 @@ use Filament\Navigation\NavigationManager;
 use Filament\Pages\BasePage as Page;
 use Filament\Resources\Resource;
 use Filament\Widgets\Widget;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
@@ -33,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         UserLicense::observe(UserLicenseObserver::class);
+
+        // entrada dos webservices disponibilizados: limite por IP e webservice
+        RateLimiter::for('webservice', fn (Request $request) => Limit::perMinute((int) config('webservice.limite_por_minuto', 120))
+            ->by($request->ip().'|'.$request->route('webservice')));
 
         $this->preserveShieldV3PermissionKeys();
     }

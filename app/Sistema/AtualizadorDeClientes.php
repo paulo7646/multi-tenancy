@@ -4,6 +4,9 @@ namespace App\Sistema;
 
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 /**
@@ -28,6 +31,7 @@ class AtualizadorDeClientes
         }
 
         $codigo = Artisan::call('tenants:migrate', $parametros);
+        static::esquecerPendentes($tenant);
         $saida = trim(Artisan::output());
 
         if ($codigo !== 0 || str_contains($saida, 'FAIL')) {
@@ -35,6 +39,28 @@ class AtualizadorDeClientes
         }
 
         return ['aplicadas' => preg_match_all('/\bDONE\b/', $saida), 'saida' => $saida];
+    }
+
+    /**
+     * Quantas migrations de cliente ainda não rodaram no banco deste cliente.
+     * Em cache por um minuto (cada consulta abre o banco do cliente).
+     */
+    public static function pendentes(Tenant $tenant): int
+    {
+        return Cache::store('central')->remember("tenant-pendentes-{$tenant->getTenantKey()}", 60, function () use ($tenant) {
+            $arquivos = collect(glob(database_path('migrations/tenant/*.php')) ?: [])->map(fn (string $f) => basename($f, '.php'));
+
+            $rodadas = $tenant->run(fn () => Schema::hasTable('migrations') ? DB::table('migrations')->pluck('migration') : collect());
+
+            return $arquivos->diff($rodadas)->count();
+        });
+    }
+
+    public static function esquecerPendentes(?Tenant $tenant = null): void
+    {
+        foreach ($tenant ? [$tenant] : Tenant::all() as $t) {
+            Cache::store('central')->forget("tenant-pendentes-{$t->getTenantKey()}");
+        }
     }
 
     public static function mensagem(array $resultado, bool $todos): string

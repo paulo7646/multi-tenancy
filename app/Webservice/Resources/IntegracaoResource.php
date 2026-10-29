@@ -3,11 +3,13 @@
 namespace App\Webservice\Resources;
 
 use App\Webservice\Models\Integracao;
+use App\Webservice\Motor\Integrador;
 use App\Webservice\RelationManagers\LotesRelationManager;
 use App\Webservice\Resources\IntegracaoResource\Pages;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -16,6 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * Histórico das integrações: cada execução de um layout, com o arquivo e os lotes.
@@ -100,6 +103,27 @@ class IntegracaoResource extends Resource
             ])
             ->recordActions([
                 ViewAction::make(),
+                Action::make('reprocessar')
+                    ->label('Reprocessar')
+                    ->icon('heroicon-o-arrow-path')
+                    ->visible(fn (Integracao $record) => $record->status !== 'processando' && filled($record->arquivo) && $record->operacao_id !== null)
+                    ->requiresConfirmation()
+                    ->modalDescription('Processa de novo o arquivo desta integração, gerando uma integração nova.')
+                    ->action(function (Integracao $record) {
+                        try {
+                            $nova = Integrador::reprocessar($record);
+
+                            $notificacao = Notification::make()
+                                ->title("Integração #{$nova->getKey()}: ".(Integracao::STATUS[$nova->status] ?? $nova->status))
+                                ->body($nova->erro)
+                                ->actions([Action::make('ver')->label('Abrir')->url(static::getUrl('view', ['record' => $nova]))]);
+
+                            $nova->status === 'concluida' ? $notificacao->success() : $notificacao->warning();
+                            $notificacao->send();
+                        } catch (Throwable $e) {
+                            Notification::make()->title('Não foi possível reprocessar')->body($e->getMessage())->danger()->send();
+                        }
+                    }),
                 Action::make('baixar')
                     ->label('Arquivo')
                     ->icon('heroicon-o-arrow-down-tray')

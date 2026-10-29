@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Jobs\AtualizarClientes;
 use App\Sistema\AtualizadorDeClientes;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -25,6 +26,13 @@ class Dashboard extends BaseDashboard
                 ->modalHeading('Atualizar todos os clientes')
                 ->modalDescription('Roda as migrations pendentes no banco de cada cliente.')
                 ->action(function () {
+                    if (config('webservice.fila')) {
+                        AtualizarClientes::dispatch();
+                        Notification::make()->title('Atualização na fila')->body('Os clientes serão atualizados em segundo plano.')->success()->send();
+
+                        return;
+                    }
+
                     try {
                         $resultado = AtualizadorDeClientes::atualizar();
 
