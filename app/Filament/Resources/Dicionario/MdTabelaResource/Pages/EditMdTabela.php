@@ -22,6 +22,7 @@ class EditMdTabela extends EditRecord
     {
         return [
             MdTabelaResource::acaoValores(),
+            MdTabelaResource::acaoConstantes(),
             ViewAction::make(),
             MdTabelaResource::excluir(DeleteAction::make()),
         ];

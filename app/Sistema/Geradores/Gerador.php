@@ -177,8 +177,8 @@ class Gerador
 
     /**
      * Itens das tabelas lista/conteúdo: códigos da lista (sequência, nunca
-     * reaproveitada), o enum do módulo e, se mudaram, a migration que grava
-     * os registros na tabela.
+     * reaproveitada) e, se mudaram, a migration que grava os registros na tabela.
+     * O enum não é gerado aqui: é o botão Gerar constantes (gerarConstantes).
      *
      * @return list<string>
      */
@@ -208,13 +208,34 @@ class Gerador
             'NOME' => $item->nome,
         ])->values()->all();
 
-        EnumWriter::gravar($tabela);
-        $resumo = ['Enum ' . Arquivos::relativo($tabela->enumPath())];
+        $resumo = [];
 
         if ($itens !== ($tabela->itens_gerados ?? [])) {
             $codigo = static::arquivoMigrationItens($tabela->nome_fisico, $chave, $itens, $tabela->itens_gerados ?? []);
             $resumo[] = static::gravarEAplicar($tabela->banco, "itens_{$tabela->nome_fisico}", $codigo);
             $tabela->forceFill(['itens_gerados' => $itens])->saveQuietly();
+        }
+
+        return $resumo;
+    }
+
+    /**
+     * Botão Gerar constantes: recria os enums de todas as tabelas lista/conteúdo do módulo.
+     *
+     * @return list<string>
+     */
+    public static function gerarConstantes(Modulo $modulo): array
+    {
+        $resumo = [];
+
+        foreach ($modulo->tabelas()->with('itens')->orderBy('nome_fisico')->get() as $tabela) {
+            if (! $tabela->tipoTabela()->temItens()) {
+                continue;
+            }
+
+            $tabela->setRelation('modulo', $modulo);
+            EnumWriter::gravar($tabela);
+            $resumo[] = 'Enum ' . Arquivos::relativo($tabela->enumPath());
         }
 
         return $resumo;

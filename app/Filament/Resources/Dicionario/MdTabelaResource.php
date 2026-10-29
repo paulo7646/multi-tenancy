@@ -501,8 +501,8 @@ class MdTabelaResource extends Resource
 
     /**
      * Botão "Valores da lista" (tabelas lista/conteúdo): mostra os valores que já
-     * existem e inclui novos. Ao incluir, grava os registros (migration) e gera
-     * a constante no enum do módulo.
+     * existem e inclui novos. Ao incluir, grava os registros (migration);
+     * as constantes do enum saem no botão Gerar constantes.
      */
     public static function acaoValores(): Action
     {
@@ -577,7 +577,7 @@ class MdTabelaResource extends Resource
                 $record->unsetRelation('itens');
 
                 if (! $record->isGerada()) {
-                    Notification::make()->title('Valores guardados')->body('Eles entram na tabela e no enum quando a tabela for salva.')->success()->send();
+                    Notification::make()->title('Valores guardados')->body('Eles entram na tabela quando ela for salva. As constantes saem em Gerar constantes.')->success()->send();
 
                     return;
                 }
@@ -591,6 +591,32 @@ class MdTabelaResource extends Resource
                 } catch (Throwable $e) {
                     report($e);
                     Notification::make()->title('Os valores foram salvos, mas a geração falhou')->body($e->getMessage())->danger()->persistent()->send();
+                }
+            });
+    }
+
+        /**
+     * Botão Gerar constantes: recria os enums das tabelas lista/conteúdo do módulo.
+     */
+    public static function acaoConstantes(): Action
+    {
+        return Action::make('constantes')
+            ->label('Gerar constantes')
+            ->icon('heroicon-o-code-bracket')
+            ->color('gray')
+            ->visible(fn (MdTabela $record) => $record->tipoTabela()->temItens())
+            ->requiresConfirmation()
+            ->modalHeading('Gerar constantes')
+            ->modalDescription(fn (MdTabela $record) => "Recria os enums de todas as tabelas lista e conteúdo do módulo {$record->modulo->nome}, com os valores cadastrados.")
+            ->action(function (MdTabela $record) {
+                try {
+                    $resumo = Gerador::gerarConstantes($record->modulo);
+                    Registro::limpar();
+
+                    Notification::make()->title('Constantes geradas')->body(new HtmlString(implode('<br>', array_map('e', $resumo))))->success()->send();
+                } catch (Throwable $e) {
+                    report($e);
+                    Notification::make()->title('Não foi possível gerar as constantes')->body($e->getMessage())->danger()->persistent()->send();
                 }
             });
     }

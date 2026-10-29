@@ -22,6 +22,9 @@ use App\Filament\Resources\TenantResource\Pages\ViewTenant;
 use App\Filament\Resources\TenantResource\Pages\EditTenant;
 use App\Filament\Resources\TenantResource\RelationManagers\UserLicensesRelationManager;
 use App\Models\Tenant;
+use App\Sistema\AtualizadorDeClientes;
+use Filament\Notifications\Notification;
+use Throwable;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Forms\Components\Toggle;
@@ -132,6 +135,26 @@ class TenantResource extends Resource
                 EditAction::make(),
 
                 DeleteAction::make(),
+
+                Action::make('atualizar')
+                    ->label('Atualizar')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->visible(fn (Tenant $record) => (bool) auth()->user()?->can('update', $record))
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (Tenant $record) => 'Atualizar ' . $record->displayName())
+                    ->modalDescription('Roda as migrations pendentes no banco deste cliente.')
+                    ->action(function (Tenant $record) {
+                        try {
+                            $resultado = AtualizadorDeClientes::atualizar($record);
+
+                            Notification::make()->title('Cliente atualizado')->body(AtualizadorDeClientes::mensagem($resultado, false))->success()->send();
+                        } catch (Throwable $e) {
+                            report($e);
+
+                            Notification::make()->title('A atualização falhou')->body($e->getMessage())->danger()->persistent()->send();
+                        }
+                    }),
 
                 Action::make('impersonate')
                     ->label('Entrar')

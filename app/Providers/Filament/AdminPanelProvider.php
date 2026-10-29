@@ -10,7 +10,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Registro;
 use App\Filament\Sistema\Pages\ModuloPage;
-use Filament\Pages\Dashboard;
+use App\Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
