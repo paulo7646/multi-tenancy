@@ -6,6 +6,8 @@ use App\Models\Md\MdFormulario;
 use App\Models\Md\MdGerenciamento;
 use App\Models\Md\MdGerenciamentoBotao;
 use App\Models\Md\MdTabela;
+use App\Plataforma\Impressao\AcoesDeImpressao;
+use App\Plataforma\RelationManagers\AnexosRelationManager;
 use App\Sistema\Base\Concerns\Utilidades;
 use App\Sistema\Enums\Cor;
 use App\Sistema\Permissoes;
@@ -399,7 +401,10 @@ abstract class BaseResource extends Resource
             ->columns((new ColunasBuilder($md, $tela))->colunas())
             ->filters($filtros)
             ->defaultSort($model->getKeyName(), 'desc')
+            ->headerActions([AcoesDeImpressao::exportar($tabela)])
             ->recordActions([
+                AcoesDeImpressao::registro($tabela),
+
                 ...$md->botoes->where('no_registro', true)->map(fn (MdGerenciamentoBotao $b) => static::botao($b)
                     ->visible(fn (Model $record) => $tela->botaoVisivel($b->nome_fisico, $record))
                     ->action(fn (Model $record, $livewire) => Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $record, $b->nome_fisico, $b->titulo, $livewire, [$record])))->values()->all(),
@@ -496,6 +501,11 @@ abstract class BaseResource extends Resource
     // ------------------------------------------------------------------
     // Páginas (geradas junto com o Resource, na pasta {Resource}/Pages)
     // ------------------------------------------------------------------
+
+    public static function getRelations(): array
+    {
+        return [AnexosRelationManager::class];
+    }
 
     public static function getPages(): array
     {

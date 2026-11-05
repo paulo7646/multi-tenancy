@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Sistema\Pages\ModuloPage;
 use App\Http\Middleware\CheckTenantStatus;
 use App\Http\Middleware\CheckUserLicense;
+use App\Plataforma\Plataforma;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Registro;
 use App\Webservice\Resources\AgendamentoResource;
@@ -48,6 +49,9 @@ class ClientPanelProvider extends PanelProvider
             ])
             ->viteTheme('resources/css/filament/client/theme.css')
             ->discoverResources(in: app_path('Filament/Client/Resources'), for: 'App\\Filament\\Client\\Resources')
+            // documentos, assinatura eletrônica, impressão e dados da empresa
+            ->resources(Plataforma::recursos())
+            ->pages(Plataforma::paginas())
             // webservices (consumidos ou disponibilizados) e layouts de integração
             ->resources([
                 WebserviceResource::class,

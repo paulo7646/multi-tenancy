@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
 use App\Filament\Sistema\Pages\ModuloPage;
+use App\Plataforma\Plataforma;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Registro;
 use App\Webservice\Resources\AgendamentoResource;
@@ -47,6 +48,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            // documentos, assinatura eletrônica, impressão e dados da empresa
+            ->resources(Plataforma::recursos())
+            ->pages(Plataforma::paginas())
             // webservices (consumidos ou disponibilizados) e layouts de integração
             ->resources([
                 WebserviceResource::class,

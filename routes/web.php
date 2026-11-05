@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FrontendController;
+use App\Plataforma\Http\Rotas as Rota;
 use App\Webservice\Http\EntradaController;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -15,5 +16,8 @@ Route::any('/ws/{webservice}/{rota?}', EntradaController::class)
     ->middleware('throttle:webservice')
     ->withoutMiddleware([VerifyCsrfToken::class, ValidateCsrfToken::class])
     ->name('webservice.entrada');
+
+// assinatura eletrônica: link do assinante e verificação de certificado
+Rota::publicas();
 
 // login, perfil e senha ficam nos painéis do Filament (/admin)

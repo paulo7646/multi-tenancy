@@ -50,6 +50,23 @@ tudo a partir deles.
   `md_status` (copiada para cada cliente com os mesmos ids).
 - Um módulo vale para a base pai (`central`) ou para os clientes (`tenant`).
 
+### Plataforma (`app/Plataforma`)
+
+Recursos de base, sem regra de negócio, na base pai e nos clientes:
+
+- **Documentos:** pastas, versões (cada envio novo guarda a anterior), tags, lixeira,
+  cota por empresa e bloqueio de extensões perigosas. O disco é o `DOCUMENTOS_DISCO`
+  (`local` por empresa, ou `s3`). Toda tela gerada pelo dicionário ganha a aba
+  **Anexos**, que liga documentos ao registro.
+- **Impressão:** toda tela gerada pelo dicionário ganha **Exportar** (PDF, Excel, CSV,
+  respeitando filtros e busca) e **Imprimir** (ficha do registro em PDF). Os
+  **Modelos de impressão** definem papel, título, rodapé e o corpo da ficha com
+  marcadores `{CAMPO}`. O cabeçalho vem de **Dados da empresa** (nome, logo, rodapé).
+- **Assinatura eletrônica:** pedido com vários assinantes, em ordem ou não. Cada
+  um recebe um link pessoal por e-mail, confirma um código de 6 dígitos e assina;
+  IP, navegador e hash do arquivo ficam gravados numa trilha encadeada por hash.
+  Ao fim sai um certificado em PDF com QR, e `/verificar/{código}` confere a
+  autenticidade (inclusive se o arquivo foi alterado). Só PDF.
 ### Webservices (`app/Webservice`)
 
 Cadastro de webservices consumidos ou disponibilizados, com operações,
