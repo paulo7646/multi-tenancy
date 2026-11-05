@@ -2,18 +2,16 @@
 
 namespace App\Filament\Resources\Dicionario\MdFormularioResource\Pages;
 
-use App\Filament\Resources\Dicionario\Concerns\PublicaNoDicionario;
+use App\Filament\Resources\Dicionario\Concerns\SalvaNoDicionario;
 use App\Filament\Resources\Dicionario\MdFormularioResource;
 use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
 use App\Models\Md\MdTabela;
-use App\Sistema\Geradores\Gerador;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Database\Eloquent\Model;
 
 class CreateMdFormulario extends CreateRecord
 {
     use DesenhaPrevia;
-    use PublicaNoDicionario;
+    use SalvaNoDicionario;
 
     protected static string $resource = MdFormularioResource::class;
 
@@ -22,11 +20,6 @@ class CreateMdFormulario extends CreateRecord
         return [
             MdFormularioResource::previa(),
         ];
-    }
-
-    protected function publicarNoDicionario(Model $record): array
-    {
-        return Gerador::publicarFormulario($record);
     }
 
     /**

@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources\Dicionario\MdTabelaResource\Pages;
 
-use App\Filament\Resources\Dicionario\Concerns\PublicaNoDicionario;
+use App\Filament\Resources\Dicionario\Concerns\SalvaNoDicionario;
 use App\Filament\Resources\Dicionario\MdTabelaResource;
-use App\Filament\Resources\Dicionario\MdTabelaResource\Pages\Concerns\VerificaMigration;
 use App\Models\Md\MdFormulario;
 use App\Models\Md\MdGerenciamento;
 use App\Models\Md\Modulo;
@@ -15,8 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CreateMdTabela extends CreateRecord
 {
-    use PublicaNoDicionario;
-    use VerificaMigration;
+    use SalvaNoDicionario;
 
     protected static string $resource = MdTabelaResource::class;
 
@@ -30,8 +28,6 @@ class CreateMdTabela extends CreateRecord
 
         // a tabela fica no banco do módulo
         $this->data['banco'] = Modulo::find($this->data['modulo_id'])?->banco?->value;
-
-        $this->verificarMigration(null);
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array
@@ -41,37 +37,39 @@ class CreateMdTabela extends CreateRecord
         return $data;
     }
 
-    protected function publicarNoDicionario(Model $record): array
+    /**
+     * Só o cadastro: os campos do sistema e, se pedido, o formulário e a tela padrão.
+     * Os arquivos saem no botão Criar arquivos de cada um.
+     */
+    protected function depoisDeSalvar(Model $record): void
     {
-        $resumo = Gerador::publicarTabela($record);
+        Gerador::garantirCamposDoSistema($record);
 
-        if ($this->criarTelas) {
-            $record->refresh()->load('modulo');
-
-            $formulario = MdFormulario::create([
-                'md_tabela_id' => $record->id,
-                'nome' => $record->nome,
-                'titulo' => $record->nome,
-                'nome_fisico' => $record->nome_fisico,
-                'nome_arquivo' => 'View'.$record->nomeClasse(),
-                'paginado' => false,
-                'colunas' => 2,
-            ]);
-            $formulario->salvarLayout(MdFormulario::layoutPadrao($record));
-
-            $gerenciamento = MdGerenciamento::create([
-                'md_tabela_id' => $record->id,
-                'md_formulario_id' => $formulario->id,
-                'nome' => $record->nome,
-                'titulo' => $record->nome,
-                'nome_fisico' => $record->nome_fisico,
-                'nome_arquivo' => $record->nomeClasse().'Resource',
-            ]);
-
-            $resumo = [...$resumo, ...Gerador::publicarFormulario($formulario), ...Gerador::publicarGerenciamento($gerenciamento)];
+        if (! $this->criarTelas) {
+            return;
         }
 
-        return $resumo;
+        $record->refresh()->load('modulo');
+
+        $formulario = MdFormulario::create([
+            'md_tabela_id' => $record->id,
+            'nome' => $record->nome,
+            'titulo' => $record->nome,
+            'nome_fisico' => $record->nome_fisico,
+            'nome_arquivo' => 'View'.$record->nomeClasse(),
+            'paginado' => false,
+            'colunas' => 2,
+        ]);
+        $formulario->salvarLayout(MdFormulario::layoutPadrao($record));
+
+        MdGerenciamento::create([
+            'md_tabela_id' => $record->id,
+            'md_formulario_id' => $formulario->id,
+            'nome' => $record->nome,
+            'titulo' => $record->nome,
+            'nome_fisico' => $record->nome_fisico,
+            'nome_arquivo' => $record->nomeClasse().'Resource',
+        ]);
     }
 
     protected function getRedirectUrl(): string

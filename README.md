@@ -44,6 +44,13 @@ gerenciamentos, e gera sozinho migrations, models, controllers e Resources em
 `database/md/*.json` (versionado), e `php artisan md:importar` recria
 tudo a partir deles.
 
+Salvar no dicionário só grava o cadastro. Os arquivos (migration, model, controller,
+Resource, permissões, `database/md`) saem no botão **Criar arquivos** de cada tela
+(módulo, tabela, formulário e gerenciamento), que mostra o que vai ser feito e só
+gera depois da confirmação. Vale para a base pai e para os clientes. A tabela
+precisa ter os arquivos criados antes do formulário e da tela. A migration é
+testada numa transação desfeita antes de gerar.
+
 - Tabelas **lista** e **conteúdo**: campos `NOME` e `VALOR`; os valores entram
   em "Valores da lista" e o botão "Gerar constantes" recria os enums do módulo.
 - Tabelas com **situação**: coluna `MD_STATUS_ID`, chave estrangeira de

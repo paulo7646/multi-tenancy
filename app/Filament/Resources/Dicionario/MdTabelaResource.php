@@ -198,7 +198,7 @@ class MdTabelaResource extends Resource
 
                                         Toggle::make('criar_telas')
                                             ->label('Criar formulário e gerenciamento padrão')
-                                            ->helperText('Já cria o formulário e a tela (ProdutoResource, com permissões no Shield) com todos os campos.')
+                                            ->helperText('Cadastra o formulário e a tela padrão com todos os campos. Os arquivos (ProdutoResource, permissões no Shield) saem no botão Criar arquivos de cada um.')
                                             ->default(true)
                                             ->dehydrated(false)
                                             // tabela de ligação não tem telas

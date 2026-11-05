@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Dicionario\MdFormularioResource\Pages;
 
-use App\Filament\Resources\Dicionario\Concerns\PublicaNoDicionario;
+use App\Filament\Resources\Dicionario\Concerns\CriaArquivosPorBotao;
 use App\Filament\Resources\Dicionario\MdFormularioResource;
 use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
 use App\Sistema\Geradores\Gerador;
@@ -13,23 +13,34 @@ use Illuminate\Database\Eloquent\Model;
 
 class EditMdFormulario extends EditRecord
 {
+    use CriaArquivosPorBotao;
     use DesenhaPrevia;
-    use PublicaNoDicionario;
 
     protected static string $resource = MdFormularioResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            $this->acaoCriarArquivos(),
             MdFormularioResource::previa(),
             MdFormularioResource::excluir(DeleteAction::make()),
         ];
     }
 
-    protected function antesDePublicar(Model $record): void
+    protected function depoisDeSalvar(Model $record): void
     {
         // os campos já saíram dos grupos ao gravar a aba Componentes (grupos ficam para depois)
         $record->componentes()->where('tipo', Layout::GRUPO)->delete();
+    }
+
+    protected function motivoParaNaoCriarArquivos(Model $record): ?string
+    {
+        return $record->tabela?->isGerada() ? null : "Crie primeiro os arquivos da tabela \"{$record->tabela?->nome}\".";
+    }
+
+    protected function previaDosArquivos(Model $record): array
+    {
+        return Gerador::previaFormulario($record);
     }
 
     protected function publicarNoDicionario(Model $record): array

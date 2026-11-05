@@ -40,8 +40,26 @@ class Gerador
      */
     public static function verificarTabela(MdTabela $tabela, array $campos, bool $controlaSituacao, array $situacoes): void
     {
-        $codigo = static::codigoMigration($tabela, SchemaSnapshot::fromState($campos, $controlaSituacao, $situacoes));
+        static::testarMigration($tabela, static::codigoMigration($tabela, SchemaSnapshot::fromState($campos, $controlaSituacao, $situacoes)));
+    }
 
+    /**
+     * O mesmo teste, a partir da tabela como está salva no dicionário (botão Criar arquivos).
+     *
+     * @throws SchemaException
+     */
+    public static function verificarTabelaSalva(MdTabela $tabela): void
+    {
+        $tabela->loadMissing('modulo');
+
+        static::testarMigration($tabela, static::codigoMigration($tabela, SchemaSnapshot::of($tabela)));
+    }
+
+    /**
+     * @throws SchemaException
+     */
+    protected static function testarMigration(MdTabela $tabela, ?string $codigo): void
+    {
         if ($codigo === null) {
             return;
         }
@@ -80,6 +98,78 @@ class Gerador
         } finally {
             Arquivos::apagar($arquivo);
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Prévias (o que o botão Criar arquivos vai fazer; não grava nada)
+    // ------------------------------------------------------------------
+
+    /**
+     * @return list<string>
+     */
+    public static function previaTabela(MdTabela $tabela): array
+    {
+        $tabela->loadMissing(['modulo', 'itens']);
+
+        $codigo = static::codigoMigration($tabela, SchemaSnapshot::of($tabela));
+        $onde = $tabela->banco === Banco::Central ? 'na base pai' : 'em '.Tenant::count().' cliente(s)';
+
+        $linhas = [$codigo === null
+            ? 'Banco: nenhuma alteração na estrutura da tabela '.$tabela->nome_fisico.'.'
+            : 'Migration de '.($tabela->isGerada() ? 'alteração' : 'criação').' da tabela '.$tabela->nome_fisico.', aplicada agora '.$onde.'.'];
+
+        if ($tabela->tipoTabela()->temItens()) {
+            $linhas[] = 'Valores da lista: '.$tabela->itens->count().' cadastrado(s); uma migration grava os que mudaram.';
+        }
+
+        $linhas[] = 'Model '.Arquivos::relativo(ModelWriter::path($tabela)).' (só o bloco de estrutura é recriado).';
+        $linhas[] = 'Controller '.Arquivos::relativo(ClassesWriter::controllerPath($tabela)).(is_file(ClassesWriter::controllerPath($tabela)) ? ' (já existe: mantido).' : ' (novo).');
+        $linhas[] = 'Arquivo do dicionário em database/md.';
+
+        return $linhas;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function previaFormulario(MdFormulario $formulario): array
+    {
+        return [
+            'Classe de botões da tabela (só os botões novos entram).',
+            'Métodos das tab pages customizadas do formulário.',
+            'Arquivo do dicionário em database/md.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function previaGerenciamento(MdGerenciamento $gerenciamento): array
+    {
+        $gerenciamento->loadMissing('tabela.modulo');
+        $caminho = ClassesWriter::resourcePath($gerenciamento);
+        $nome = strtolower($gerenciamento->nome_fisico);
+        $novasPermissoes = glob($gerenciamento->tabela->banco->migrationsPath()."/*_permissao_resource_{$nome}.php") === [];
+
+        return [
+            'Resource '.Arquivos::relativo($caminho).' e páginas'.(is_file($caminho) ? ' (já existem: mantidos).' : ' (novos).'),
+            $novasPermissoes ? 'Migration com as permissões da tela, concedidas aos papéis do módulo.' : 'Permissões da tela: já criadas.',
+            'Botões da tabela e arquivo do dicionário em database/md.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function previaModulo(Modulo $modulo): array
+    {
+        $mudou = static::papeis($modulo->roles) !== ($modulo->roles_gerados === null ? null : static::papeis($modulo->roles_gerados));
+
+        return [
+            'Pasta '.Arquivos::relativo($modulo->caminho()).'.',
+            $mudou ? 'Migration com a permissão '.$modulo->permissao().' e os papéis escolhidos.' : 'Permissão do módulo: sem mudanças.',
+            'Arquivo do dicionário em database/md.',
+        ];
     }
 
     /**
