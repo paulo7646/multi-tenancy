@@ -53,6 +53,9 @@ testada numa transação desfeita antes de gerar.
 
 - Tabelas **lista** e **conteúdo**: campos `NOME` e `VALOR`; os valores entram
   em "Valores da lista" e o botão "Gerar constantes" recria os enums do módulo.
+- Tabela de **ligação** tem o parâmetro **Exibe o filho** (marcado por padrão): a tab page abre
+  o formulário do filho (o outro lado da ligação) e a ligação não tem formulário nem gerenciamento
+  (as abas deles somem). Desmarcado, ela ganha os dela e a tab page abre o formulário da própria ligação.
 - Tabelas com **situação**: coluna `MD_STATUS_ID`, chave estrangeira de
   `md_status` (copiada para cada cliente com os mesmos ids).
 - Um módulo vale para a base pai (`central`) ou para os clientes (`tenant`).

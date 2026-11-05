@@ -10,7 +10,6 @@ use App\Models\Md\MdFormularioPagina;
 use App\Models\Md\MdTabela;
 use App\Sistema\Enums\TipoCampo;
 use App\Sistema\Enums\TipoComponente;
-use App\Sistema\Enums\TipoTabela;
 use App\Sistema\Enums\TipoTabPage;
 use App\Sistema\Runtime\FormularioBuilder;
 use App\Sistema\Runtime\Layout;
@@ -248,7 +247,7 @@ class MdFormularioResource extends Resource
                                         ->helperText(function (Get $get) use ($destino, $tabela) {
                                             $alvo = $destino($get);
 
-                                            if ($alvo?->tipoTabela() !== TipoTabela::Ligacao) {
+                                            if (! $alvo?->exibeFilho()) {
                                                 return null;
                                             }
 

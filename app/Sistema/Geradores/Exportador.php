@@ -52,7 +52,7 @@ class Exportador
         $sem = fn (array $dados, array $chaves) => collect($dados)->except(['id', 'created_at', 'updated_at', ...$chaves])->all();
 
         static::gravar(static::caminhoTabela($tabela), [
-            ...$tabela->only(['nome', 'nome_fisico', 'nome_controller', 'descricao', 'icone', 'cor', 'controla_situacao', 'campo_exibicao', 'generated_schema', 'itens_gerados']),
+            ...$tabela->only(['nome', 'nome_fisico', 'nome_controller', 'descricao', 'icone', 'cor', 'controla_situacao', 'exibe_filho', 'campo_exibicao', 'generated_schema', 'itens_gerados']),
             'modulo' => $tabela->modulo->prefixo,
             'banco' => $tabela->banco->value,
             'tipo' => $tabela->tipoTabela()->value,

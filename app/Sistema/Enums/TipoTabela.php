@@ -38,7 +38,7 @@ enum TipoTabela: string implements HasDescription, HasIcon, HasLabel
     {
         return match ($this) {
             self::Cadastro => 'Tabela normal.',
-            self::Ligacao => 'Liga duas tabelas (ex.: PRODUTO_PEDIDO, com FK para cada uma). Não tem formulário nem tela: numa tab page do tipo Tabela, mostra os registros do outro lado da ligação.',
+            self::Ligacao => 'Liga duas tabelas (ex.: PRODUTO_PEDIDO, com FK para cada uma). Numa tab page do tipo Tabela, mostra os registros do outro lado da ligação (exibe o filho, sem formulário nem tela própria) ou os da própria ligação, com os formulários dela.',
             self::Lista => 'Itens fixos com NOME e VALOR inteiro sequencial (1, 2, 3...) definido pelo sistema: cada NOME vira uma constante do enum do módulo.',
             self::Conteudo => 'Itens fixos com NOME e o VALOR que você definir: cada NOME vira uma constante do enum do módulo.',
         };

@@ -86,7 +86,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
 
     public function ehLigacao(): bool
     {
-        return $this->destino()->tipoTabela() === TipoTabela::Ligacao;
+        return $this->destino()->exibeFilho();
     }
 
     /**
@@ -165,7 +165,8 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
     {
         $tabPage = $this->tabPage();
 
-        if ($this->ehLigacao() && blank($tabPage->campo_ligacao)) {
+        // ligação sem configuração: a FK dela que aponta para a origem (mostrando o filho ou a própria ligação)
+        if ($this->destino()->tipoTabela() === TipoTabela::Ligacao && blank($tabPage->campo_ligacao)) {
             return Ligacao::fkPara($this->destino(), $this->origem())?->nome_fisico;
         }
 
@@ -193,7 +194,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
             }
 
             // ligação sem configuração: pelo id do registro aberto
-            if ($tabPage->campo_tabela === MdFormularioPagina::CAMPO_ID || ($this->ehLigacao() && blank($tabPage->campo_tabela))) {
+            if ($tabPage->campo_tabela === MdFormularioPagina::CAMPO_ID || ($this->destino()->tipoTabela() === TipoTabela::Ligacao && blank($tabPage->campo_tabela))) {
                 return $this->registroId;
             }
 

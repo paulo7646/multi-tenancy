@@ -22,10 +22,10 @@ class CreateMdTabela extends CreateRecord
 
     protected function beforeCreate(): void
     {
-        // tabela de ligação não tem formulário nem tela
+        // tabela de ligação que exibe o filho não tem formulário nem tela
         $tipo = TipoTabela::tryFrom((string) (($this->data['tipo'] ?? null) instanceof \BackedEnum ? $this->data['tipo']->value : ($this->data['tipo'] ?? '')));
-        $this->criarTelas = (bool) ($this->data['criar_telas'] ?? false) && ($tipo?->temTelas() ?? true);
-
+        $temTelas = $tipo === TipoTabela::Ligacao ? ! (bool) ($this->data['exibe_filho'] ?? true) : ($tipo?->temTelas() ?? true);
+        $this->criarTelas = (bool) ($this->data['criar_telas'] ?? false) && $temTelas;
         // a tabela fica no banco do módulo
         $this->data['banco'] = Modulo::find($this->data['modulo_id'])?->banco?->value;
     }

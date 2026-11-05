@@ -196,14 +196,20 @@ class MdTabelaResource extends Resource
                                             ->disabled()
                                             ->dehydrated(),
 
+                                        Toggle::make('exibe_filho')
+                                            ->label('Exibe o filho')
+                                            ->helperText('Na tab page de um formulário, abre o formulário do filho (o outro lado da ligação). Marcado, a tabela não tem formulário nem gerenciamento próprios. Desmarcado, ela ganha os dela e a tab page abre o formulário da própria ligação.')
+                                            ->default(true)
+                                            ->live()
+                                            ->visible(fn (Get $get) => TipoTabela::tryFrom(static::valorTipo($get('tipo'))) === TipoTabela::Ligacao),
+
                                         Toggle::make('criar_telas')
                                             ->label('Criar formulário e gerenciamento padrão')
                                             ->helperText('Cadastra o formulário e a tela padrão com todos os campos. Os arquivos (ProdutoResource, permissões no Shield) saem no botão Criar arquivos de cada um.')
                                             ->default(true)
                                             ->dehydrated(false)
-                                            // tabela de ligação não tem telas
-                                            ->visible(fn (Get $get, string $operation) => $operation === 'create'
-                                                && (TipoTabela::tryFrom(static::valorTipo($get('tipo')))?->temTelas() ?? true)),
+                                            // tabela de ligação que exibe o filho não tem telas
+                                            ->visible(fn (Get $get, string $operation) => $operation === 'create' && static::temTelasNoForm($get)),
 
                                         Toggle::make('controla_situacao')
                                             ->label('Controla situação')
@@ -652,7 +658,7 @@ class MdTabelaResource extends Resource
     {
         return Tab::make($tipo === 'formularios' ? 'Formulários' : 'Gerenciamentos')
             ->icon($tipo === 'formularios' ? 'heroicon-o-document-text' : 'heroicon-o-queue-list')
-            ->visible(fn (?MdTabela $record) => (bool) $record?->exists)
+            ->visible(fn (Get $get, ?MdTabela $record) => (bool) $record?->exists && static::temTelasNoForm($get))
             ->badge(fn (?MdTabela $record) => $record ? ($tipo === 'formularios' ? $record->formularios()->count() : $record->gerenciamentos()->count()) ?: null : null)
             ->schema([
                 View::make('filament.sistema.tabela-telas')
@@ -663,6 +669,20 @@ class MdTabelaResource extends Resource
                         'urlEditar' => fn ($item) => $tipo === 'formularios' ? MdFormularioResource::getUrl('edit', ['record' => $item]) : MdGerenciamentoResource::getUrl('edit', ['record' => $item]),
                     ]),
             ]);
+    }
+
+    /**
+     * Pelo que está na tela: a tabela tem formulário e gerenciamento? (ligação que exibe o filho, não)
+     */
+    public static function temTelasNoForm(Get $get): bool
+    {
+        $tipo = TipoTabela::tryFrom((string) static::valorTipo($get('tipo')));
+
+        return match (true) {
+            $tipo === null => true,
+            $tipo === TipoTabela::Ligacao => ! (bool) ($get('exibe_filho') ?? true),
+            default => $tipo->temTelas(),
+        };
     }
 
     public static function valorBanco(mixed $banco): ?string

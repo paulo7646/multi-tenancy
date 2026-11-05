@@ -54,6 +54,7 @@ return new class extends Migration
             $table->string('icone')->nullable();
             $table->string('cor', 20)->nullable();
             $table->boolean('controla_situacao')->default(false);
+            $table->boolean('exibe_filho')->default(true); // tabela de ligação: a tab page abre o formulário do filho (true) ou o da própria ligação (false)
             $table->string('campo_exibicao', 60)->nullable(); // coluna mostrada quando outra tabela aponta para esta
             $table->json('generated_schema')->nullable(); // estrutura da última migration gerada
             $table->json('itens_gerados')->nullable(); // itens da última migration de itens (lista/conteúdo)

@@ -26,7 +26,7 @@ class MdTabela extends Model
 
     protected $fillable = [
         'modulo_id', 'nome', 'nome_fisico', 'nome_controller', 'descricao', 'banco', 'tipo', 'icone', 'cor',
-        'controla_situacao', 'campo_exibicao', 'generated_schema', 'itens_gerados', 'generated_at',
+        'controla_situacao', 'exibe_filho', 'campo_exibicao', 'generated_schema', 'itens_gerados', 'generated_at',
     ];
 
     protected function casts(): array
@@ -97,6 +97,23 @@ class MdTabela extends Model
     public function isGerada(): bool
     {
         return $this->generated_at !== null;
+    }
+
+    /**
+     * Tabela de ligação que mostra o filho: na tab page abre o formulário do outro
+     * lado da ligação e a tabela não tem formulário nem tela própria.
+     */
+    public function exibeFilho(): bool
+    {
+        return $this->tipoTabela() === TipoTabela::Ligacao && (bool) ($this->exibe_filho ?? true);
+    }
+
+    /**
+     * Tem formulário e gerenciamento próprios? Ligação que exibe o filho, não.
+     */
+    public function temTelas(): bool
+    {
+        return $this->tipoTabela()->temTelas() || ($this->tipoTabela() === TipoTabela::Ligacao && ! $this->exibeFilho());
     }
 
     public function tipoTabela(): TipoTabela
