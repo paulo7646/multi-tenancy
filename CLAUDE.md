@@ -73,8 +73,8 @@ se tocou em entrada de usuário ou autenticação) → `vendor/bin/pint` e `php 
 
 ## Combinados de trabalho
 
-- **Não commite nem dê push sem o usuário pedir.** Push para os dois remotos: `antigo`
-  (multi-tenancy) e `origin` (obra_facil).
+- **Não commite nem dê push sem o usuário pedir.** O único remoto é `origin`
+  (`paulo7646/multi-tenancy`); o repositório obra_facil foi excluído.
 - **Nada destrutivo no banco de desenvolvimento** (apagar linhas, `migrate:fresh`, rollback)
   sem pedir. Dados de teste que você criou, remova no fim e diga o que removeu.
 - Se o que o plugin sugere conflita com uma convenção acima, vale a convenção do projeto.
