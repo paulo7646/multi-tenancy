@@ -43,7 +43,9 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // DB_PERSISTENT=true: o PHP mantém a conexão aberta entre as requisições (veja o README)
+            'options' => extension_loaded('pdo_pgsql') && env('DB_PERSISTENT', false) ? [PDO::ATTR_PERSISTENT => true] : [],
         ],
 
         'sqlite' => [
@@ -109,7 +111,9 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // DB_PERSISTENT=true: o PHP mantém a conexão aberta entre as requisições (veja o README)
+            'options' => extension_loaded('pdo_pgsql') && env('DB_PERSISTENT', false) ? [PDO::ATTR_PERSISTENT => true] : [],
         ],
 
         'sqlsrv' => [
