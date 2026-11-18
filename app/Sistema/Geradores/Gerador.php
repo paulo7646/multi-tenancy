@@ -7,6 +7,7 @@ use App\Models\Md\MdGerenciamento;
 use App\Models\Md\MdTabela;
 use App\Models\Md\Modulo;
 use App\Models\Tenant;
+use App\Sistema\ConexaoDireta;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Enums\TipoTabela;
 use App\Sistema\Registro;
@@ -590,7 +591,10 @@ PHP;
 
     protected static function artisan(string $comando, array $parametros): void
     {
-        $codigo = Artisan::call($comando, $parametros);
+        // migrate e afins vão direto ao PostgreSQL (atrás de um PgBouncer) e voltam mesmo se falharem
+        $codigo = ConexaoDireta::vale($comando)
+            ? ConexaoDireta::durante(fn () => Artisan::call($comando, $parametros))
+            : Artisan::call($comando, $parametros);
         $saida = Artisan::output();
 
         if ($codigo !== 0 || str_contains($saida, 'FAIL')) {
@@ -610,7 +614,7 @@ PHP;
         }
 
         return Tenant::with('domains')->get()
-            ->mapWithKeys(fn (Tenant $tenant) => [$tenant->displayName() => fn (Closure $callback) => $tenant->run($callback)])
+            ->mapWithKeys(fn (Tenant $tenant) => [$tenant->displayName() => fn (Closure $callback) => $tenant->executar($callback)])
             ->all();
     }
 

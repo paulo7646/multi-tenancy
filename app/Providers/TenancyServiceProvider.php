@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Jobs\CreateTenantFrontend;
 use App\Jobs\CreateTenantUser;
+use App\Listeners\EncerrarSessoesDoBanco;
+use App\Sistema\ConexaoDireta;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +48,24 @@ class TenancyServiceProvider extends ServiceProvider
             Events\UpdatingTenant::class => [],
             Events\TenantUpdated::class => [],
             Events\DeletingTenant::class => [],
+
+            // atrás de um PgBouncer, criar e apagar o banco de um cliente vai direto ao PostgreSQL
+            // (a volta ao pooler é garantida pelo terminating da ConexaoDireta, mesmo se o job falhar)
+            Events\CreatingDatabase::class => [
+                fn () => ConexaoDireta::usar(),
+            ],
+            Events\DatabaseCreated::class => [
+                fn () => ConexaoDireta::restaurar(),
+            ],
+
+            // sessões abertas (conexão persistente, pool) impedem o DROP DATABASE do cliente
+            Events\DeletingDatabase::class => [
+                fn () => ConexaoDireta::usar(),
+                EncerrarSessoesDoBanco::class,
+            ],
+            Events\DatabaseDeleted::class => [
+                fn () => ConexaoDireta::restaurar(),
+            ],
             Events\TenantDeleted::class => [
                 JobPipeline::make([
                     Jobs\DeleteDatabase::class,
@@ -64,12 +84,10 @@ class TenancyServiceProvider extends ServiceProvider
             Events\DeletingDomain::class => [],
             Events\DomainDeleted::class => [],
 
-            // Database events
-            Events\DatabaseCreated::class => [],
+            // Database events (DatabaseCreated e DatabaseDeleted estão acima, com a conexão direta)
             Events\DatabaseMigrated::class => [],
             Events\DatabaseSeeded::class => [],
             Events\DatabaseRolledBack::class => [],
-            Events\DatabaseDeleted::class => [],
 
             // Tenancy events
             Events\InitializingTenancy::class => [],

@@ -2,6 +2,18 @@
 
 use Illuminate\Support\Str;
 
+/*
+| Opções do PDO do PostgreSQL.
+|  - persistente: o PHP mantém a conexão aberta entre as requisições (abrir custa ~35 ms; reaproveitar, menos de 1 ms).
+|  - DB_EMULATE_PREPARES: necessário atrás de um PgBouncer em modo transaction mais antigo que 1.21.
+*/
+$opcoesPg = fn (bool $persistente): array => extension_loaded('pdo_pgsql')
+    ? array_filter([
+        PDO::ATTR_PERSISTENT => $persistente ?: null,
+        PDO::ATTR_EMULATE_PREPARES => env('DB_EMULATE_PREPARES', false) ?: null,
+    ])
+    : [];
+
 return [
 
     /*
@@ -17,6 +29,18 @@ return [
     */
 
     'default' => env('DB_CONNECTION', 'sqlite'),
+
+    /*
+    | Alguma conexão persistente ligada? O app lê esta chave (não o env(), que volta null com config:cache)
+    | para desfazer, no fim da requisição, transação que tenha sobrado.
+    */
+    'persistente' => (bool) (env('DB_PERSISTENT', false) || env('DB_TENANT_PERSISTENT', false)),
+
+    /*
+    | Atrás de um pooler (PgBouncer): DB_DIRECT_HOST/DB_DIRECT_PORT é o PostgreSQL de verdade, usado
+    | pelas migrations e por encerrar sessões antes de apagar o banco de um cliente (veja o README).
+    */
+    'direta' => filled(env('DB_DIRECT_HOST')),
 
     /*
     |--------------------------------------------------------------------------
@@ -44,8 +68,8 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
-            // DB_PERSISTENT=true: o PHP mantém a conexão aberta entre as requisições (veja o README)
-            'options' => extension_loaded('pdo_pgsql') && env('DB_PERSISTENT', false) ? [PDO::ATTR_PERSISTENT => true] : [],
+            // DB_PERSISTENT=true: conexão da base pai reaproveitada entre as requisições (veja o README)
+            'options' => $opcoesPg((bool) env('DB_PERSISTENT', false)),
         ],
 
         'sqlite' => [
@@ -112,8 +136,42 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
-            // DB_PERSISTENT=true: o PHP mantém a conexão aberta entre as requisições (veja o README)
-            'options' => extension_loaded('pdo_pgsql') && env('DB_PERSISTENT', false) ? [PDO::ATTR_PERSISTENT => true] : [],
+            // DB_PERSISTENT=true: conexão da base pai reaproveitada entre as requisições (veja o README)
+            'options' => $opcoesPg((bool) env('DB_PERSISTENT', false)),
+        ],
+
+        // Direto ao PostgreSQL, sem pooler nem persistência: migrations e administração dos bancos.
+        // Sem DB_DIRECT_HOST, é o mesmo endereço do resto.
+        'central_direta' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_DIRECT_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('DB_DIRECT_PORT', env('DB_PORT', '5432')),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_DIRECT_SSLMODE', env('DB_SSLMODE', 'prefer')),
+        ],
+
+        // Molde da conexão de cada cliente (o Stancl troca só o nome do banco). Fica separada
+        // porque conexão persistente aqui multiplica: processos do PHP x clientes atendidos.
+        'tenant_template' => [
+            'driver' => 'pgsql',
+            // sem 'url': com DB_URL o Laravel usaria o banco da URL e ignoraria o banco de cada cliente
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'options' => $opcoesPg((bool) env('DB_TENANT_PERSISTENT', false)),
         ],
 
         'sqlsrv' => [

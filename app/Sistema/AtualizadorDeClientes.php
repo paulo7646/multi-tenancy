@@ -30,7 +30,7 @@ class AtualizadorDeClientes
             $parametros['--tenants'] = [$tenant->getTenantKey()];
         }
 
-        $codigo = Artisan::call('tenants:migrate', $parametros);
+        $codigo = ConexaoDireta::durante(fn () => Artisan::call('tenants:migrate', $parametros));
         static::esquecerPendentes($tenant);
         $saida = trim(Artisan::output());
 
@@ -50,7 +50,7 @@ class AtualizadorDeClientes
         return Cache::store('central')->remember("tenant-pendentes-{$tenant->getTenantKey()}", 60, function () use ($tenant) {
             $arquivos = collect(glob(database_path('migrations/tenant/*.php')) ?: [])->map(fn (string $f) => basename($f, '.php'));
 
-            $rodadas = $tenant->run(fn () => Schema::hasTable('migrations') ? DB::table('migrations')->pluck('migration') : collect());
+            $rodadas = $tenant->executar(fn () => Schema::hasTable('migrations') ? DB::table('migrations')->pluck('migration') : collect());
 
             return $arquivos->diff($rodadas)->count();
         });

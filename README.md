@@ -99,6 +99,70 @@ botão Executar e o Atualizar todos rodam em segundo plano. Outras opções:
 `WEBSERVICE_RETENCAO_DIAS` (integrações mais antigas são apagadas todo dia pelo
 `webservice:limpar`) e `WEBSERVICE_LIMITE_POR_MINUTO` (limite da entrada `/ws`).
 
+## Conexões com o banco
+
+O Laravel abre **uma conexão por requisição** (na primeira consulta) e a reaproveita em todas as
+consultas dela, mas a fecha no fim. Não existe fila de conexões abertas entre requisições. Abrir
+uma conexão custa cerca de 35 ms (uma consulta simples, 0,15 ms), e com bancos por cliente
+são duas por requisição (base pai e cliente).
+
+Medido neste projeto (40 requisições na tela de login): 105 ms sem persistência, 61 ms com.
+
+| Opção no `.env` | Efeito |
+|---|---|
+| `DB_PERSISTENT=true` | A conexão da **base pai** fica aberta no processo do PHP e a próxima requisição a reaproveita. Custo: 1 conexão por processo. Recomendado ligar. |
+| `DB_TENANT_PERSISTENT=true` | O mesmo para os **clientes**. Desligado por padrão: cada processo guardaria uma conexão por cliente atendido (processos x clientes passam do `max_connections`) e o PostgreSQL não consegue apagar o banco de um cliente enquanto houver sessão aberta. |
+| `DB_SSLMODE=disable` | Em banco local ou em rede privada, evita a negociação de SSL (`prefer` é o padrão). |
+| `DB_EMULATE_PREPARES=true` | Só atrás de PgBouncer em modo transaction anterior à 1.21. |
+
+Com `DB_PERSISTENT` ligado, o PostgreSQL precisa de `max_connections` maior que o número de processos do PHP. O `AppServiceProvider` desfaz no fim da requisição qualquer
+transação que tenha ficado aberta, para ela não passar para a requisição seguinte.
+
+Ao apagar um cliente, o `EncerrarSessoesDoBanco` encerra as sessões que ainda estiverem no
+banco dele (conexão persistente ou pool deixam sessões abertas) antes do `DROP DATABASE`.
+
+### Muitos clientes: PgBouncer (produção)
+
+O **PgBouncer** (gratuito, código aberto) é o pool de verdade: fica entre o app e o PostgreSQL,
+mantém conexões reais abertas, e empresta uma a cada transação (modo `transaction`). Serve também
+para os bancos dos clientes, sem multiplicar conexões por processo. Com ele, `DB_PERSISTENT` e
+`DB_TENANT_PERSISTENT` ficam desligados (o app só conecta no pooler, que é rápido).
+
+1. Instale o PgBouncer no servidor (Linux: `apt install pgbouncer`).
+2. No PostgreSQL, conectado ao **banco da base pai**, rode `deploy/pgbouncer/preparar-postgres.sql`
+   (usuário `pgbouncer` e a função que devolve os hashes de senha, só de usuários que não são
+   superusuários). Opcional: `ALTER ROLE <usuário do app> SET idle_in_transaction_session_timeout = '30s'`.
+3. Copie `deploy/pgbouncer/pgbouncer.ini` para `/etc/pgbouncer/` e `userlist.txt.example` para
+   `/etc/pgbouncer/userlist.txt` (com os hashes de `pgbouncer` e `pgbouncer_admin`). Troque
+   `auth_dbname=obra_facil` pelo nome do banco da base pai: é nele que a consulta de senhas roda
+   (os bancos dos clientes não têm a função). A linha `* = host=... port=5432` cobre a base pai e
+   todos os bancos de clientes, inclusive os criados depois.
+4. No `.env` do app:
+
+```
+DB_HOST=127.0.0.1          # o PgBouncer
+DB_PORT=6432
+DB_DIRECT_HOST=127.0.0.1   # o PostgreSQL de verdade
+DB_DIRECT_PORT=5432
+DB_SSLMODE=disable         # app e pooler na mesma máquina ou rede privada
+DB_PERSISTENT=false
+DB_TENANT_PERSISTENT=false
+DB_EMULATE_PREPARES=false  # true só se o PgBouncer for anterior à 1.21
+```
+
+Com `DB_DIRECT_HOST` definido, vão **direto ao PostgreSQL**: `migrate`, `tenants:migrate*`,
+`tenants:rollback`, `tenants:seed`, `tenants:run`, `db:*`, `schema:*` e também criar e apagar o
+banco de um cliente pelo painel (o `CREATE` e o `DROP DATABASE`). O resto (requisições, filas,
+agendamentos) passa pelo pooler. A volta ao pooler é garantida mesmo se o comando falhar.
+`DB_DIRECT_SSLMODE` (padrão: o `DB_SSLMODE`) vale só para essa conexão direta.
+
+Cuidados: em modo `transaction` não vale o que depende de sessão fixa (`SET` de sessão, inclusive
+o `search_path` e o fuso que o Laravel define ao conectar, e travas de aplicação; hoje o padrão
+`public` e UTF8 mascara isso); confira `SHOW POOLS;` e `SHOW STATS;` no console do PgBouncer
+(`psql -p 6432 pgbouncer`); e `max_db_connections` x quantidade de clientes precisa caber no
+`max_connections` do PostgreSQL. O PgBouncer não roda nativo no Windows: use-o no servidor Linux
+e a conexão persistente na sua máquina de desenvolvimento.
+
 ## Testes
 
 ```bash

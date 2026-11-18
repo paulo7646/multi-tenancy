@@ -1,0 +1,6 @@
+; Copie para /etc/pgbouncer/userlist.txt (sem o .example) e troque pelos hashes SCRAM reais.
+; Para ver o hash de cada usuário, no PostgreSQL:
+;   SELECT '"' || usename || '" "' || passwd || '"' FROM pg_shadow WHERE usename IN ('pgbouncer', 'pgbouncer_admin');
+; (crie o pgbouncer_admin com CREATE ROLE pgbouncer_admin LOGIN PASSWORD '...'; ele só administra o PgBouncer)
+"pgbouncer" "SCRAM-SHA-256$4096:troque-pelo-hash-do-seu-servidor"
+"pgbouncer_admin" "SCRAM-SHA-256$4096:troque-pelo-hash-do-seu-servidor"
