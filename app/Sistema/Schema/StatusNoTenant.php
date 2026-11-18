@@ -45,6 +45,6 @@ class StatusNoTenant
      */
     public static function sincronizarTodos(): void
     {
-        Tenant::all()->each(fn (Tenant $tenant) => $tenant->run(fn () => static::sincronizar()));
+        Tenant::all()->each(fn (Tenant $tenant) => $tenant->executar(fn () => static::sincronizar()));
     }
 }

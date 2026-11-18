@@ -20,7 +20,7 @@ class WebserviceLimparCommand extends Command
 
         foreach (Tenant::all() as $tenant) {
             try {
-                $total += $tenant->run(fn () => Retencao::limpar($dias));
+                $total += $tenant->executar(fn () => Retencao::limpar($dias));
             } catch (Throwable $e) {
                 report($e);
                 $this->error("{$tenant->displayName()}: {$e->getMessage()}");

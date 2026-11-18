@@ -19,7 +19,7 @@ class WebserviceAgendamentosCommand extends Command
 
         foreach (Tenant::all() as $tenant) {
             try {
-                $total += $tenant->run(fn () => Agendador::rodarPendentes());
+                $total += $tenant->executar(fn () => Agendador::rodarPendentes());
             } catch (Throwable $e) {
                 report($e);
                 $this->error("{$tenant->displayName()}: {$e->getMessage()}");

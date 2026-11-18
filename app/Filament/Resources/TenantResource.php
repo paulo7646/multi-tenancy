@@ -169,6 +169,35 @@ class TenantResource extends Resource
 
                 EditAction::make(),
 
+                Action::make('redefinirSenha')
+                    ->label('Senha do administrador')
+                    ->icon('heroicon-o-key')
+                    ->color('gray')
+                    ->visible(fn (Tenant $record) => (bool) auth()->user()?->can('update', $record))
+                    ->modalHeading(fn (Tenant $record) => 'Redefinir a senha de '.$record->email)
+                    ->modalDescription('Define uma senha nova para o administrador desta empresa, no banco dela. Quem estiver logado continua logado.')
+                    ->modalSubmitActionLabel('Redefinir')
+                    ->schema([
+                        TextInput::make('senha')
+                            ->label('Nova senha')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->minLength(8)
+                            ->maxLength(255),
+                    ])
+                    ->action(function (Tenant $record, array $data) {
+                        try {
+                            $record->redefinirSenhaDoAdministrador($data['senha']);
+
+                            Notification::make()->title('Senha redefinida')->body("Use {$record->email} e a nova senha para entrar.")->success()->send();
+                        } catch (Throwable $e) {
+                            report($e);
+
+                            Notification::make()->title('Não foi possível redefinir a senha')->body($e->getMessage())->danger()->send();
+                        }
+                    }),
+
                 DeleteAction::make(),
 
                 Action::make('atualizar')

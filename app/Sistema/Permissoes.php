@@ -115,7 +115,7 @@ class Permissoes
         $names = $roleClass::pluck('name');
 
         foreach (Tenant::all() as $tenant) {
-            $names = $names->merge($tenant->run(fn () => $roleClass::pluck('name')));
+            $names = $names->merge($tenant->executar(fn () => $roleClass::pluck('name')));
         }
 
         return $names->unique()->reject(fn ($name) => $name === static::superAdmin())

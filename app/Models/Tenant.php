@@ -78,6 +78,48 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'remember_token',
     ];
 
+    /**
+     * Define uma senha nova para o administrador da empresa (o usuário do banco dela com o e-mail
+     * da empresa) e a mantém igual na linha da empresa. Entregue a senha em texto: o hash é
+     * aplicado uma vez só (cast do User e mutator deste model).
+     *
+     * @throws \RuntimeException se o administrador não existe no banco da empresa
+     */
+    public function redefinirSenhaDoAdministrador(string $senha): void
+    {
+        $achou = $this->executar(function () use ($senha) {
+            $admin = User::withoutGlobalScopes()->where('email', $this->email)->first();
+
+            $admin?->forceFill(['password' => $senha])->save();
+
+            return $admin !== null;
+        });
+
+        if (! $achou) {
+            throw new \RuntimeException("O administrador {$this->email} não existe no banco desta empresa.");
+        }
+
+        $this->forceFill(['password' => $senha])->save();
+    }
+
+    /**
+     * Como run(), mas devolve a conexão ao estado anterior mesmo se o callback lançar exceção.
+     * O run() do Stancl não tem try/finally: uma exceção deixaria a empresa inicializada e a
+     * conexão padrão apontando para o banco dela (até a sessão, que usa o banco, seria gravada lá).
+     */
+    public function executar(callable $callback): mixed
+    {
+        $original = tenant();
+
+        try {
+            return $this->run($callback);
+        } finally {
+            if (tenant()?->getTenantKey() !== $original?->getTenantKey()) {
+                $original ? tenancy()->initialize($original) : tenancy()->end();
+            }
+        }
+    }
+
     public function setPasswordAttribute($value)
     {
         return $this->attributes['password'] = Hash::Make($value);
