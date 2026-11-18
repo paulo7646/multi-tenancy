@@ -6,7 +6,6 @@ use App\Models\Md\Modulo;
 use App\Plataforma\Impressao\Planilhas;
 use App\Plataforma\Impressao\Relatorios;
 use App\Plataforma\Impressao\Valores;
-use App\Plataforma\Models\ModeloImpressao;
 use App\Webservice\Models\Webservice;
 use Illuminate\Support\Str;
 
@@ -50,30 +49,6 @@ it('gera PDF da lista e da ficha do registro', function () {
 
     expect($lista)->toStartWith('%PDF')
         ->and($ficha)->toStartWith('%PDF');
-});
-
-it('o corpo do modelo troca marcadores, escapa os valores e remove HTML perigoso', function () {
-    $dados = [['Nome', 'Ana <script>alert(1)</script> & Cia', 'nome']];
-
-    $html = (string) Relatorios::corpoComMarcadores(
-        '<p>Olá {NOME}</p><script>roubar()</script><img src=x onerror=a()>{DESCONHECIDO}',
-        $dados,
-    );
-
-    expect($html)->toContain('Ana &lt;script&gt;alert(1)&lt;/script&gt; &amp; Cia')
-        ->and($html)->not->toContain('<script')
-        ->and($html)->not->toContain('<img')
-        ->and($html)->toContain('{DESCONHECIDO}');
-});
-
-it('usa o modelo padrão da tabela antes do modelo geral', function () {
-    $geral = ModeloImpressao::create(['nome' => 'Geral', 'tipo' => 'registro', 'padrao' => true]);
-    $proprio = ModeloImpressao::create(['nome' => 'Da tabela', 'tipo' => 'registro', 'tabela' => $this->tabela->nome_fisico, 'padrao' => true]);
-    ModeloImpressao::create(['nome' => 'Inativo', 'tipo' => 'registro', 'tabela' => $this->tabela->nome_fisico, 'padrao' => true, 'ativo' => false]);
-
-    expect(ModeloImpressao::padraoDa('registro', $this->tabela->nome_fisico)->id)->toBe($proprio->id)
-        ->and(ModeloImpressao::padraoDa('registro', 'OUTRA')->id)->toBe($geral->id)
-        ->and(ModeloImpressao::padraoDa('lista', $this->tabela->nome_fisico))->toBeNull();
 });
 
 it('exporta CSV e Excel com cabeçalho e uma linha por registro', function () {

@@ -5,11 +5,13 @@ namespace App\Models\Md;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Enums\Cor;
 use App\Sistema\Enums\TipoTabela;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Tabela do dicionário de dados. Os arquivos gerados ficam em
@@ -27,6 +29,7 @@ class MdTabela extends Model
     protected $fillable = [
         'modulo_id', 'nome', 'nome_fisico', 'nome_controller', 'descricao', 'banco', 'tipo', 'icone', 'cor',
         'controla_situacao', 'exibe_filho', 'campo_exibicao', 'generated_schema', 'itens_gerados', 'generated_at',
+        'existente', 'classe_model',
     ];
 
     protected function casts(): array
@@ -35,15 +38,66 @@ class MdTabela extends Model
             'banco' => Banco::class,
             'tipo' => TipoTabela::class,
             'controla_situacao' => 'boolean',
+            'existente' => 'boolean',
             'generated_schema' => 'array',
             'itens_gerados' => 'array',
             'generated_at' => 'datetime',
         ];
     }
 
+    protected static function booted(): void
+    {
+        // mudar a tabela de módulo: as referências que ela faz e as que recebe continuam valendo?
+        static::saving(function (MdTabela $tabela) {
+            if (! $tabela->exists || ! $tabela->isDirty('modulo_id')) {
+                return;
+            }
+
+            $novo = $tabela->modulo_id;
+            $padroes = Modulo::query()->where('padrao', true)->select('id');
+            $novoEPadrao = Modulo::query()->whereKey($novo)->where('padrao', true)->exists();
+
+            // as que ela faz: só para o novo módulo ou para um padrão
+            $saindo = MdCampo::query()->where('md_tabela_id', $tabela->id)->whereNotNull('fk_tabela_id')
+                ->whereHas('fkTabela', fn ($q) => $q->where('modulo_id', '!=', $novo)->whereNotIn('modulo_id', $padroes))
+                ->count();
+
+            // as que ela recebe: só de tabelas do novo módulo, ou de qualquer módulo se ela virar padrão
+            $entrando = $novoEPadrao ? 0 : MdCampo::query()->where('fk_tabela_id', $tabela->id)
+                ->whereHas('tabela', fn ($q) => $q->where('modulo_id', '!=', $novo))
+                ->count();
+
+            if ($saindo + $entrando > 0) {
+                throw ValidationException::withMessages([
+                    'modulo_id' => "A tabela {$tabela->nome_fisico} tem referências (FK) que não valem no outro módulo. Desfaça-as antes de mudar de módulo.",
+                ]);
+            }
+        });
+    }
+
     public function modulo(): BelongsTo
     {
         return $this->belongsTo(Modulo::class);
+    }
+
+    /**
+     * Tabelas que podem ser referenciadas por uma tabela do módulo dado: as do próprio módulo e as dos
+     * módulos padrão (Estrutura, que todo cliente tem). Qualquer outro módulo pode não existir no cliente.
+     */
+    public function scopePermitidasPara(Builder $query, ?int $moduloId): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->where('modulo_id', $moduloId)
+            ->orWhereIn('modulo_id', Modulo::query()->where('padrao', true)->select('id')));
+    }
+
+    /**
+     * Esta tabela pode referenciar a outra (FK, tab page de tabela...)?
+     */
+    public function podeReferenciar(MdTabela $alvo): bool
+    {
+        return $alvo->modulo_id === $this->modulo_id
+            || (bool) Modulo::query()->whereKey($alvo->modulo_id)->where('padrao', true)->exists();
     }
 
     public function campos(): HasMany
@@ -78,12 +132,14 @@ class MdTabela extends Model
 
     public function formularios(): HasMany
     {
-        return $this->hasMany(MdFormulario::class);
+        // ordem fixa: o pacote de release e o JSON do dicionário não podem mudar só porque o PostgreSQL reordenou
+        return $this->hasMany(MdFormulario::class)->orderBy('id');
     }
 
     public function gerenciamentos(): HasMany
     {
-        return $this->hasMany(MdGerenciamento::class);
+        // ordem fixa: sem ORDER BY o PostgreSQL muda a ordem depois de um UPDATE e o pacote/JSON mudariam à toa
+        return $this->hasMany(MdGerenciamento::class)->orderBy('id');
     }
 
     /**
@@ -183,7 +239,8 @@ class MdTabela extends Model
 
     public function modelFqcn(): string
     {
-        return $this->namespace().'\\'.$this->classeModel();
+        // tabela feita à mão e incorporada ao dicionário: o model é o que já existe, não o gerado
+        return $this->classe_model ?: $this->namespace().'\\'.$this->classeModel();
     }
 
     /**

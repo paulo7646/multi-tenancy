@@ -1,0 +1,298 @@
+{
+    "nome": "Licenças",
+    "nome_fisico": "licencas",
+    "nome_controller": null,
+    "descricao": null,
+    "icone": null,
+    "cor": null,
+    "controla_situacao": true,
+    "exibe_filho": true,
+    "campo_exibicao": "nome",
+    "generated_schema": {
+        "fields": {
+            "fea7da25-3d4f-4119-80f3-b8964010ae28": {
+                "name": "nome",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "9ac30f90-e0c7-4850-b874-3dd3d92acd6f": {
+                "name": "descricao",
+                "type": "text",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "fdd31763-df6a-4c4b-8cba-08da53c5c734": {
+                "name": "icon",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "c71e37df-340a-4336-9399-0d73100bd0fa": {
+                "name": "color",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "89f4a573-8e1c-45fd-8972-bf0d7cf07547": {
+                "name": "ativo",
+                "type": "boolean",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "situacao": {
+                "name": "MD_STATUS_ID",
+                "type": "unsignedBigInteger",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": "1",
+                "unique": false,
+                "index": true,
+                "foreign": {
+                    "table": "md_status",
+                    "on_delete": "restrict"
+                }
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": true,
+    "classe_model": "App\\Models\\Licenca",
+    "modulo": "est",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-18T13:51:41-03:00",
+    "campos": [
+        {
+            "uid": "fea7da25-3d4f-4119-80f3-b8964010ae28",
+            "nome": "Nome",
+            "nome_fisico": "nome",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 1,
+            "fk": null
+        },
+        {
+            "uid": "9ac30f90-e0c7-4850-b874-3dd3d92acd6f",
+            "nome": "Descricao",
+            "nome_fisico": "descricao",
+            "tipo": "text",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 2,
+            "fk": null
+        },
+        {
+            "uid": "fdd31763-df6a-4c4b-8cba-08da53c5c734",
+            "nome": "Icon",
+            "nome_fisico": "icon",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 3,
+            "fk": null
+        },
+        {
+            "uid": "c71e37df-340a-4336-9399-0d73100bd0fa",
+            "nome": "Color",
+            "nome_fisico": "color",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 4,
+            "fk": null
+        },
+        {
+            "uid": "89f4a573-8e1c-45fd-8972-bf0d7cf07547",
+            "nome": "Ativo",
+            "nome_fisico": "ativo",
+            "tipo": "boolean",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 5,
+            "fk": null
+        }
+    ],
+    "situacoes": [
+        {
+            "status": "ATIVO",
+            "padrao": true,
+            "ordem": 1
+        },
+        {
+            "status": "INATIVO",
+            "padrao": false,
+            "ordem": 2
+        }
+    ],
+    "traducoes": [],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "Licenças",
+            "titulo": "Licenças",
+            "nome_fisico": "licencas",
+            "nome_arquivo": "ViewLicencas",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "fea7da25-3d4f-4119-80f3-b8964010ae28",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "9ac30f90-e0c7-4850-b874-3dd3d92acd6f",
+                            "componente": "memo",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "fdd31763-df6a-4c4b-8cba-08da53c5c734",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "c71e37df-340a-4336-9399-0d73100bd0fa",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "89f4a573-8e1c-45fd-8972-bf0d7cf07547",
+                            "componente": "toggle",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "situacao",
+                            "componente": "botoes",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "Licenças",
+            "titulo": "Licenças",
+            "nome_fisico": "licencas",
+            "nome_arquivo": "LicencasResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "licencas",
+            "botoes": []
+        }
+    ]
+}

@@ -18,7 +18,20 @@ class Acesso
     {
         $user = auth()->user();
 
-        return (bool) $user && ($user->hasRole(Permissoes::superAdmin()) || $user->can($modulo->permissao()));
+        return (bool) $user
+            && static::liberado($modulo)
+            && ($user->hasRole(Permissoes::superAdmin()) || $user->can($modulo->permissao()));
+    }
+
+    /**
+     * O módulo está liberado para a empresa atual? Dentro de uma empresa só valem os módulos padrão
+     * (ex.: Estrutura) e os cadastrados nela, até para o super_admin. Fora de empresa (base pai) vale tudo.
+     */
+    public static function liberado(Modulo $modulo): bool
+    {
+        $empresa = tenancy()->initialized ? tenant() : null;
+
+        return $empresa === null || $modulo->liberadoPara($empresa);
     }
 
     /**

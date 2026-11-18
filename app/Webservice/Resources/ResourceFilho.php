@@ -2,6 +2,7 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Runtime\PertenceAoModulo;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,6 +12,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 abstract class ResourceFilho extends Resource
 {
+    use PertenceAoModulo;
+
+    protected static string $moduloPrefixo = 'ws';
+
     protected static bool $shouldRegisterNavigation = false;
 
     /** Sem tela de lista própria: o "início" do caminho é a lista de webservices */

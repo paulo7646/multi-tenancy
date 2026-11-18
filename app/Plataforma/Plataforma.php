@@ -3,13 +3,9 @@
 namespace App\Plataforma;
 
 use App\Plataforma\Pages\ConfiguracoesDaEmpresa;
-use App\Plataforma\Resources\AssinaturaResource;
-use App\Plataforma\Resources\DocumentoResource;
-use App\Plataforma\Resources\ModeloImpressaoResource;
-use App\Plataforma\Resources\PastaResource;
 
 /**
- * Telas da plataforma (documentos, assinatura, impressão, dados da empresa),
+ * Telas da plataforma (dados da empresa),
  * registradas no painel da base pai e no dos clientes.
  */
 class Plataforma
@@ -19,7 +15,7 @@ class Plataforma
      */
     public static function recursos(): array
     {
-        return [DocumentoResource::class, PastaResource::class, AssinaturaResource::class, ModeloImpressaoResource::class];
+        return [];
     }
 
     /**

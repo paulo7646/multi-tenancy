@@ -1,0 +1,390 @@
+{
+    "nome": "Usuários",
+    "nome_fisico": "users",
+    "nome_controller": null,
+    "descricao": null,
+    "icone": null,
+    "cor": null,
+    "controla_situacao": true,
+    "exibe_filho": true,
+    "campo_exibicao": "name",
+    "generated_schema": {
+        "fields": {
+            "e5a04fb5-13e3-4401-9bf0-11dfae550566": {
+                "name": "name",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "3177a70e-d5af-4a86-b76a-8167454b63ac": {
+                "name": "email",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": true,
+                "index": false,
+                "foreign": null
+            },
+            "644e6410-e05d-4119-a242-f69e3b81e130": {
+                "name": "email_verified_at",
+                "type": "timestamp",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "9661ccf4-4394-43fa-a99f-33d3544c9f26": {
+                "name": "password",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "7ac2775b-1cb3-43fe-a20f-18753dea19d9": {
+                "name": "remember_token",
+                "type": "string",
+                "length": 100,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "e0d68d22-d780-4f8f-a39f-1f6c99476a7b": {
+                "name": "licenca_id",
+                "type": "foreignId",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": {
+                    "table": "licencas",
+                    "on_delete": "null"
+                }
+            },
+            "2f068ec9-a9ed-4f55-837c-899b17a78c8d": {
+                "name": "filial_id",
+                "type": "foreignId",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": {
+                    "table": "filiais",
+                    "on_delete": "null"
+                }
+            },
+            "situacao": {
+                "name": "MD_STATUS_ID",
+                "type": "unsignedBigInteger",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": "1",
+                "unique": false,
+                "index": true,
+                "foreign": {
+                    "table": "md_status",
+                    "on_delete": "restrict"
+                }
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": true,
+    "classe_model": "App\\Models\\User",
+    "modulo": "est",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-18T13:51:41-03:00",
+    "campos": [
+        {
+            "uid": "e5a04fb5-13e3-4401-9bf0-11dfae550566",
+            "nome": "Name",
+            "nome_fisico": "name",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 1,
+            "fk": null
+        },
+        {
+            "uid": "3177a70e-d5af-4a86-b76a-8167454b63ac",
+            "nome": "Email",
+            "nome_fisico": "email",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": true,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 2,
+            "fk": null
+        },
+        {
+            "uid": "644e6410-e05d-4119-a242-f69e3b81e130",
+            "nome": "Email Verified At",
+            "nome_fisico": "email_verified_at",
+            "tipo": "timestamp",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 3,
+            "fk": null
+        },
+        {
+            "uid": "9661ccf4-4394-43fa-a99f-33d3544c9f26",
+            "nome": "Password",
+            "nome_fisico": "password",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 4,
+            "fk": null
+        },
+        {
+            "uid": "7ac2775b-1cb3-43fe-a20f-18753dea19d9",
+            "nome": "Remember Token",
+            "nome_fisico": "remember_token",
+            "tipo": "string",
+            "tamanho": 100,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 5,
+            "fk": null
+        },
+        {
+            "uid": "e0d68d22-d780-4f8f-a39f-1f6c99476a7b",
+            "nome": "Licenca Id",
+            "nome_fisico": "licenca_id",
+            "tipo": "foreignId",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "null",
+            "ordem": 6,
+            "fk": {
+                "banco": "tenant",
+                "tabela": "licencas"
+            }
+        },
+        {
+            "uid": "2f068ec9-a9ed-4f55-837c-899b17a78c8d",
+            "nome": "Filial Id",
+            "nome_fisico": "filial_id",
+            "tipo": "foreignId",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "null",
+            "ordem": 7,
+            "fk": {
+                "banco": "tenant",
+                "tabela": "filiais"
+            }
+        }
+    ],
+    "situacoes": [
+        {
+            "status": "ATIVO",
+            "padrao": true,
+            "ordem": 1
+        },
+        {
+            "status": "INATIVO",
+            "padrao": false,
+            "ordem": 2
+        }
+    ],
+    "traducoes": [],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "Usuários",
+            "titulo": "Usuários",
+            "nome_fisico": "users",
+            "nome_arquivo": "ViewUsers",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "e5a04fb5-13e3-4401-9bf0-11dfae550566",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "3177a70e-d5af-4a86-b76a-8167454b63ac",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "644e6410-e05d-4119-a242-f69e3b81e130",
+                            "componente": "data_hora",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "9661ccf4-4394-43fa-a99f-33d3544c9f26",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "7ac2775b-1cb3-43fe-a20f-18753dea19d9",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "e0d68d22-d780-4f8f-a39f-1f6c99476a7b",
+                            "componente": "lookup",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "2f068ec9-a9ed-4f55-837c-899b17a78c8d",
+                            "componente": "lookup",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "situacao",
+                            "componente": "botoes",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "Usuários",
+            "titulo": "Usuários",
+            "nome_fisico": "users",
+            "nome_arquivo": "UsersResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "users",
+            "botoes": []
+        }
+    ]
+}

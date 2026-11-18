@@ -6,6 +6,7 @@ use App\Sistema\Enums\TipoCampo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class MdCampo extends Model
 {
@@ -39,6 +40,22 @@ class MdCampo extends Model
     {
         static::creating(function (MdCampo $campo) {
             $campo->uid ??= (string) Str::uuid();
+        });
+
+        // uma tabela só referencia o próprio módulo ou um módulo padrão (Estrutura): o cliente pode não ter o outro
+        static::saving(function (MdCampo $campo) {
+            if (! $campo->isFk() || blank($campo->fk_tabela_id) || ! $campo->isDirty(['fk_tabela_id', 'md_tabela_id', 'tipo'])) {
+                return;
+            }
+
+            $origem = $campo->tabela;
+            $alvo = $campo->fkTabela;
+
+            if ($origem && $alvo && ! $origem->podeReferenciar($alvo)) {
+                throw ValidationException::withMessages([
+                    'fk_tabela_id' => "A tabela {$alvo->nome_fisico} é de outro módulo. Só dá para referenciar tabelas do próprio módulo ou do módulo padrão (Estrutura).",
+                ]);
+            }
         });
     }
 

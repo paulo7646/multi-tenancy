@@ -1,0 +1,344 @@
+{
+    "nome": "Eventos",
+    "nome_fisico": "ws_eventos",
+    "nome_controller": null,
+    "descricao": null,
+    "icone": null,
+    "cor": null,
+    "controla_situacao": true,
+    "exibe_filho": true,
+    "campo_exibicao": "nome",
+    "generated_schema": {
+        "fields": {
+            "072981ca-6e1d-47c1-988c-448ee10eae49": {
+                "name": "objeto_id",
+                "type": "foreignId",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": {
+                    "table": "ws_objetos",
+                    "on_delete": "cascade"
+                }
+            },
+            "c82ce437-4b0d-4889-b570-3b9e68b28d43": {
+                "name": "tipo",
+                "type": "string",
+                "length": 30,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "0e5cc949-97b4-42ef-9818-c2c17dbb6e8a": {
+                "name": "tabela",
+                "type": "string",
+                "length": 60,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "517ea053-1226-477d-9eaa-c8dc8fa46e7a": {
+                "name": "funcao",
+                "type": "string",
+                "length": 100,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "b0c75139-9c36-4723-8356-9572972e1913": {
+                "name": "ordem",
+                "type": "integer",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "c497a38d-6ec8-4110-bac5-c4123c6ebaf1": {
+                "name": "ativo",
+                "type": "boolean",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "situacao": {
+                "name": "MD_STATUS_ID",
+                "type": "unsignedBigInteger",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": "1",
+                "unique": false,
+                "index": true,
+                "foreign": {
+                    "table": "md_status",
+                    "on_delete": "restrict"
+                }
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": true,
+    "classe_model": "App\\Webservice\\Models\\Evento",
+    "modulo": "ws",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-18T13:51:42-03:00",
+    "campos": [
+        {
+            "uid": "072981ca-6e1d-47c1-988c-448ee10eae49",
+            "nome": "Objeto Id",
+            "nome_fisico": "objeto_id",
+            "tipo": "foreignId",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "cascade",
+            "ordem": 1,
+            "fk": {
+                "banco": "tenant",
+                "tabela": "ws_objetos"
+            }
+        },
+        {
+            "uid": "c82ce437-4b0d-4889-b570-3b9e68b28d43",
+            "nome": "Tipo",
+            "nome_fisico": "tipo",
+            "tipo": "string",
+            "tamanho": 30,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 2,
+            "fk": null
+        },
+        {
+            "uid": "0e5cc949-97b4-42ef-9818-c2c17dbb6e8a",
+            "nome": "Tabela",
+            "nome_fisico": "tabela",
+            "tipo": "string",
+            "tamanho": 60,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 3,
+            "fk": null
+        },
+        {
+            "uid": "517ea053-1226-477d-9eaa-c8dc8fa46e7a",
+            "nome": "Funcao",
+            "nome_fisico": "funcao",
+            "tipo": "string",
+            "tamanho": 100,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 4,
+            "fk": null
+        },
+        {
+            "uid": "b0c75139-9c36-4723-8356-9572972e1913",
+            "nome": "Ordem",
+            "nome_fisico": "ordem",
+            "tipo": "integer",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 5,
+            "fk": null
+        },
+        {
+            "uid": "c497a38d-6ec8-4110-bac5-c4123c6ebaf1",
+            "nome": "Ativo",
+            "nome_fisico": "ativo",
+            "tipo": "boolean",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 6,
+            "fk": null
+        }
+    ],
+    "situacoes": [
+        {
+            "status": "ATIVO",
+            "padrao": true,
+            "ordem": 1
+        },
+        {
+            "status": "INATIVO",
+            "padrao": false,
+            "ordem": 2
+        }
+    ],
+    "traducoes": [],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "Eventos",
+            "titulo": "Eventos",
+            "nome_fisico": "ws_eventos",
+            "nome_arquivo": "ViewWsEventos",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "072981ca-6e1d-47c1-988c-448ee10eae49",
+                            "componente": "lookup",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "c82ce437-4b0d-4889-b570-3b9e68b28d43",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "0e5cc949-97b4-42ef-9818-c2c17dbb6e8a",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "517ea053-1226-477d-9eaa-c8dc8fa46e7a",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "b0c75139-9c36-4723-8356-9572972e1913",
+                            "componente": "numero",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "c497a38d-6ec8-4110-bac5-c4123c6ebaf1",
+                            "componente": "toggle",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "situacao",
+                            "componente": "botoes",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "Eventos",
+            "titulo": "Eventos",
+            "nome_fisico": "ws_eventos",
+            "nome_arquivo": "WsEventosResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "ws_eventos",
+            "botoes": []
+        }
+    ]
+}

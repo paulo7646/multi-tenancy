@@ -2,6 +2,8 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Abas;
+use App\Sistema\Runtime\PertenceAoModulo;
 use App\Webservice\Models\Webservice;
 use App\Webservice\RelationManagers\OperacoesRelationManager;
 use App\Webservice\Resources\WebserviceResource\Pages;
@@ -13,7 +15,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
@@ -25,6 +28,10 @@ use Filament\Tables\Table;
  */
 class WebserviceResource extends Resource
 {
+    use PertenceAoModulo;
+
+    protected static string $moduloPrefixo = 'ws';
+
     protected static ?string $model = Webservice::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
@@ -44,62 +51,72 @@ class WebserviceResource extends Resource
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Webservice')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('nome')->required()->maxLength(100),
+                Tabs::make('webservice')
+                    ->persistTabInQueryString()
+                    ->tabs([
+                        Tab::make('Geral')
+                            ->icon('heroicon-o-globe-alt')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('nome')->required()->maxLength(100),
 
-                        Select::make('tipo')
-                            ->options(Webservice::TIPOS)
-                            ->default('consumir')
-                            ->required()
-                            ->live()
-                            ->native(false),
+                                Select::make('tipo')
+                                    ->options(Webservice::TIPOS)
+                                    ->default('consumir')
+                                    ->required()
+                                    ->live()
+                                    ->native(false),
 
-                        TextInput::make('host')
-                            ->label('Host')
-                            ->placeholder('https://teste.com')
-                            ->url()
-                            ->maxLength(255)
-                            ->helperText('Só o endereço principal: as rotas de cada serviço entram em Operações.')
-                            ->columnSpanFull(),
+                                TextInput::make('host')
+                                    ->label('Host')
+                                    ->placeholder('https://teste.com')
+                                    ->url()
+                                    ->maxLength(255)
+                                    ->helperText('Só o endereço principal: as rotas de cada serviço entram em Operações.')
+                                    ->columnSpanFull(),
 
-                        Toggle::make('ativo')->default(true),
-                    ]),
+                                Toggle::make('ativo')->default(true),
+                            ]),
 
-                Section::make('Autenticação')
-                    ->columns(2)
-                    ->schema([
-                        Select::make('autenticacao')
-                            ->label('Tipo')
-                            ->options(Webservice::AUTENTICACOES)
-                            ->default('nenhuma')
-                            ->required()
-                            ->live()
-                            ->native(false)
-                            ->columnSpanFull(),
+                        Tab::make('Autenticação')
+                            ->icon('heroicon-o-key')
+                            ->columns(2)
+                            ->schema([
+                                Select::make('autenticacao')
+                                    ->label('Tipo')
+                                    ->options(Webservice::AUTENTICACOES)
+                                    ->default('nenhuma')
+                                    ->required()
+                                    ->live()
+                                    ->native(false)
+                                    ->columnSpanFull(),
 
-                        TextInput::make('credenciais.usuario')->label('Usuário')->visible(fn (Get $get) => $get('autenticacao') === 'basic'),
-                        TextInput::make('credenciais.senha')->label('Senha')->password()->revealable()->visible(fn (Get $get) => $get('autenticacao') === 'basic'),
+                                TextInput::make('credenciais.usuario')->label('Usuário')->visible(fn (Get $get) => $get('autenticacao') === 'basic'),
+                                TextInput::make('credenciais.senha')->label('Senha')->password()->revealable()->visible(fn (Get $get) => $get('autenticacao') === 'basic'),
 
-                        TextInput::make('credenciais.token')->label('Token')->password()->revealable()->visible(fn (Get $get) => $get('autenticacao') === 'bearer')->columnSpanFull(),
+                                TextInput::make('credenciais.token')->label('Token')->password()->revealable()->visible(fn (Get $get) => $get('autenticacao') === 'bearer')->columnSpanFull(),
 
-                        TextInput::make('credenciais.cabecalho')->label('Nome do cabeçalho')->placeholder('X-API-Key')->visible(fn (Get $get) => $get('autenticacao') === 'apikey'),
-                        TextInput::make('credenciais.chave')->label('Chave')->password()->revealable()->visible(fn (Get $get) => $get('autenticacao') === 'apikey'),
+                                TextInput::make('credenciais.cabecalho')->label('Nome do cabeçalho')->placeholder('X-API-Key')->visible(fn (Get $get) => $get('autenticacao') === 'apikey'),
+                                TextInput::make('credenciais.chave')->label('Chave')->password()->revealable()->visible(fn (Get $get) => $get('autenticacao') === 'apikey'),
 
-                        TextInput::make('credenciais.token_url')->label('URL do token')->url()->visible(fn (Get $get) => $get('autenticacao') === 'oauth2' && $get('tipo') !== 'disponibilizar')->columnSpanFull(),
-                        Placeholder::make('token_entrada')->label('URL do token')->content('POST /ws/{id}/oauth/token (client_id e client_secret)')->visible(fn (Get $get) => $get('autenticacao') === 'oauth2' && $get('tipo') === 'disponibilizar')->columnSpanFull(),
-                        TextInput::make('credenciais.client_id')->label('Client ID')->visible(fn (Get $get) => $get('autenticacao') === 'oauth2'),
-                        TextInput::make('credenciais.client_secret')->label('Client secret')->password()->revealable()->visible(fn (Get $get) => $get('autenticacao') === 'oauth2'),
-                        TextInput::make('credenciais.scope')->label('Scope')->visible(fn (Get $get) => $get('autenticacao') === 'oauth2')->columnSpanFull(),
-                    ]),
+                                TextInput::make('credenciais.token_url')->label('URL do token')->url()->visible(fn (Get $get) => $get('autenticacao') === 'oauth2' && $get('tipo') !== 'disponibilizar')->columnSpanFull(),
+                                Placeholder::make('token_entrada')->label('URL do token')->content('POST /ws/{id}/oauth/token (client_id e client_secret)')->visible(fn (Get $get) => $get('autenticacao') === 'oauth2' && $get('tipo') === 'disponibilizar')->columnSpanFull(),
+                                TextInput::make('credenciais.client_id')->label('Client ID')->visible(fn (Get $get) => $get('autenticacao') === 'oauth2'),
+                                TextInput::make('credenciais.client_secret')->label('Client secret')->password()->revealable()->visible(fn (Get $get) => $get('autenticacao') === 'oauth2'),
+                                TextInput::make('credenciais.scope')->label('Scope')->visible(fn (Get $get) => $get('autenticacao') === 'oauth2')->columnSpanFull(),
+                            ]),
 
-                Section::make('Headers padrão')
-                    ->description('Enviados em todas as operações deste webservice.')
-                    ->collapsible()
-                    ->collapsed()
-                    ->schema([
-                        KeyValue::make('headers')->hiddenLabel()->keyLabel('Header')->valueLabel('Valor'),
+                        Tab::make('Headers padrão')
+                            ->icon('heroicon-o-list-bullet')
+                            ->schema([
+                                KeyValue::make('headers')
+                                    ->hiddenLabel()
+                                    ->keyLabel('Header')
+                                    ->valueLabel('Valor')
+                                    ->helperText('Enviados em todas as operações deste webservice.'),
+                            ]),
+
+                        Abas::filha('Operações', OperacoesRelationManager::class, 'heroicon-o-arrows-right-left'),
                     ]),
             ]);
     }
@@ -122,7 +139,7 @@ class WebserviceResource extends Resource
 
     public static function getRelations(): array
     {
-        return [OperacoesRelationManager::class];
+        return []; // as operações ficam na aba "Operações" do form (Abas::filha)
     }
 
     public static function getPages(): array

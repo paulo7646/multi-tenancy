@@ -4,12 +4,10 @@ namespace App\Sistema\Base;
 
 use App\Models\Md\MdCampo;
 use App\Models\Md\MdTabela;
-use App\Plataforma\Models\Anexo;
 use App\Sistema\Base\Concerns\Utilidades;
 use App\Sistema\Registro;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use RuntimeException;
 
 /**
@@ -80,14 +78,6 @@ abstract class BaseModel extends Model
             $model->afterDelete();
             $model->depoisDoCommit(fn () => $model->afterAfterDelete());
         });
-    }
-
-    /**
-     * Documentos anexados a este registro (gestão de arquivos).
-     */
-    public function anexos(): HasMany
-    {
-        return $this->hasMany(Anexo::class, 'registro_id')->where('tabela', static::$mdTabela);
     }
 
     public static function mdTabela(): string

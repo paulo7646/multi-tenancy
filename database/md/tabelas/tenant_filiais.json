@@ -1,0 +1,218 @@
+{
+    "nome": "Filiais",
+    "nome_fisico": "filiais",
+    "nome_controller": null,
+    "descricao": null,
+    "icone": null,
+    "cor": null,
+    "controla_situacao": true,
+    "exibe_filho": true,
+    "campo_exibicao": "nome",
+    "generated_schema": {
+        "fields": {
+            "5431bf34-1200-4e55-bb0e-c1cc33686e07": {
+                "name": "nome",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "f95608bb-5543-441b-82b5-6a8781d0c5c0": {
+                "name": "descricao",
+                "type": "text",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "64bb8c57-e44c-497e-8500-efa17b78d0ae": {
+                "name": "ativo",
+                "type": "boolean",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "situacao": {
+                "name": "MD_STATUS_ID",
+                "type": "unsignedBigInteger",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": "1",
+                "unique": false,
+                "index": true,
+                "foreign": {
+                    "table": "md_status",
+                    "on_delete": "restrict"
+                }
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": true,
+    "classe_model": "App\\Models\\Filial",
+    "modulo": "est",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-18T13:51:41-03:00",
+    "campos": [
+        {
+            "uid": "5431bf34-1200-4e55-bb0e-c1cc33686e07",
+            "nome": "Nome",
+            "nome_fisico": "nome",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 1,
+            "fk": null
+        },
+        {
+            "uid": "f95608bb-5543-441b-82b5-6a8781d0c5c0",
+            "nome": "Descricao",
+            "nome_fisico": "descricao",
+            "tipo": "text",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 2,
+            "fk": null
+        },
+        {
+            "uid": "64bb8c57-e44c-497e-8500-efa17b78d0ae",
+            "nome": "Ativo",
+            "nome_fisico": "ativo",
+            "tipo": "boolean",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 3,
+            "fk": null
+        }
+    ],
+    "situacoes": [
+        {
+            "status": "ATIVO",
+            "padrao": true,
+            "ordem": 1
+        },
+        {
+            "status": "INATIVO",
+            "padrao": false,
+            "ordem": 2
+        }
+    ],
+    "traducoes": [],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "Filiais",
+            "titulo": "Filiais",
+            "nome_fisico": "filiais",
+            "nome_arquivo": "ViewFiliais",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "5431bf34-1200-4e55-bb0e-c1cc33686e07",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "f95608bb-5543-441b-82b5-6a8781d0c5c0",
+                            "componente": "memo",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "64bb8c57-e44c-497e-8500-efa17b78d0ae",
+                            "componente": "toggle",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "situacao",
+                            "componente": "botoes",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "Filiais",
+            "titulo": "Filiais",
+            "nome_fisico": "filiais",
+            "nome_arquivo": "FiliaisResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "filiais",
+            "botoes": []
+        }
+    ]
+}

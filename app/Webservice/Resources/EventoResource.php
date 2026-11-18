@@ -2,6 +2,7 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Abas;
 use App\Webservice\Contexto;
 use App\Webservice\Models\Evento;
 use App\Webservice\RelationManagers\AtributosRelationManager;
@@ -11,6 +12,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -34,8 +37,20 @@ class EventoResource extends ResourceFilho
     public static function form(Schema $schema): Schema
     {
         return $schema
-            ->columns(2)
-            ->components(static::campos());
+            ->columns(1)
+            ->components([
+                Tabs::make('evento')
+                    ->persistTabInQueryString()
+                    ->tabs([
+                        Tab::make('Geral')
+                            ->icon('heroicon-o-bolt')
+                            ->columns(2)
+                            ->schema(static::campos()),
+
+                        Abas::filha('Busca', BuscaRelationManager::class, 'heroicon-o-magnifying-glass'),
+                        Abas::filha('Atributos', AtributosRelationManager::class, 'heroicon-o-tag'),
+                    ]),
+            ]);
     }
 
     /**
@@ -76,7 +91,7 @@ class EventoResource extends ResourceFilho
 
     public static function getRelations(): array
     {
-        return [BuscaRelationManager::class, AtributosRelationManager::class];
+        return []; // busca e atributos ficam em abas do form (Abas::filha)
     }
 
     public static function getPages(): array

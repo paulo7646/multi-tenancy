@@ -1,0 +1,378 @@
+{
+    "nome": "Webservices",
+    "nome_fisico": "webservices",
+    "nome_controller": null,
+    "descricao": null,
+    "icone": null,
+    "cor": null,
+    "controla_situacao": true,
+    "exibe_filho": true,
+    "campo_exibicao": "nome",
+    "generated_schema": {
+        "fields": {
+            "44696959-1451-4c39-8836-2134d567bc5a": {
+                "name": "nome",
+                "type": "string",
+                "length": 100,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "e792561f-432a-4386-b6fb-c838f43f39a0": {
+                "name": "tipo",
+                "type": "string",
+                "length": 15,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "2d334f98-ee4a-4ffd-921b-eee982210b92": {
+                "name": "host",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "632a0585-a28f-4ead-af5f-5f78931a7b49": {
+                "name": "autenticacao",
+                "type": "string",
+                "length": 20,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "54156040-ae48-4dee-85f4-60606b1144a3": {
+                "name": "credenciais",
+                "type": "text",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "514e0670-57b9-49ae-9645-7f61acb06889": {
+                "name": "headers",
+                "type": "json",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "01177f28-aee3-4ec1-89ec-600c012a0e91": {
+                "name": "ativo",
+                "type": "boolean",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "situacao": {
+                "name": "MD_STATUS_ID",
+                "type": "unsignedBigInteger",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": "1",
+                "unique": false,
+                "index": true,
+                "foreign": {
+                    "table": "md_status",
+                    "on_delete": "restrict"
+                }
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": true,
+    "classe_model": "App\\Webservice\\Models\\Webservice",
+    "modulo": "ws",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-18T13:51:41-03:00",
+    "campos": [
+        {
+            "uid": "44696959-1451-4c39-8836-2134d567bc5a",
+            "nome": "Nome",
+            "nome_fisico": "nome",
+            "tipo": "string",
+            "tamanho": 100,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 1,
+            "fk": null
+        },
+        {
+            "uid": "e792561f-432a-4386-b6fb-c838f43f39a0",
+            "nome": "Tipo",
+            "nome_fisico": "tipo",
+            "tipo": "string",
+            "tamanho": 15,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 2,
+            "fk": null
+        },
+        {
+            "uid": "2d334f98-ee4a-4ffd-921b-eee982210b92",
+            "nome": "Host",
+            "nome_fisico": "host",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 3,
+            "fk": null
+        },
+        {
+            "uid": "632a0585-a28f-4ead-af5f-5f78931a7b49",
+            "nome": "Autenticacao",
+            "nome_fisico": "autenticacao",
+            "tipo": "string",
+            "tamanho": 20,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 4,
+            "fk": null
+        },
+        {
+            "uid": "54156040-ae48-4dee-85f4-60606b1144a3",
+            "nome": "Credenciais",
+            "nome_fisico": "credenciais",
+            "tipo": "text",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 5,
+            "fk": null
+        },
+        {
+            "uid": "514e0670-57b9-49ae-9645-7f61acb06889",
+            "nome": "Headers",
+            "nome_fisico": "headers",
+            "tipo": "json",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 6,
+            "fk": null
+        },
+        {
+            "uid": "01177f28-aee3-4ec1-89ec-600c012a0e91",
+            "nome": "Ativo",
+            "nome_fisico": "ativo",
+            "tipo": "boolean",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 7,
+            "fk": null
+        }
+    ],
+    "situacoes": [
+        {
+            "status": "ATIVO",
+            "padrao": true,
+            "ordem": 1
+        },
+        {
+            "status": "INATIVO",
+            "padrao": false,
+            "ordem": 2
+        }
+    ],
+    "traducoes": [],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "Webservices",
+            "titulo": "Webservices",
+            "nome_fisico": "webservices",
+            "nome_arquivo": "ViewWebservices",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "44696959-1451-4c39-8836-2134d567bc5a",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "e792561f-432a-4386-b6fb-c838f43f39a0",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "2d334f98-ee4a-4ffd-921b-eee982210b92",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "632a0585-a28f-4ead-af5f-5f78931a7b49",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "54156040-ae48-4dee-85f4-60606b1144a3",
+                            "componente": "memo",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "514e0670-57b9-49ae-9645-7f61acb06889",
+                            "componente": "chave_valor",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "01177f28-aee3-4ec1-89ec-600c012a0e91",
+                            "componente": "toggle",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "situacao",
+                            "componente": "botoes",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "Webservices",
+            "titulo": "Webservices",
+            "nome_fisico": "webservices",
+            "nome_arquivo": "WebservicesResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "webservices",
+            "botoes": []
+        }
+    ]
+}

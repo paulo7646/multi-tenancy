@@ -2,6 +2,7 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Runtime\PertenceAoModulo;
 use App\Webservice\Contexto;
 use App\Webservice\Models\Agendamento;
 use App\Webservice\Models\Operacao;
@@ -18,7 +19,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -31,6 +33,10 @@ use Filament\Tables\Table;
  */
 class AgendamentoResource extends Resource
 {
+    use PertenceAoModulo;
+
+    protected static string $moduloPrefixo = 'ws';
+
     protected static ?string $model = Agendamento::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clock';
@@ -50,98 +56,104 @@ class AgendamentoResource extends Resource
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Agendamento')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('nome')->required()->maxLength(100),
+                Tabs::make('agendamento')
+                    ->persistTabInQueryString()
+                    ->tabs([
+                        Tab::make('Geral')
+                            ->icon('heroicon-o-calendar-days')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('nome')->required()->maxLength(100),
 
-                        Select::make('tipo')
-                            ->options(Agendamento::TIPOS)
-                            ->default('layout_edi')
-                            ->required()
-                            ->live()
-                            ->native(false),
+                                Select::make('tipo')
+                                    ->options(Agendamento::TIPOS)
+                                    ->default('layout_edi')
+                                    ->required()
+                                    ->live()
+                                    ->native(false),
 
-                        Select::make('tabela')
-                            ->options(fn () => Contexto::tabelas())
-                            ->required(fn (Get $get) => $get('tipo') === 'codigo_fonte')
-                            ->visible(fn (Get $get) => $get('tipo') === 'codigo_fonte')
-                            ->searchable()
-                            ->live()
-                            ->afterStateUpdated(fn (Set $set) => $set('funcao', null))
-                            ->native(false),
+                                Select::make('tabela')
+                                    ->options(fn () => Contexto::tabelas())
+                                    ->required(fn (Get $get) => $get('tipo') === 'codigo_fonte')
+                                    ->visible(fn (Get $get) => $get('tipo') === 'codigo_fonte')
+                                    ->searchable()
+                                    ->live()
+                                    ->afterStateUpdated(fn (Set $set) => $set('funcao', null))
+                                    ->native(false),
 
-                        Select::make('funcao')
-                            ->label('Função do controller')
-                            ->options(fn (Get $get) => Contexto::funcoes($get('tabela')))
-                            ->required(fn (Get $get) => $get('tipo') === 'codigo_fonte')
-                            ->visible(fn (Get $get) => $get('tipo') === 'codigo_fonte')
-                            ->native(false)
-                            ->helperText('A função recebe o agendamento como parâmetro.'),
+                                Select::make('funcao')
+                                    ->label('Função do controller')
+                                    ->options(fn (Get $get) => Contexto::funcoes($get('tabela')))
+                                    ->required(fn (Get $get) => $get('tipo') === 'codigo_fonte')
+                                    ->visible(fn (Get $get) => $get('tipo') === 'codigo_fonte')
+                                    ->native(false)
+                                    ->helperText('A função recebe o agendamento como parâmetro.'),
 
-                        Select::make('operacao_id')
-                            ->label('Operação (layout de EDI)')
-                            ->options(fn () => Operacao::with('webservice')->get()->mapWithKeys(fn (Operacao $o) => [$o->getKey() => "{$o->webservice?->nome} › {$o->nome}"])->all())
-                            ->required(fn (Get $get) => $get('tipo') === 'layout_edi')
-                            ->visible(fn (Get $get) => $get('tipo') === 'layout_edi')
-                            ->searchable()
-                            ->native(false)
-                            ->helperText('Roda o layout vigente da operação: busca a URL e processa o retorno.')
-                            ->columnSpanFull(),
+                                Select::make('operacao_id')
+                                    ->label('Operação (layout de EDI)')
+                                    ->options(fn () => Operacao::with('webservice')->get()->mapWithKeys(fn (Operacao $o) => [$o->getKey() => "{$o->webservice?->nome} › {$o->nome}"])->all())
+                                    ->required(fn (Get $get) => $get('tipo') === 'layout_edi')
+                                    ->visible(fn (Get $get) => $get('tipo') === 'layout_edi')
+                                    ->searchable()
+                                    ->native(false)
+                                    ->helperText('Roda o layout vigente da operação: busca a URL e processa o retorno.')
+                                    ->columnSpanFull(),
 
-                        KeyValue::make('parametros')
-                            ->label('Valores dos parâmetros')
-                            ->keyLabel('Parâmetro')
-                            ->valueLabel('Valor')
-                            ->addActionLabel('Adicionar valor')
-                            ->visible(fn (Get $get) => $get('tipo') === 'layout_edi')
-                            ->helperText('Parâmetros da operação sem valor fixo e obrigatórios precisam de valor aqui, pois ninguém digita na execução agendada.')
-                            ->columnSpanFull(),
-                    ]),
+                                KeyValue::make('parametros')
+                                    ->label('Valores dos parâmetros')
+                                    ->keyLabel('Parâmetro')
+                                    ->valueLabel('Valor')
+                                    ->addActionLabel('Adicionar valor')
+                                    ->visible(fn (Get $get) => $get('tipo') === 'layout_edi')
+                                    ->helperText('Parâmetros da operação sem valor fixo e obrigatórios precisam de valor aqui, pois ninguém digita na execução agendada.')
+                                    ->columnSpanFull(),
+                            ]),
 
-                Section::make('Quando')
-                    ->columns(2)
-                    ->schema([
-                        Select::make('frequencia')
-                            ->label('Frequência')
-                            ->options(Agendamento::FREQUENCIAS)
-                            ->default('minutos')
-                            ->required()
-                            ->live()
-                            ->native(false),
+                        Tab::make('Quando')
+                            ->icon('heroicon-o-clock')
+                            ->columns(2)
+                            ->schema([
+                                Select::make('frequencia')
+                                    ->label('Frequência')
+                                    ->options(Agendamento::FREQUENCIAS)
+                                    ->default('minutos')
+                                    ->required()
+                                    ->live()
+                                    ->native(false),
 
-                        TextInput::make('intervalo')
-                            ->label(fn (Get $get) => $get('frequencia') === 'horas' ? 'A cada quantas horas' : 'A cada quantos minutos')
-                            ->numeric()->minValue(1)->maxValue(1440)->default(15)
-                            ->required(fn (Get $get) => in_array($get('frequencia'), ['minutos', 'horas'], true))
-                            ->visible(fn (Get $get) => in_array($get('frequencia'), ['minutos', 'horas'], true)),
+                                TextInput::make('intervalo')
+                                    ->label(fn (Get $get) => $get('frequencia') === 'horas' ? 'A cada quantas horas' : 'A cada quantos minutos')
+                                    ->numeric()->minValue(1)->maxValue(1440)->default(15)
+                                    ->required(fn (Get $get) => in_array($get('frequencia'), ['minutos', 'horas'], true))
+                                    ->visible(fn (Get $get) => in_array($get('frequencia'), ['minutos', 'horas'], true)),
 
-                        TextInput::make('hora')
-                            ->label('Hora')->placeholder('08:30')
-                            ->regex('/^([01]\d|2[0-3]):[0-5]\d$/')
-                            ->required(fn (Get $get) => in_array($get('frequencia'), ['diario', 'semanal'], true))
-                            ->visible(fn (Get $get) => in_array($get('frequencia'), ['diario', 'semanal'], true)),
+                                TextInput::make('hora')
+                                    ->label('Hora')->placeholder('08:30')
+                                    ->regex('/^([01]\d|2[0-3]):[0-5]\d$/')
+                                    ->required(fn (Get $get) => in_array($get('frequencia'), ['diario', 'semanal'], true))
+                                    ->visible(fn (Get $get) => in_array($get('frequencia'), ['diario', 'semanal'], true)),
 
-                        Select::make('dia_semana')
-                            ->label('Dia da semana')
-                            ->options(Agendamento::DIAS)
-                            ->required(fn (Get $get) => $get('frequencia') === 'semanal')
-                            ->visible(fn (Get $get) => $get('frequencia') === 'semanal')
-                            ->native(false),
+                                Select::make('dia_semana')
+                                    ->label('Dia da semana')
+                                    ->options(Agendamento::DIAS)
+                                    ->required(fn (Get $get) => $get('frequencia') === 'semanal')
+                                    ->visible(fn (Get $get) => $get('frequencia') === 'semanal')
+                                    ->native(false),
 
-                        TextInput::make('cron')
-                            ->label('Expressão cron')
-                            ->placeholder('*/15 * * * *')
-                            ->required(fn (Get $get) => $get('frequencia') === 'cron')
-                            ->visible(fn (Get $get) => $get('frequencia') === 'cron')
-                            ->rule(fn () => fn (string $attribute, mixed $value, \Closure $fail) => CronExpression::isValidExpression((string) $value) ?: $fail('Expressão cron inválida.'))
-                            ->columnSpanFull(),
+                                TextInput::make('cron')
+                                    ->label('Expressão cron')
+                                    ->placeholder('*/15 * * * *')
+                                    ->required(fn (Get $get) => $get('frequencia') === 'cron')
+                                    ->visible(fn (Get $get) => $get('frequencia') === 'cron')
+                                    ->rule(fn () => fn (string $attribute, mixed $value, \Closure $fail) => CronExpression::isValidExpression((string) $value) ?: $fail('Expressão cron inválida.'))
+                                    ->columnSpanFull(),
 
-                        DateTimePicker::make('expira_em')
-                            ->label('Expira em')
-                            ->helperText('Depois dessa data o agendamento para de rodar.'),
+                                DateTimePicker::make('expira_em')
+                                    ->label('Expira em')
+                                    ->helperText('Depois dessa data o agendamento para de rodar.'),
 
-                        Toggle::make('ativo')->default(true)->inline(false),
+                                Toggle::make('ativo')->default(true)->inline(false),
+                            ]),
                     ]),
             ]);
     }

@@ -6,7 +6,6 @@ use App\Http\Controllers\Auth\ImpersonateController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\LicenseRequestController;
 use App\Http\Middleware\CheckTenantStatus;
-use App\Plataforma\Http\Rotas;
 use App\Webservice\Http\EntradaController;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -31,9 +30,6 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    // assinatura eletrônica: link do assinante e verificação de certificado
-    Rotas::publicas();
-
     // webservices disponibilizados: terceiros enviam JSON/XML para /ws/{webservice}/{rota}
     Route::any('/ws/{webservice}/{rota?}', EntradaController::class)
         ->where('rota', '.*')

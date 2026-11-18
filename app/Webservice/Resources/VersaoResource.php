@@ -2,12 +2,15 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Abas;
 use App\Webservice\Models\Versao;
 use App\Webservice\RelationManagers\ObjetosRelationManager;
 use App\Webservice\Resources\VersaoResource\Pages\EditVersao;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
 /**
@@ -29,24 +32,35 @@ class VersaoResource extends ResourceFilho
     public static function form(Schema $schema): Schema
     {
         return $schema
-            ->columns(2)
+            ->columns(1)
             ->components([
-                TextInput::make('versao')->label('Versão')->required()->maxLength(30)->placeholder('1.0'),
+                Tabs::make('versao')
+                    ->persistTabInQueryString()
+                    ->tabs([
+                        Tab::make('Geral')
+                            ->icon('heroicon-o-document-duplicate')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('versao')->label('Versão')->required()->maxLength(30)->placeholder('1.0'),
 
-                Toggle::make('ativo')->default(true)->inline(false),
+                                Toggle::make('ativo')->default(true)->inline(false),
 
-                DatePicker::make('inicio_vigencia')->label('Início da vigência'),
+                                DatePicker::make('inicio_vigencia')->label('Início da vigência'),
 
-                DatePicker::make('expira_em')
-                    ->label('Expira em')
-                    ->afterOrEqual('inicio_vigencia')
-                    ->helperText('Depois dessa data a versão deixa de ser usada.'),
+                                DatePicker::make('expira_em')
+                                    ->label('Expira em')
+                                    ->afterOrEqual('inicio_vigencia')
+                                    ->helperText('Depois dessa data a versão deixa de ser usada.'),
+                            ]),
+
+                        Abas::filha('Objetos', ObjetosRelationManager::class, 'heroicon-o-cube'),
+                    ]),
             ]);
     }
 
     public static function getRelations(): array
     {
-        return [ObjetosRelationManager::class];
+        return []; // os objetos ficam numa aba do form (Abas::filha)
     }
 
     public static function getPages(): array

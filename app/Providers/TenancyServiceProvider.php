@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Jobs\AplicarReleasesDaEmpresa;
 use App\Jobs\CreateTenantFrontend;
 use App\Jobs\CreateTenantUser;
 use App\Listeners\EncerrarSessoesDoBanco;
+use App\Listeners\OcultarModulosNaoLiberados;
 use App\Sistema\ConexaoDireta;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
@@ -33,6 +35,7 @@ class TenancyServiceProvider extends ServiceProvider
                     Jobs\CreateDatabase::class,
                     Jobs\MigrateDatabase::class,
                     CreateTenantUser::class,
+                    AplicarReleasesDaEmpresa::class, // módulos padrão (Estrutura) já publicados
                     CreateTenantFrontend::class,
                     // Jobs\SeedDatabase::class,
 
@@ -93,11 +96,13 @@ class TenancyServiceProvider extends ServiceProvider
             Events\InitializingTenancy::class => [],
             Events\TenancyInitialized::class => [
                 Listeners\BootstrapTenancy::class,
+                OcultarModulosNaoLiberados::class,
             ],
 
             Events\EndingTenancy::class => [],
             Events\TenancyEnded::class => [
                 Listeners\RevertToCentralContext::class,
+                OcultarModulosNaoLiberados::class.'@restaurar',
             ],
 
             Events\BootstrappingTenancy::class => [],

@@ -2,6 +2,7 @@
 
 namespace App\Plataforma\Pages;
 
+use App\Plataforma\Livewire\ReleasesDaEmpresa;
 use App\Plataforma\Models\Configuracao;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
@@ -12,7 +13,9 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Livewire;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
 /**
@@ -54,21 +57,29 @@ class ConfiguracoesDaEmpresa extends Page
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Empresa')->columns(2)->schema([
-                    TextInput::make('nome')->label('Nome')->required()->maxLength(150),
-                    TextInput::make('documento')->label('CNPJ ou documento')->maxLength(30),
-                    TextInput::make('endereco')->label('Endereço')->maxLength(255)->columnSpanFull(),
-                    TextInput::make('contato')->label('Contato (telefone, e-mail, site)')->maxLength(255)->columnSpanFull(),
-                    Textarea::make('rodape')->label('Rodapé das impressões')->rows(2)->maxLength(500)->columnSpanFull(),
-                    FileUpload::make('logo')
-                        ->label('Logo')
-                        ->image()
-                        ->disk('local')
-                        ->directory('plataforma')
-                        ->visibility('private')
-                        ->maxSize(1024)
-                        ->helperText('PNG ou JPG, até 1 MB.')
-                        ->columnSpanFull(),
+                Tabs::make('configuracoes')->persistTabInQueryString()->tabs([
+                    Tab::make('Geral')->icon('heroicon-o-building-office')->columns(2)->schema([
+                        TextInput::make('nome')->label('Nome')->required()->maxLength(150),
+                        TextInput::make('documento')->label('CNPJ ou documento')->maxLength(30),
+                        TextInput::make('endereco')->label('Endereço')->maxLength(255)->columnSpanFull(),
+                        TextInput::make('contato')->label('Contato (telefone, e-mail, site)')->maxLength(255)->columnSpanFull(),
+                        Textarea::make('rodape')->label('Rodapé das impressões')->rows(2)->maxLength(500)->columnSpanFull(),
+                        FileUpload::make('logo')
+                            ->label('Logo')
+                            ->image()
+                            ->disk('local')
+                            ->directory('plataforma')
+                            ->visibility('private')
+                            ->maxSize(1024)
+                            ->helperText('PNG ou JPG, até 1 MB.')
+                            ->columnSpanFull(),
+                    ]),
+
+                    // só dentro de uma empresa: as releases são dos módulos dela
+                    Tab::make('Releases')
+                        ->icon('heroicon-o-archive-box-arrow-down')
+                        ->visible(fn () => tenancy()->initialized)
+                        ->schema([Livewire::make(ReleasesDaEmpresa::class)->key('releases-da-empresa')]),
                 ]),
             ]);
     }

@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Md\Modulo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
@@ -13,6 +16,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDatabase, HasDomains;
 
+    /** @var list<int>|null cache por instância dos módulos cadastrados */
+    protected ?array $idsDosModulos = null;
+
     public function domains(): HasMany
     {
         return $this->hasMany(Domain::class);
@@ -21,6 +27,29 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function userLicenses(): HasMany
     {
         return $this->hasMany(UserLicense::class);
+    }
+
+    /**
+     * Módulos cadastrados na empresa (além dos padrão, que são de todas). Ficam no banco pai.
+     */
+    public function modulos(): BelongsToMany
+    {
+        return $this->belongsToMany(Modulo::class, 'empresa_modulos', 'tenant_id', 'modulo_id')->withTimestamps();
+    }
+
+    /**
+     * Ids dos módulos cadastrados. Lê direto da conexão central: dentro da empresa a conexão padrão
+     * é a do banco dela, que não tem essa tabela.
+     *
+     * @return list<int>
+     */
+    public function idsDosModulos(): array
+    {
+        return $this->idsDosModulos ??= DB::connection('central')->table('empresa_modulos')
+            ->where('tenant_id', $this->getTenantKey())
+            ->pluck('modulo_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 
     public static function getCustomColumns(): array

@@ -318,11 +318,12 @@ class MdTabelaResource extends Resource
                                             ->options(fn (Get $get) => MdTabela::query()
                                                 ->where('banco', static::valorBanco($get('../../banco')))
                                                 ->whereNotNull('generated_at')
+                                                ->permitidasPara(filled($get('../../modulo_id')) ? (int) $get('../../modulo_id') : null)
                                                 ->orderBy('nome_fisico')
                                                 ->get()
                                                 ->mapWithKeys(fn (MdTabela $t) => [$t->id => "{$t->nome} ({$t->nome_fisico})"])
                                                 ->all())
-                                            ->helperText('Só tabelas já geradas, do mesmo banco.')
+                                            ->helperText('Só tabelas já geradas, do mesmo banco e do mesmo módulo (ou do módulo padrão, Estrutura).')
                                             ->required(fn (Get $get) => $get('tipo') === TipoCampo::ForeignId->value)
                                             ->visible(fn (Get $get) => $get('tipo') === TipoCampo::ForeignId->value)
                                             ->searchable(),

@@ -1,0 +1,390 @@
+{
+    "nome": "Objetos do retorno",
+    "nome_fisico": "ws_objetos",
+    "nome_controller": null,
+    "descricao": null,
+    "icone": null,
+    "cor": null,
+    "controla_situacao": true,
+    "exibe_filho": true,
+    "campo_exibicao": "nome",
+    "generated_schema": {
+        "fields": {
+            "1a534da5-9f85-4956-9c6c-797868403bda": {
+                "name": "versao_id",
+                "type": "foreignId",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": {
+                    "table": "ws_versoes",
+                    "on_delete": "cascade"
+                }
+            },
+            "6170494d-434b-4345-adfc-597c27419e27": {
+                "name": "pai_id",
+                "type": "foreignId",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": {
+                    "table": "ws_objetos",
+                    "on_delete": "cascade"
+                }
+            },
+            "a978d94e-2da0-43cf-bd13-9e3600f66648": {
+                "name": "nome",
+                "type": "string",
+                "length": 100,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "308c43b9-8f04-432d-b041-80e54c92e11d": {
+                "name": "lista",
+                "type": "boolean",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "94d86736-be0a-43ef-977f-5b2b0ee51b97": {
+                "name": "obrigatorio",
+                "type": "boolean",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "d46e3832-98e4-44dc-8eda-a35c64fd0eb2": {
+                "name": "novo_lote",
+                "type": "boolean",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "2014cf8b-c6f1-44ab-b34d-1b04be791f1b": {
+                "name": "ordem",
+                "type": "integer",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "situacao": {
+                "name": "MD_STATUS_ID",
+                "type": "unsignedBigInteger",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": "1",
+                "unique": false,
+                "index": true,
+                "foreign": {
+                    "table": "md_status",
+                    "on_delete": "restrict"
+                }
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": true,
+    "classe_model": "App\\Webservice\\Models\\Objeto",
+    "modulo": "ws",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-18T13:51:42-03:00",
+    "campos": [
+        {
+            "uid": "1a534da5-9f85-4956-9c6c-797868403bda",
+            "nome": "Versao Id",
+            "nome_fisico": "versao_id",
+            "tipo": "foreignId",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "cascade",
+            "ordem": 1,
+            "fk": {
+                "banco": "tenant",
+                "tabela": "ws_versoes"
+            }
+        },
+        {
+            "uid": "6170494d-434b-4345-adfc-597c27419e27",
+            "nome": "Pai Id",
+            "nome_fisico": "pai_id",
+            "tipo": "foreignId",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "cascade",
+            "ordem": 2,
+            "fk": {
+                "banco": "tenant",
+                "tabela": "ws_objetos"
+            }
+        },
+        {
+            "uid": "a978d94e-2da0-43cf-bd13-9e3600f66648",
+            "nome": "Nome",
+            "nome_fisico": "nome",
+            "tipo": "string",
+            "tamanho": 100,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 3,
+            "fk": null
+        },
+        {
+            "uid": "308c43b9-8f04-432d-b041-80e54c92e11d",
+            "nome": "Lista",
+            "nome_fisico": "lista",
+            "tipo": "boolean",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 4,
+            "fk": null
+        },
+        {
+            "uid": "94d86736-be0a-43ef-977f-5b2b0ee51b97",
+            "nome": "Obrigatorio",
+            "nome_fisico": "obrigatorio",
+            "tipo": "boolean",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 5,
+            "fk": null
+        },
+        {
+            "uid": "d46e3832-98e4-44dc-8eda-a35c64fd0eb2",
+            "nome": "Novo Lote",
+            "nome_fisico": "novo_lote",
+            "tipo": "boolean",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 6,
+            "fk": null
+        },
+        {
+            "uid": "2014cf8b-c6f1-44ab-b34d-1b04be791f1b",
+            "nome": "Ordem",
+            "nome_fisico": "ordem",
+            "tipo": "integer",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 7,
+            "fk": null
+        }
+    ],
+    "situacoes": [
+        {
+            "status": "ATIVO",
+            "padrao": true,
+            "ordem": 1
+        },
+        {
+            "status": "INATIVO",
+            "padrao": false,
+            "ordem": 2
+        }
+    ],
+    "traducoes": [],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "Objetos do retorno",
+            "titulo": "Objetos do retorno",
+            "nome_fisico": "ws_objetos",
+            "nome_arquivo": "ViewWsObjetos",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "1a534da5-9f85-4956-9c6c-797868403bda",
+                            "componente": "lookup",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "6170494d-434b-4345-adfc-597c27419e27",
+                            "componente": "lookup",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "a978d94e-2da0-43cf-bd13-9e3600f66648",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "308c43b9-8f04-432d-b041-80e54c92e11d",
+                            "componente": "toggle",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "94d86736-be0a-43ef-977f-5b2b0ee51b97",
+                            "componente": "toggle",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "d46e3832-98e4-44dc-8eda-a35c64fd0eb2",
+                            "componente": "toggle",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "2014cf8b-c6f1-44ab-b34d-1b04be791f1b",
+                            "componente": "numero",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "situacao",
+                            "componente": "botoes",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "Objetos do retorno",
+            "titulo": "Objetos do retorno",
+            "nome_fisico": "ws_objetos",
+            "nome_arquivo": "WsObjetosResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "ws_objetos",
+            "botoes": []
+        }
+    ]
+}

@@ -77,7 +77,8 @@ class Registro
     {
         $class = $tabela->modelFqcn();
 
-        if (! class_exists($class)) {
+        // classe_model vem do dicionário (JSON): só instancia o que é model de verdade
+        if (! class_exists($class) || ! is_subclass_of($class, Model::class)) {
             throw new RuntimeException("O model {$class} não existe. Salve a tabela \"{$tabela->nome}\" no dicionário para gerá-lo.");
         }
 

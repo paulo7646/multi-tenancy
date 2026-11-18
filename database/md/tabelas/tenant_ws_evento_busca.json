@@ -1,0 +1,264 @@
+{
+    "nome": "Busca dos eventos",
+    "nome_fisico": "ws_evento_busca",
+    "nome_controller": null,
+    "descricao": null,
+    "icone": null,
+    "cor": null,
+    "controla_situacao": true,
+    "exibe_filho": true,
+    "campo_exibicao": null,
+    "generated_schema": {
+        "fields": {
+            "2eebcca3-8894-4bdc-95fc-5a515343ab89": {
+                "name": "evento_id",
+                "type": "foreignId",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": {
+                    "table": "ws_eventos",
+                    "on_delete": "cascade"
+                }
+            },
+            "4f2b24c7-4dff-48a0-aa07-a915d564f353": {
+                "name": "campo",
+                "type": "string",
+                "length": 60,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "42089a2a-4e2b-4859-8316-01cfb8a15e0b": {
+                "name": "operador",
+                "type": "string",
+                "length": 10,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "79d42dde-d06b-4a90-b58b-07a3ef9a12d0": {
+                "name": "valor",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "situacao": {
+                "name": "MD_STATUS_ID",
+                "type": "unsignedBigInteger",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": "1",
+                "unique": false,
+                "index": true,
+                "foreign": {
+                    "table": "md_status",
+                    "on_delete": "restrict"
+                }
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": true,
+    "classe_model": "App\\Webservice\\Models\\Busca",
+    "modulo": "ws",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-18T13:51:42-03:00",
+    "campos": [
+        {
+            "uid": "2eebcca3-8894-4bdc-95fc-5a515343ab89",
+            "nome": "Evento Id",
+            "nome_fisico": "evento_id",
+            "tipo": "foreignId",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "cascade",
+            "ordem": 1,
+            "fk": {
+                "banco": "tenant",
+                "tabela": "ws_eventos"
+            }
+        },
+        {
+            "uid": "4f2b24c7-4dff-48a0-aa07-a915d564f353",
+            "nome": "Campo",
+            "nome_fisico": "campo",
+            "tipo": "string",
+            "tamanho": 60,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 2,
+            "fk": null
+        },
+        {
+            "uid": "42089a2a-4e2b-4859-8316-01cfb8a15e0b",
+            "nome": "Operador",
+            "nome_fisico": "operador",
+            "tipo": "string",
+            "tamanho": 10,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 3,
+            "fk": null
+        },
+        {
+            "uid": "79d42dde-d06b-4a90-b58b-07a3ef9a12d0",
+            "nome": "Valor",
+            "nome_fisico": "valor",
+            "tipo": "string",
+            "tamanho": 255,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 4,
+            "fk": null
+        }
+    ],
+    "situacoes": [
+        {
+            "status": "ATIVO",
+            "padrao": true,
+            "ordem": 1
+        },
+        {
+            "status": "INATIVO",
+            "padrao": false,
+            "ordem": 2
+        }
+    ],
+    "traducoes": [],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "Busca dos eventos",
+            "titulo": "Busca dos eventos",
+            "nome_fisico": "ws_evento_busca",
+            "nome_arquivo": "ViewWsEventoBusca",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "2eebcca3-8894-4bdc-95fc-5a515343ab89",
+                            "componente": "lookup",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "4f2b24c7-4dff-48a0-aa07-a915d564f353",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "42089a2a-4e2b-4859-8316-01cfb8a15e0b",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "79d42dde-d06b-4a90-b58b-07a3ef9a12d0",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "situacao",
+                            "componente": "botoes",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "Busca dos eventos",
+            "titulo": "Busca dos eventos",
+            "nome_fisico": "ws_evento_busca",
+            "nome_arquivo": "WsEventoBuscaResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "ws_evento_busca",
+            "botoes": []
+        }
+    ]
+}

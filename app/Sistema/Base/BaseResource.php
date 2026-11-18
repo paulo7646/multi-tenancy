@@ -7,7 +7,6 @@ use App\Models\Md\MdGerenciamento;
 use App\Models\Md\MdGerenciamentoBotao;
 use App\Models\Md\MdTabela;
 use App\Plataforma\Impressao\AcoesDeImpressao;
-use App\Plataforma\RelationManagers\AnexosRelationManager;
 use App\Sistema\Base\Concerns\Utilidades;
 use App\Sistema\Enums\Cor;
 use App\Sistema\Permissoes;
@@ -17,6 +16,7 @@ use App\Sistema\Runtime\ColunasBuilder;
 use App\Sistema\Runtime\Executor;
 use App\Sistema\Runtime\FiltrosBuilder;
 use App\Sistema\Runtime\FormularioBuilder;
+use App\Sistema\Runtime\Janela;
 use App\Sistema\Runtime\ModuloNavegacao;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -377,7 +377,16 @@ abstract class BaseResource extends Resource
         $tabela = static::md()->tabela;
         $relacoes = $tabela->campos->filter(fn ($c) => $c->isFk() && $c->fkTabela)->map(fn ($c) => $c->nomeRelacao())->values()->all();
 
-        return static::tela()->query(parent::getEloquentQuery()->with($relacoes));
+        $consulta = parent::getEloquentQuery()->with($relacoes);
+
+        // aberta pela seta de um campo de FK: a lista mostra só o registro apontado, para editar
+        // (chave inteira só aceita dígitos: texto no lugar estouraria no PostgreSQL)
+        if (Janela::recurso() === static::sujeitoPermissao() && filled($id = Janela::filtroId())
+            && ($consulta->getModel()->getKeyType() !== 'int' || ctype_digit($id))) {
+            $consulta->whereKey($id);
+        }
+
+        return static::tela()->query($consulta);
     }
 
     public static function table(Table $table): Table
@@ -403,6 +412,14 @@ abstract class BaseResource extends Resource
             ->defaultSort($model->getKeyName(), 'desc')
             ->headerActions([AcoesDeImpressao::exportar($tabela)])
             ->recordActions([
+                // aberta pela lupa de um campo de FK: devolve o registro escolhido ao campo que abriu a janela
+                Action::make('selecionar')
+                    ->label('Selecionar')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->visible(fn () => Janela::modo() === 'selecionar' && Janela::recurso() === static::sujeitoPermissao() && filled(Janela::campo()))
+                    ->action(fn (Model $record, $livewire) => $livewire->js(Janela::scriptSelecionar((string) Janela::campo(), $record->getKey()))),
+
                 AcoesDeImpressao::registro($tabela),
 
                 ...$md->botoes->where('no_registro', true)->map(fn (MdGerenciamentoBotao $b) => static::botao($b)
@@ -504,7 +521,7 @@ abstract class BaseResource extends Resource
 
     public static function getRelations(): array
     {
-        return [AnexosRelationManager::class];
+        return [];
     }
 
     public static function getPages(): array

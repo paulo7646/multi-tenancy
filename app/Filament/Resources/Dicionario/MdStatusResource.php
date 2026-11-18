@@ -11,7 +11,8 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -44,35 +45,37 @@ class MdStatusResource extends Resource
         $emUso = fn (?MdStatus $record) => (bool) $record?->tabelas()->exists();
 
         return $schema->components([
-            Section::make('Situação')
-                ->columns(2)
-                ->columnSpanFull()
-                ->schema([
-                    TextInput::make('nome')
-                        ->required()
-                        ->maxLength(60)
-                        ->live(onBlur: true)
-                        ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?MdStatus $record) {
-                            if (! $record && blank($get('nome_fisico'))) {
-                                $set('nome_fisico', Campos::snake($state));
-                            }
-                        }),
+            Tabs::make('situacao')->persistTabInQueryString()->columnSpanFull()->tabs([
+                Tab::make('Geral')
+                    ->icon('heroicon-o-flag')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('nome')
+                            ->required()
+                            ->maxLength(60)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?MdStatus $record) {
+                                if (! $record && blank($get('nome_fisico'))) {
+                                    $set('nome_fisico', Campos::snake($state));
+                                }
+                            }),
 
-                    Campos::nomeFisico(max: 40)
-                        ->label('Código')
-                        ->unique(ignoreRecord: true)
-                        ->helperText('Valor gravado na coluna situacao dos registros.')
-                        ->disabled($emUso),
+                        Campos::nomeFisico(max: 40)
+                            ->label('Código')
+                            ->unique(ignoreRecord: true)
+                            ->helperText('Valor gravado na coluna situacao dos registros.')
+                            ->disabled($emUso),
 
-                    Campos::icone(),
+                        Campos::icone(),
 
-                    Campos::cor(padrao: 'gray')->label('Cor do ícone'),
+                        Campos::cor(padrao: 'gray')->label('Cor do ícone'),
 
-                    TextInput::make('descricao')
-                        ->label('Descrição')
-                        ->maxLength(255)
-                        ->columnSpanFull(),
-                ]),
+                        TextInput::make('descricao')
+                            ->label('Descrição')
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+                    ]),
+            ]),
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Abas;
 use App\Webservice\Jobs\ExecutarOperacao;
 use App\Webservice\Models\Integracao;
 use App\Webservice\Models\Operacao;
@@ -14,6 +15,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
 /**
@@ -35,41 +38,53 @@ class OperacaoResource extends ResourceFilho
     public static function form(Schema $schema): Schema
     {
         return $schema
-            ->columns(2)
+            ->columns(1)
             ->components([
-                TextInput::make('nome')->required()->maxLength(100),
+                Tabs::make('operacao')
+                    ->persistTabInQueryString()
+                    ->tabs([
+                        Tab::make('Geral')
+                            ->icon('heroicon-o-arrows-right-left')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('nome')->required()->maxLength(100),
 
-                Select::make('metodo')
-                    ->label('Método')
-                    ->options(Operacao::METODOS)
-                    ->default('GET')
-                    ->required()
-                    ->native(false),
+                                Select::make('metodo')
+                                    ->label('Método')
+                                    ->options(Operacao::METODOS)
+                                    ->default('GET')
+                                    ->required()
+                                    ->native(false),
 
-                TextInput::make('rota')
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('/consulta/teste')
-                    ->prefix(fn (?Operacao $record) => $record?->webservice?->host)
-                    ->helperText('Use {nome} para parâmetros que vão na URL. Ex.: /usuario/{id}')
-                    ->columnSpanFull(),
+                                TextInput::make('rota')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->placeholder('/consulta/teste')
+                                    ->prefix(fn (?Operacao $record) => $record?->webservice?->host)
+                                    ->helperText('Use {nome} para parâmetros que vão na URL. Ex.: /usuario/{id}')
+                                    ->columnSpanFull(),
 
-                Select::make('formato')
-                    ->label('Formato do retorno')
-                    ->options(Operacao::FORMATOS)
-                    ->default('json')
-                    ->required()
-                    ->native(false),
+                                Select::make('formato')
+                                    ->label('Formato do retorno')
+                                    ->options(Operacao::FORMATOS)
+                                    ->default('json')
+                                    ->required()
+                                    ->native(false),
 
-                TextInput::make('timeout')
-                    ->label('Timeout (segundos)')
-                    ->numeric()
-                    ->minValue(1)
-                    ->maxValue(600)
-                    ->default(30)
-                    ->required(),
+                                TextInput::make('timeout')
+                                    ->label('Timeout (segundos)')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(600)
+                                    ->default(30)
+                                    ->required(),
 
-                Toggle::make('ativo')->default(true),
+                                Toggle::make('ativo')->default(true),
+                            ]),
+
+                        Abas::filha('Parâmetros', ParametrosRelationManager::class, 'heroicon-o-adjustments-horizontal'),
+                        Abas::filha('Versões', VersoesRelationManager::class, 'heroicon-o-document-duplicate'),
+                    ]),
             ]);
     }
 
@@ -114,7 +129,7 @@ class OperacaoResource extends ResourceFilho
 
     public static function getRelations(): array
     {
-        return [ParametrosRelationManager::class, VersoesRelationManager::class];
+        return []; // parâmetros e versões ficam em abas do form (Abas::filha)
     }
 
     public static function getPages(): array

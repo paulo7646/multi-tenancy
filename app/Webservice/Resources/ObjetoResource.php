@@ -2,6 +2,7 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Abas;
 use App\Webservice\Models\Objeto;
 use App\Webservice\RelationManagers\EventosRelationManager;
 use App\Webservice\Resources\ObjetoResource\Pages\EditObjeto;
@@ -9,6 +10,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
 /**
@@ -30,8 +33,19 @@ class ObjetoResource extends ResourceFilho
     public static function form(Schema $schema): Schema
     {
         return $schema
-            ->columns(2)
-            ->components(static::campos());
+            ->columns(1)
+            ->components([
+                Tabs::make('objeto')
+                    ->persistTabInQueryString()
+                    ->tabs([
+                        Tab::make('Geral')
+                            ->icon('heroicon-o-cube')
+                            ->columns(2)
+                            ->schema(static::campos()),
+
+                        Abas::filha('Eventos', EventosRelationManager::class, 'heroicon-o-bolt'),
+                    ]),
+            ]);
     }
 
     /**
@@ -77,7 +91,7 @@ class ObjetoResource extends ResourceFilho
 
     public static function getRelations(): array
     {
-        return [EventosRelationManager::class];
+        return []; // os eventos ficam numa aba do form (Abas::filha)
     }
 
     public static function getPages(): array

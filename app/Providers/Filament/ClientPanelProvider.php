@@ -99,6 +99,9 @@ class ClientPanelProvider extends PanelProvider
                 Authenticate::class,
                 CheckUserLicense::class,
             ])
+            // janelas (iframe com X e −, barra inferior): o estilo esconde o menu dentro da janela
+            ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('components.janela-estilos'))
+            ->renderHook(PanelsRenderHook::BODY_END, fn () => view('components.janelas-gerenciador'))
             ->renderHook(
                 PanelsRenderHook::BODY_START,
                 fn () => view('components.license-monitor-hook'),

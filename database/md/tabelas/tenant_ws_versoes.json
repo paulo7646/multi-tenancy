@@ -1,0 +1,304 @@
+{
+    "nome": "Versões do layout",
+    "nome_fisico": "ws_versoes",
+    "nome_controller": null,
+    "descricao": null,
+    "icone": null,
+    "cor": null,
+    "controla_situacao": true,
+    "exibe_filho": true,
+    "campo_exibicao": "versao",
+    "generated_schema": {
+        "fields": {
+            "da123648-b918-4385-ba8b-61c58c0e2afd": {
+                "name": "operacao_id",
+                "type": "foreignId",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": {
+                    "table": "ws_operacoes",
+                    "on_delete": "cascade"
+                }
+            },
+            "f238629a-acd1-4c12-8c1a-eeae0dd207d2": {
+                "name": "versao",
+                "type": "string",
+                "length": 30,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "30752e47-f9f7-44b4-9405-84214fa39ab1": {
+                "name": "inicio_vigencia",
+                "type": "date",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "2a1d7b9c-e435-447d-bc95-70a77750696b": {
+                "name": "expira_em",
+                "type": "date",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "5e090ac5-98db-484d-bdf9-756b849cb025": {
+                "name": "ativo",
+                "type": "boolean",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": false,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            },
+            "situacao": {
+                "name": "MD_STATUS_ID",
+                "type": "unsignedBigInteger",
+                "length": null,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": "1",
+                "unique": false,
+                "index": true,
+                "foreign": {
+                    "table": "md_status",
+                    "on_delete": "restrict"
+                }
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": true,
+    "classe_model": "App\\Webservice\\Models\\Versao",
+    "modulo": "ws",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-18T13:51:42-03:00",
+    "campos": [
+        {
+            "uid": "da123648-b918-4385-ba8b-61c58c0e2afd",
+            "nome": "Operacao Id",
+            "nome_fisico": "operacao_id",
+            "tipo": "foreignId",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "cascade",
+            "ordem": 1,
+            "fk": {
+                "banco": "tenant",
+                "tabela": "ws_operacoes"
+            }
+        },
+        {
+            "uid": "f238629a-acd1-4c12-8c1a-eeae0dd207d2",
+            "nome": "Versao",
+            "nome_fisico": "versao",
+            "tipo": "string",
+            "tamanho": 30,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 2,
+            "fk": null
+        },
+        {
+            "uid": "30752e47-f9f7-44b4-9405-84214fa39ab1",
+            "nome": "Inicio Vigencia",
+            "nome_fisico": "inicio_vigencia",
+            "tipo": "date",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 3,
+            "fk": null
+        },
+        {
+            "uid": "2a1d7b9c-e435-447d-bc95-70a77750696b",
+            "nome": "Expira Em",
+            "nome_fisico": "expira_em",
+            "tipo": "date",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 4,
+            "fk": null
+        },
+        {
+            "uid": "5e090ac5-98db-484d-bdf9-756b849cb025",
+            "nome": "Ativo",
+            "nome_fisico": "ativo",
+            "tipo": "boolean",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": true,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 5,
+            "fk": null
+        }
+    ],
+    "situacoes": [
+        {
+            "status": "ATIVO",
+            "padrao": true,
+            "ordem": 1
+        },
+        {
+            "status": "INATIVO",
+            "padrao": false,
+            "ordem": 2
+        }
+    ],
+    "traducoes": [],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "Versões do layout",
+            "titulo": "Versões do layout",
+            "nome_fisico": "ws_versoes",
+            "nome_arquivo": "ViewWsVersoes",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "da123648-b918-4385-ba8b-61c58c0e2afd",
+                            "componente": "lookup",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "f238629a-acd1-4c12-8c1a-eeae0dd207d2",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "30752e47-f9f7-44b4-9405-84214fa39ab1",
+                            "componente": "data",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "2a1d7b9c-e435-447d-bc95-70a77750696b",
+                            "componente": "data",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "5e090ac5-98db-484d-bdf9-756b849cb025",
+                            "componente": "toggle",
+                            "colunas": 1,
+                            "traducao": null
+                        },
+                        {
+                            "tipo": "campo",
+                            "campo": "situacao",
+                            "componente": "botoes",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "Versões do layout",
+            "titulo": "Versões do layout",
+            "nome_fisico": "ws_versoes",
+            "nome_arquivo": "WsVersoesResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "ws_versoes",
+            "botoes": []
+        }
+    ]
+}

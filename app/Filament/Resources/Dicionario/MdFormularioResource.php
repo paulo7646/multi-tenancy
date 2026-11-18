@@ -236,6 +236,7 @@ class MdFormularioResource extends Resource
                                         ->options(fn (Get $get) => MdTabela::query()
                                             ->whereNotNull('generated_at')
                                             ->where('banco', $tabela($get)?->banco?->value)
+                                            ->permitidasPara($tabela($get)?->modulo_id)
                                             ->orderBy('nome')
                                             ->get()
                                             ->mapWithKeys(fn (MdTabela $t) => [$t->id => "{$t->nome} ({$t->nome_fisico})"])

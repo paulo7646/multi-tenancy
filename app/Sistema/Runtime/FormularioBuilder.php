@@ -90,11 +90,14 @@ class FormularioBuilder
     }
 
     /**
-     * Tab "Geral" (componentes sem tab page) e as tab pages. Só com a "Geral", sem tabs.
+     * Tab "Geral" (componentes sem tab page) e as tab pages. Só com a "Geral" e sem abas filhas,
+     * não há tabs. As abas filhas (registros ligados ao registro, ex.: Anexos) entram depois das
+     * tab pages, dentro do mesmo form.
      *
+     * @param  list<Tab>  $filhas
      * @return list<Component>
      */
-    public function componentes(): array
+    public function componentes(array $filhas = []): array
     {
         $layout = $this->layout ?? ($this->formulario->exists ? $this->formulario->layout() : []);
 
@@ -117,16 +120,28 @@ class FormularioBuilder
         if ($temTabPages && $paginas->isNotEmpty()) {
             return [
                 Tabs::make('paginas')
-                    ->tabs($paginas->map(fn (array $pagina) => Tab::make($pagina['titulo'])
-                        ->columns($colunas)
-                        ->schema($pagina['componentes']))->all())
+                    ->tabs([
+                        ...$paginas->map(fn (array $pagina) => Tab::make($pagina['titulo'])
+                            ->columns($colunas)
+                            ->schema($pagina['componentes']))->all(),
+                        ...$filhas,
+                    ])
                     ->columnSpanFull(),
             ];
         }
 
+        $geral = Grid::make($colunas)
+            ->schema($paginas->pluck('componentes')->flatten(1)->all())
+            ->columnSpanFull();
+
+        if ($filhas === []) {
+            return [$geral];
+        }
+
+        // sem tab pages, mas com abas filhas: a "Geral" vira a primeira aba do form
         return [
-            Grid::make($colunas)
-                ->schema($paginas->pluck('componentes')->flatten(1)->all())
+            Tabs::make('paginas')
+                ->tabs([Tab::make(MdFormulario::TAB_GERAL)->schema([$geral]), ...$filhas])
                 ->columnSpanFull(),
         ];
     }
@@ -530,12 +545,57 @@ class FormularioBuilder
 
         $formularioDestino = $destino->formularioPadrao();
 
-        // dentro do cadastro rápido não abre outro cadastro rápido
-        if (! $formularioDestino || $this->profundidade > 0) {
+        // dentro do cadastro rápido não abre outro cadastro rápido nem janela
+        if ($this->profundidade > 0) {
             return $select;
         }
 
         $statePath = fn (Select $component) => $component->getStatePath();
+
+        // gerenciamento da tabela apontada: a lupa abre para escolher o registro; a seta, filtrado nele, para editar
+        $resource = ($gerenciamento = $destino->gerenciamentos()->orderBy('id')->first())
+            ? Registro::resource($gerenciamento->loadMissing('tabela.modulo'))
+            : null;
+        $urlDaJanela = fn (array $parametros) => Janela::url($resource::getUrl('index'), ['recurso' => $resource::sujeitoPermissao(), ...$parametros]);
+        $nomeDaAcao = mb_strtolower($campo->nome_fisico);
+
+        if ($resource) {
+            $select->suffixActions([
+                // campo vazio: lupa
+                Action::make('buscar_'.$nomeDaAcao)
+                    ->icon('heroicon-o-magnifying-glass')
+                    ->tooltip('Buscar (F2)')
+                    ->extraAttributes(['data-atalho' => 'f2'])
+                    ->visible(fn (Select $component) => blank($component->getState()) && $resource::canViewAny())
+                    ->action(fn (Select $component, $livewire) => $livewire->js(Janela::scriptAbrir(
+                        "Buscar {$destino->nome}",
+                        $urlDaJanela(['modo' => 'selecionar', 'campo' => $component->getStatePath()]),
+                    ))),
+
+                // campo preenchido: seta para cima, abre o registro para editar
+                Action::make('abrir_'.$nomeDaAcao)
+                    ->icon('heroicon-o-arrow-up')
+                    ->tooltip('Abrir o registro (F4)')
+                    ->extraAttributes(['data-atalho' => 'f4'])
+                    ->visible(fn (Select $component) => filled($component->getState()) && $resource::canViewAny())
+                    ->action(fn (Select $component, $livewire) => $livewire->js(Janela::scriptAbrir(
+                        "{$destino->nome} #{$component->getState()}",
+                        $urlDaJanela(['filtro_id' => $component->getState()]),
+                    ))),
+            ]);
+        }
+
+        // a janela da lupa devolve o registro escolhido (evento fk-selecionado) e o campo assume o valor
+        $select->extraFieldWrapperAttributes(fn (Select $component) => [
+            'x-on:keydown.f2.prevent.stop' => "if (! \$wire.\$get('{$statePath($component)}')) \$el.querySelector('[data-atalho=f2]')?.click()",
+            'x-on:keydown.f3.prevent.stop' => "if (! \$wire.\$get('{$statePath($component)}')) \$el.querySelector('[data-atalho=f3]')?.click()",
+            'x-on:keydown.f4.prevent.stop' => "if (\$wire.\$get('{$statePath($component)}')) \$el.querySelector('[data-atalho=f4]')?.click()",
+            'x-on:fk-selecionado.window' => "if (\$event.detail.campo === '{$statePath($component)}') \$wire.\$set('{$statePath($component)}', \$event.detail.id)",
+        ]);
+
+        if (! $formularioDestino) {
+            return $select;
+        }
 
         return $select
             ->createOptionForm(fn () => (new static($formularioDestino, Registro::tela($formularioDestino), $this->profundidade + 1))->componentes())
@@ -553,23 +613,6 @@ class FormularioBuilder
             ->createOptionAction(fn (Action $action) => $action
                 ->modalHeading("Incluir {$destino->nome}")
                 ->tooltip('Incluir (F3)')
-                ->extraAttributes(['data-atalho' => 'f3']))
-            ->suffixAction(
-                Action::make('visualizar_'.mb_strtolower($campo->nome_fisico))
-                    ->icon('heroicon-o-eye')
-                    ->tooltip('Visualizar (F4)')
-                    ->extraAttributes(['data-atalho' => 'f4'])
-                    ->visible(fn (Select $component) => filled($component->getState()))
-                    ->modalHeading("Visualizar {$destino->nome}")
-                    ->schema(fn () => (new static($formularioDestino, Registro::tela($formularioDestino, BaseResource::VISUALIZAR), $this->profundidade + 1))->componentes())
-                    ->fillForm(fn (Select $component) => $model->newQuery()->find($component->getState())?->attributesToArray() ?? [])
-                    ->disabledSchema()
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Fechar')
-            )
-            ->extraFieldWrapperAttributes(fn (Select $component) => [
-                'x-on:keydown.f3.prevent.stop' => "if (! \$wire.\$get('{$statePath($component)}')) \$el.querySelector('[data-atalho=f3]')?.click()",
-                'x-on:keydown.f4.prevent.stop' => "if (\$wire.\$get('{$statePath($component)}')) \$el.querySelector('[data-atalho=f4]')?.click()",
-            ]);
+                ->extraAttributes(['data-atalho' => 'f3']));
     }
 }

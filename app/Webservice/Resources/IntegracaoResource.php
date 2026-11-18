@@ -2,6 +2,8 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Abas;
+use App\Sistema\Runtime\PertenceAoModulo;
 use App\Webservice\Models\Integracao;
 use App\Webservice\Motor\Integrador;
 use App\Webservice\RelationManagers\LotesRelationManager;
@@ -11,7 +13,8 @@ use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontFamily;
 use Filament\Tables\Columns\TextColumn;
@@ -25,6 +28,10 @@ use Throwable;
  */
 class IntegracaoResource extends Resource
 {
+    use PertenceAoModulo;
+
+    protected static string $moduloPrefixo = 'ws';
+
     protected static ?string $model = Integracao::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrows-right-left';
@@ -54,30 +61,37 @@ class IntegracaoResource extends Resource
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Integração')
-                    ->columns(3)
-                    ->schema([
-                        TextEntry::make('operacao.nome')->label('Operação')->placeholder('(operação excluída)'),
-                        TextEntry::make('versao.versao')->label('Versão do layout')->placeholder('—'),
-                        TextEntry::make('origem')->badge()->formatStateUsing(fn (?string $state) => Integracao::ORIGENS[$state] ?? $state),
-                        TextEntry::make('status')->badge()
-                            ->color(fn (?string $state) => static::cor($state))
-                            ->formatStateUsing(fn (?string $state) => Integracao::STATUS[$state] ?? $state),
-                        TextEntry::make('iniciada_em')->label('Iniciada')->dateTime('d/m/Y H:i:s')->placeholder('—'),
-                        TextEntry::make('finalizada_em')->label('Finalizada')->dateTime('d/m/Y H:i:s')->placeholder('—'),
-                        TextEntry::make('erro')->label('Erro')->placeholder('—')->columnSpanFull(),
-                    ]),
+                Tabs::make('integracao')
+                    ->persistTabInQueryString()
+                    ->tabs([
+                        Tab::make('Geral')
+                            ->icon('heroicon-o-queue-list')
+                            ->columns(3)
+                            ->schema([
+                                TextEntry::make('operacao.nome')->label('Operação')->placeholder('(operação excluída)'),
+                                TextEntry::make('versao.versao')->label('Versão do layout')->placeholder('—'),
+                                TextEntry::make('origem')->badge()->formatStateUsing(fn (?string $state) => Integracao::ORIGENS[$state] ?? $state),
+                                TextEntry::make('status')->badge()
+                                    ->color(fn (?string $state) => static::cor($state))
+                                    ->formatStateUsing(fn (?string $state) => Integracao::STATUS[$state] ?? $state),
+                                TextEntry::make('iniciada_em')->label('Iniciada')->dateTime('d/m/Y H:i:s')->placeholder('—'),
+                                TextEntry::make('finalizada_em')->label('Finalizada')->dateTime('d/m/Y H:i:s')->placeholder('—'),
+                                TextEntry::make('erro')->label('Erro')->placeholder('—')->columnSpanFull(),
+                            ]),
 
-                Section::make('Arquivo')
-                    ->description(fn (Integracao $record) => $record->arquivo)
-                    ->collapsible()
-                    ->schema([
-                        TextEntry::make('conteudo')
-                            ->hiddenLabel()
-                            ->state(fn (Integracao $record) => $record->conteudo() === null ? null : str($record->conteudo())->limit(20000)->toString())
-                            ->placeholder('Sem arquivo (a execução falhou antes de receber o conteúdo).')
-                            ->fontFamily(FontFamily::Mono)
-                            ->extraAttributes(['style' => 'white-space: pre-wrap; word-break: break-all']),
+                        Tab::make('Arquivo')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
+                                TextEntry::make('nome_do_arquivo')->label('Arquivo')->state(fn (Integracao $record) => $record->arquivo),
+                                TextEntry::make('conteudo')
+                                    ->hiddenLabel()
+                                    ->state(fn (Integracao $record) => $record->conteudo() === null ? null : str($record->conteudo())->limit(20000)->toString())
+                                    ->placeholder('Sem arquivo (a execução falhou antes de receber o conteúdo).')
+                                    ->fontFamily(FontFamily::Mono)
+                                    ->extraAttributes(['style' => 'white-space: pre-wrap; word-break: break-all']),
+                            ]),
+
+                        Abas::filha('Lotes', LotesRelationManager::class, 'heroicon-o-rectangle-stack'),
                     ]),
             ]);
     }
@@ -144,7 +158,7 @@ class IntegracaoResource extends Resource
 
     public static function getRelations(): array
     {
-        return [LotesRelationManager::class];
+        return []; // os lotes ficam numa aba do form (Abas::filha)
     }
 
     public static function getPages(): array

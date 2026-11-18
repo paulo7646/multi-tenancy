@@ -150,7 +150,7 @@ class Gerador
         $gerenciamento->loadMissing('tabela.modulo');
         $caminho = ClassesWriter::resourcePath($gerenciamento);
         $nome = strtolower($gerenciamento->nome_fisico);
-        $novasPermissoes = glob($gerenciamento->tabela->banco->migrationsPath()."/*_permissao_resource_{$nome}.php") === [];
+        $novasPermissoes = glob($gerenciamento->tabela->banco->migrationsPath($gerenciamento->tabela->modulo)."/*_permissao_resource_{$nome}.php") === [];
 
         return [
             'Resource '.Arquivos::relativo($caminho).' e páginas'.(is_file($caminho) ? ' (já existem: mantidos).' : ' (novos).'),
@@ -178,6 +178,8 @@ class Gerador
      */
     public static function publicarTabela(MdTabela $tabela): array
     {
+        static::recusarExistente($tabela);
+
         $tabela->refresh()->load('modulo');
         static::garantirCamposDoSistema($tabela);
         $tabela->unsetRelation('campos');
@@ -186,7 +188,7 @@ class Gerador
         $resumo = [];
 
         if ($codigo !== null) {
-            $resumo[] = static::gravarEAplicar($tabela->banco, ($tabela->isGerada() ? 'alter' : 'create')."_{$tabela->nome_fisico}_table", $codigo);
+            $resumo[] = static::gravarEAplicar($tabela->banco, ($tabela->isGerada() ? 'alter' : 'create')."_{$tabela->nome_fisico}_table", $codigo, $tabela->modulo);
         }
 
         $novos = array_diff(array_keys($snapshot['fields']), array_keys($tabela->generated_schema['fields'] ?? []));
@@ -226,8 +228,21 @@ class Gerador
      * Gera a migration que apaga a tabela e remove o model. As classes de
      * personalização (view, gerenciamento, botões) são mantidas: têm código seu.
      */
+    /**
+     * Tabela feita à mão (incorporada ao dicionário): a estrutura e o código são mantidos à mão, então o
+     * dicionário nunca gera migration nem arquivos por cima, nem apaga a tabela.
+     */
+    protected static function recusarExistente(MdTabela $tabela): void
+    {
+        if ($tabela->existente) {
+            throw new RuntimeException("A tabela {$tabela->nome_fisico} já existe no sistema (feita à mão): o dicionário só a cadastra, não gera nem altera arquivos dela.");
+        }
+    }
+
     public static function excluirTabela(MdTabela $tabela): void
     {
+        static::recusarExistente($tabela);
+
         $referencias = $tabela->referenciadaPor()->with('tabela')->get()
             ->reject(fn ($campo) => $campo->md_tabela_id === $tabela->id);
 
@@ -243,7 +258,7 @@ class Gerador
         }
 
         if ($tabela->isGerada()) {
-            static::gravarEAplicar($tabela->banco, "drop_{$tabela->nome_fisico}_table", MigrationWriter::drop($tabela, $tabela->generated_schema ?? SchemaSnapshot::empty()));
+            static::gravarEAplicar($tabela->banco, "drop_{$tabela->nome_fisico}_table", MigrationWriter::drop($tabela, $tabela->generated_schema ?? SchemaSnapshot::empty()), $tabela->modulo);
         }
 
         ModelWriter::apagar($tabela);
@@ -303,7 +318,7 @@ class Gerador
 
         if ($itens !== ($tabela->itens_gerados ?? [])) {
             $codigo = static::arquivoMigrationItens($tabela->nome_fisico, $chave, $itens, $tabela->itens_gerados ?? []);
-            $resumo[] = static::gravarEAplicar($tabela->banco, "itens_{$tabela->nome_fisico}", $codigo);
+            $resumo[] = static::gravarEAplicar($tabela->banco, "itens_{$tabela->nome_fisico}", $codigo, $tabela->modulo);
             $tabela->forceFill(['itens_gerados' => $itens])->saveQuietly();
         }
 
@@ -416,7 +431,7 @@ PHP;
         $banco = $gerenciamento->tabela->banco;
         $nome = 'permissao_resource_'.strtolower($gerenciamento->nome_fisico);
 
-        if (glob($banco->migrationsPath()."/*_{$nome}.php") !== []) {
+        if (glob($banco->migrationsPath($gerenciamento->tabela->modulo)."/*_{$nome}.php") !== []) {
             return null;
         }
 
@@ -427,7 +442,7 @@ PHP;
             'Permissoes::remover(...'.Arquivos::exportar($permissoes).');',
         );
 
-        return static::gravarEAplicar($banco, $nome, $codigo);
+        return static::gravarEAplicar($banco, $nome, $codigo, $gerenciamento->tabela->modulo);
     }
 
     /**
@@ -438,7 +453,7 @@ PHP;
         $banco = $gerenciamento->tabela->banco;
         $slug = strtolower($gerenciamento->nome_fisico);
 
-        if (glob($banco->migrationsPath()."/*_permissao_resource_{$slug}.php") === []) {
+        if (glob($banco->migrationsPath($gerenciamento->tabela->modulo)."/*_permissao_resource_{$slug}.php") === []) {
             return;
         }
 
@@ -447,7 +462,7 @@ PHP;
         static::gravarEAplicar($banco, "remover_resource_{$slug}", static::arquivoMigration(
             'Permissoes::remover(...'.Arquivos::exportar($permissoes).');',
             'Permissoes::criar('.Arquivos::exportar($permissoes).', []);',
-        ));
+        ), $gerenciamento->tabela->modulo);
     }
 
     /**
@@ -489,7 +504,7 @@ PHP;
                 $down,
             );
 
-            $resumo[] = static::gravarEAplicar($modulo->banco, "permissao_modulo_{$modulo->prefixo}", $codigo);
+            $resumo[] = static::gravarEAplicar($modulo->banco, "permissao_modulo_{$modulo->prefixo}", $codigo, $modulo);
 
             $modulo->forceFill(['roles_gerados' => $roles])->saveQuietly();
         }
@@ -513,7 +528,7 @@ PHP;
                 "Permissoes::sincronizar('{$modulo->permissao()}', ".Arquivos::exportar(static::papeis($modulo->roles_gerados)).');',
             );
 
-            static::gravarEAplicar($modulo->banco, "remover_modulo_{$modulo->prefixo}", $codigo);
+            static::gravarEAplicar($modulo->banco, "remover_modulo_{$modulo->prefixo}", $codigo, $modulo);
         }
 
         Arquivos::apagar($modulo->caminho('.gitkeep'));
@@ -558,9 +573,9 @@ PHP;
     // Migrations
     // ------------------------------------------------------------------
 
-    protected static function gravarEAplicar(Banco $banco, string $nome, string $codigo): string
+    protected static function gravarEAplicar(Banco $banco, string $nome, string $codigo, ?Modulo $modulo = null): string
     {
-        $pasta = $banco->migrationsPath();
+        $pasta = $banco->migrationsPath($modulo);
         $base = date('Y_m_d_His')."_{$nome}";
         $arquivo = "{$pasta}/{$base}.php";
 
@@ -574,6 +589,13 @@ PHP;
         try {
             if ($banco === Banco::Central) {
                 static::artisan('migrate', ['--path' => $arquivo, '--realpath' => true, '--force' => true]);
+            } elseif ($modulo) {
+                // só as empresas que têm o módulo; as demais recebem pela release (Releases\Aplicador)
+                $empresas = static::empresasDoModulo($modulo);
+
+                if ($empresas !== []) {
+                    static::artisan('tenants:migrate', ['--tenants' => $empresas, '--path' => $arquivo, '--realpath' => true, '--force' => true]);
+                }
             } else {
                 static::artisan('tenants:migrate', ['--force' => true]);
             }
@@ -586,7 +608,25 @@ PHP;
             throw new RuntimeException("Migration {$relativo} falhou: ".static::erroAmigavel($e), previous: $e);
         }
 
+        if ($banco === Banco::Tenant && $modulo) {
+            return "Migration {$relativo} (aplicada nas empresas que têm o módulo; as demais recebem ao publicar uma release)";
+        }
+
         return "Migration {$relativo} (aplicada aqui; no cliente: php artisan {$banco->comandoMigrate()})";
+    }
+
+    /**
+     * Ids das empresas que têm o módulo: todas, se ele é padrão; senão as cadastradas na aba Módulos.
+     *
+     * @return list<string>
+     */
+    protected static function empresasDoModulo(Modulo $modulo): array
+    {
+        if ($modulo->padrao) {
+            return Tenant::query()->pluck('id')->map(fn ($id) => (string) $id)->all();
+        }
+
+        return DB::connection('central')->table('empresa_modulos')->where('modulo_id', $modulo->id)->pluck('tenant_id')->map(fn ($id) => (string) $id)->all();
     }
 
     protected static function artisan(string $comando, array $parametros): void

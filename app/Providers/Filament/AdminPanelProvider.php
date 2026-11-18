@@ -22,6 +22,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -90,6 +91,9 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 FilamentShieldPlugin::make(),
             ])
+            // janelas (iframe com X e −, barra inferior): o estilo esconde o menu dentro da janela
+            ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('components.janela-estilos'))
+            ->renderHook(PanelsRenderHook::BODY_END, fn () => view('components.janelas-gerenciador'))
             ->authMiddleware([
                 Authenticate::class,
             ]);

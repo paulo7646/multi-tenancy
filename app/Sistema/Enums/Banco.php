@@ -2,6 +2,7 @@
 
 namespace App\Sistema\Enums;
 
+use App\Models\Md\Modulo;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasDescription;
 use Filament\Support\Contracts\HasIcon;
@@ -67,11 +68,18 @@ enum Banco: string implements HasColor, HasDescription, HasIcon, HasLabel
         };
     }
 
-    public function migrationsPath(): string
+    /**
+     * Pasta das migrations. As de tabela de cliente de cada módulo ficam em
+     * migrations/tenant/modulos/{prefixo}: o tenants:migrate comum não percorre subpastas, então cada
+     * empresa só recebe o módulo que tem, pelas releases (Releases\Aplicador).
+     */
+    public function migrationsPath(?Modulo $modulo = null): string
     {
         return match ($this) {
             self::Central => database_path('migrations'),
-            self::Tenant => database_path('migrations/tenant'),
+            self::Tenant => $modulo
+                ? database_path("migrations/tenant/modulos/{$modulo->prefixo}")
+                : database_path('migrations/tenant'),
         };
     }
 

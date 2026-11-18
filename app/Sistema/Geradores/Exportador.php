@@ -34,7 +34,7 @@ class Exportador
     public static function modulos(): void
     {
         static::gravar(static::pasta('modulos.json'), Modulo::orderBy('prefixo')->get()
-            ->map(fn (Modulo $m) => [...$m->only(['nome', 'prefixo', 'pasta', 'descricao', 'ordem', 'roles', 'roles_gerados']), 'banco' => $m->banco->value])
+            ->map(fn (Modulo $m) => [...$m->only(['nome', 'prefixo', 'pasta', 'descricao', 'ordem', 'padrao', 'roles', 'roles_gerados']), 'banco' => $m->banco->value])
             ->all());
     }
 
@@ -47,12 +47,23 @@ class Exportador
 
     public static function tabela(MdTabela $tabela): void
     {
+        static::gravar(static::caminhoTabela($tabela), static::dadosDaTabela($tabela));
+    }
+
+    /**
+     * O cadastro da tabela (campos, telas, traduções...) como array, sem ids: é o que vai para o JSON
+     * em database/md e para o pacote de release do módulo.
+     *
+     * @return array<string, mixed>
+     */
+    public static function dadosDaTabela(MdTabela $tabela): array
+    {
         $tabela->load(['modulo', 'campos.fkTabela', 'situacoes.status', 'traducoes', 'itens', 'formularios.botoes', 'formularios.componentes', 'gerenciamentos.botoes', 'gerenciamentos.formulario']);
 
         $sem = fn (array $dados, array $chaves) => collect($dados)->except(['id', 'created_at', 'updated_at', ...$chaves])->all();
 
-        static::gravar(static::caminhoTabela($tabela), [
-            ...$tabela->only(['nome', 'nome_fisico', 'nome_controller', 'descricao', 'icone', 'cor', 'controla_situacao', 'exibe_filho', 'campo_exibicao', 'generated_schema', 'itens_gerados']),
+        return [
+            ...$tabela->only(['nome', 'nome_fisico', 'nome_controller', 'descricao', 'icone', 'cor', 'controla_situacao', 'exibe_filho', 'campo_exibicao', 'generated_schema', 'itens_gerados', 'existente', 'classe_model']),
             'modulo' => $tabela->modulo->prefixo,
             'banco' => $tabela->banco->value,
             'tipo' => $tabela->tipoTabela()->value,
@@ -86,7 +97,7 @@ class Exportador
                 'formulario' => $g->formulario?->nome_fisico,
                 'botoes' => $g->botoes->map(fn ($b) => $sem($b->attributesToArray(), ['md_gerenciamento_id']))->values()->all(),
             ])->values()->all(),
-        ]);
+        ];
     }
 
     /**

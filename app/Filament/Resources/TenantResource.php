@@ -5,10 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TenantResource\Pages\CreateTenant;
 use App\Filament\Resources\TenantResource\Pages\EditTenant;
 use App\Filament\Resources\TenantResource\Pages\ListTenants;
+use App\Filament\Resources\TenantResource\Pages\ViewCliente;
 use App\Filament\Resources\TenantResource\Pages\ViewTenant;
+use App\Filament\Resources\TenantResource\RelationManagers\ModulosRelationManager;
 use App\Filament\Resources\TenantResource\RelationManagers\UserLicensesRelationManager;
+use App\Filament\Resources\TenantResource\RelationManagers\UsuariosRelationManager;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Sistema\Abas;
 use App\Sistema\AtualizadorDeClientes;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -21,7 +25,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -47,67 +52,75 @@ class TenantResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
-                Section::make('Empresa')
-                    ->description('Confiração de empresa')
-                    ->icon('heroicon-m-globe-alt')
-                    ->schema([
-                        TextInput::make('domain')
-                            ->required()
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
-                                if (blank($get('slug')) && filled($state)) {
-                                    $set('slug', Str::slug(Str::before($state, '.')));
-                                }
-                            })
-                            ->suffixAction(
-                                Action::make('Url')
-                                    ->icon('heroicon-m-globe-alt')
-                                    ->url(function ($record, $state) {
-                                        return "http://{$state}";
+                Tabs::make('empresa')
+                    ->persistTabInQueryString()
+                    ->tabs([
+                        Tab::make('Geral')
+                            ->icon('heroicon-m-globe-alt')
+                            ->schema([
+                                TextInput::make('domain')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+                                        if (blank($get('slug')) && filled($state)) {
+                                            $set('slug', Str::slug(Str::before($state, '.')));
+                                        }
                                     })
-                                    ->openUrlInNewTab()
-                            ),
+                                    ->suffixAction(
+                                        Action::make('Url')
+                                            ->icon('heroicon-m-globe-alt')
+                                            ->url(function ($record, $state) {
+                                                return "http://{$state}";
+                                            })
+                                            ->openUrlInNewTab()
+                                    ),
 
-                        TextInput::make('slug')
-                            ->label('Pasta do frontend')
-                            ->alphaDash()
-                            ->maxLength(50)
-                            ->unique(ignoreRecord: true)
-                            // Empresas antigas podem estar sem pasta: aí o campo fica liberado na edição
-                            ->disabled(fn (string $operation, ?Tenant $record) => $operation === 'edit' && filled($record?->slug))
-                            ->prefix('views/clientes/')
-                            ->helperText('Opcional. Pasta Vue criada automaticamente para a página da empresa; não pode ser alterada depois. Sem pasta, o endereço da empresa abre direto o /admin.'),
+                                TextInput::make('slug')
+                                    ->label('Pasta do frontend')
+                                    ->alphaDash()
+                                    ->maxLength(50)
+                                    ->unique(ignoreRecord: true)
+                                    // Empresas antigas podem estar sem pasta: aí o campo fica liberado na edição
+                                    ->disabled(fn (string $operation, ?Tenant $record) => $operation === 'edit' && filled($record?->slug))
+                                    ->prefix('views/clientes/')
+                                    ->helperText('Opcional. Pasta Vue criada automaticamente para a página da empresa; não pode ser alterada depois. Sem pasta, o endereço da empresa abre direto o /admin.'),
 
-                        TextInput::make('admin_email')
-                            ->label('E-mail do administrador')
-                            ->email()
-                            ->required()
-                            ->maxLength(255)
-                            ->visibleOn('create')
-                            ->dehydrated(fn (string $operation) => $operation === 'create'),
+                                TextInput::make('admin_email')
+                                    ->label('E-mail do administrador')
+                                    ->email()
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->visibleOn('create')
+                                    ->dehydrated(fn (string $operation) => $operation === 'create'),
 
-                        TextInput::make('admin_password')
-                            ->label('Senha do administrador')
-                            ->password()
-                            ->revealable()
-                            ->required()
-                            ->minLength(8)
-                            ->visibleOn('create')
-                            ->dehydrated(fn (string $operation) => $operation === 'create')
-                            ->helperText('Usuário super_admin criado no banco da empresa. A senha é guardada só criptografada.'),
+                                TextInput::make('admin_password')
+                                    ->label('Senha do administrador')
+                                    ->password()
+                                    ->revealable()
+                                    ->required()
+                                    ->minLength(8)
+                                    ->visibleOn('create')
+                                    ->dehydrated(fn (string $operation) => $operation === 'create')
+                                    ->helperText('Usuário super_admin criado no banco da empresa. A senha é guardada só criptografada.'),
 
-                        TextInput::make('qtd_licencas')
-                            ->label('Quantidade de licenças')
-                            ->numeric()
-                            ->integer()
-                            ->minValue(0)
-                            ->helperText('Máximo de licenças ATIVAS da empresa. Deixe vazio para não limitar.'),
+                                TextInput::make('qtd_licencas')
+                                    ->label('Quantidade de licenças')
+                                    ->numeric()
+                                    ->integer()
+                                    ->minValue(0)
+                                    ->helperText('Máximo de licenças ATIVAS da empresa. Deixe vazio para não limitar.'),
 
-                        Toggle::make('is_active')
-                            ->label('Empresa ativa')
-                            ->default(true)
-                            ->helperText('Desative para bloquear o acesso de todos os usuários desta empresa.'),
+                                Toggle::make('is_active')
+                                    ->label('Empresa ativa')
+                                    ->default(true)
+                                    ->helperText('Desative para bloquear o acesso de todos os usuários desta empresa.'),
+                            ]),
+
+                        Abas::filha('Módulos', ModulosRelationManager::class, 'heroicon-o-squares-2x2'),
+                        Abas::filha('Clientes', UsuariosRelationManager::class, 'heroicon-o-users'),
+                        Abas::filha('Licenças', UserLicensesRelationManager::class, 'heroicon-o-ticket'),
                     ]),
             ]);
     }
@@ -264,13 +277,6 @@ class TenantResource extends Resource
             ]);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            UserLicensesRelationManager::class,
-        ];
-    }
-
     public static function getPages(): array
     {
         return [
@@ -278,6 +284,7 @@ class TenantResource extends Resource
             'create' => CreateTenant::route('/create'),
             'view' => ViewTenant::route('/{record}'),
             'edit' => EditTenant::route('/{record}/edit'),
+            'cliente' => ViewCliente::route('/{record}/clientes/{cliente}'),
         ];
     }
 }

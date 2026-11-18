@@ -3,7 +3,6 @@
 namespace App\Plataforma\Impressao;
 
 use App\Models\Md\MdTabela;
-use App\Plataforma\Models\ModeloImpressao;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -28,10 +27,8 @@ class AcoesDeImpressao
             ->icon('heroicon-o-printer')
             ->iconButton()
             ->color('gray')
-            ->schema(fn () => static::escolhaDeModelo('registro', $tabela))
-            ->action(function (Model $record, array $data) use ($tabela) {
-                $modelo = static::modelo('registro', $tabela, $data['modelo'] ?? null);
-                $pdf = Relatorios::registro($tabela, $record, $modelo);
+            ->action(function (Model $record) use ($tabela) {
+                $pdf = Relatorios::registro($tabela, $record);
 
                 return response()->streamDownload(fn () => print $pdf, Str::slug("{$tabela->nome}-{$record->getKey()}").'.pdf', ['Content-Type' => 'application/pdf']);
             });
@@ -54,8 +51,6 @@ class AcoesDeImpressao
                     ->required()
                     ->live()
                     ->native(false),
-
-                ...static::escolhaDeModelo('lista', $tabela, visivelSe: 'pdf'),
             ])
             ->action(function (array $data, $livewire) use ($tabela) {
                 $consulta = $livewire->getFilteredSortedTableQuery();
@@ -72,7 +67,7 @@ class AcoesDeImpressao
                 }
 
                 if ($formato === 'pdf') {
-                    $pdf = Relatorios::lista($tabela, $consulta->get(), static::modelo('lista', $tabela, $data['modelo'] ?? null));
+                    $pdf = Relatorios::lista($tabela, $consulta->get());
 
                     return response()->streamDownload(fn () => print $pdf, "{$nome}.pdf", ['Content-Type' => 'application/pdf']);
                 }
@@ -81,40 +76,5 @@ class AcoesDeImpressao
 
                 return response()->download($arquivo, "{$nome}.{$formato}")->deleteFileAfterSend();
             });
-    }
-
-    /**
-     * Campo para escolher o modelo, quando há mais de um para a tabela.
-     *
-     * @return list<Select>
-     */
-    protected static function escolhaDeModelo(string $tipo, MdTabela $tabela, ?string $visivelSe = null): array
-    {
-        $modelos = ModeloImpressao::daTabela($tipo, $tabela->nome_fisico)->orderBy('nome')->pluck('nome', 'id');
-
-        if ($modelos->count() < 2) {
-            return [];
-        }
-
-        $padrao = ModeloImpressao::padraoDa($tipo, $tabela->nome_fisico);
-
-        return [
-            Select::make('modelo')
-                ->label('Modelo de impressão')
-                ->options($modelos->all())
-                ->default($padrao?->getKey() ?? $modelos->keys()->first())
-                ->native(false)
-                ->visible(fn ($get) => $visivelSe === null || $get('formato') === $visivelSe),
-        ];
-    }
-
-    protected static function modelo(string $tipo, MdTabela $tabela, mixed $escolhido): ?ModeloImpressao
-    {
-        if (filled($escolhido)) {
-            return ModeloImpressao::daTabela($tipo, $tabela->nome_fisico)->find($escolhido);
-        }
-
-        return ModeloImpressao::padraoDa($tipo, $tabela->nome_fisico)
-            ?? ModeloImpressao::daTabela($tipo, $tabela->nome_fisico)->orderBy('id')->first();
     }
 }

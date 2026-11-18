@@ -26,9 +26,34 @@ return new class extends Migration
             $table->string('banco', 10)->default('tenant'); // central (base pai) | tenant (clientes)
             $table->text('descricao')->nullable();
             $table->unsignedInteger('ordem')->default(0);
+            $table->boolean('padrao')->default(false); // módulo de todos os clientes (ex.: Estrutura): não precisa ser cadastrado na empresa
             $table->json('roles')->nullable(); // papéis que acessam o módulo
             $table->json('roles_gerados')->nullable(); // papéis da última migration de permissão gerada
             $table->timestamps();
+        });
+
+        // Módulos que cada empresa tem: sem cadastro aqui (e sem ser padrão) a empresa nem acessa o módulo
+        $schema->create('empresa_modulos', function (Blueprint $table) {
+            $table->id();
+            $table->string('tenant_id');
+            $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('modulo_id')->constrained('modulos')->cascadeOnDelete();
+            $table->timestamps();
+            $table->unique(['tenant_id', 'modulo_id']);
+        });
+
+        // Releases (pacotes por módulo): o que o pai publica e cada empresa aplica, só dos módulos que tem
+        $schema->create('md_releases', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('modulo_id')->constrained('modulos')->cascadeOnDelete();
+            $table->unsignedInteger('versao');
+            $table->text('notas')->nullable();
+            $table->json('pacote'); // dicionário do módulo + migrations (arquivo e hash)
+            $table->string('hash', 64); // do pacote: não republica sem novidade
+            $table->string('publicado_por')->nullable();
+            $table->timestamp('publicado_em');
+            $table->timestamps();
+            $table->unique(['modulo_id', 'versao']);
         });
 
         // Situações disponíveis para as tabelas que controlam situação
@@ -58,6 +83,8 @@ return new class extends Migration
             $table->string('campo_exibicao', 60)->nullable(); // coluna mostrada quando outra tabela aponta para esta
             $table->json('generated_schema')->nullable(); // estrutura da última migration gerada
             $table->json('itens_gerados')->nullable(); // itens da última migration de itens (lista/conteúdo)
+            $table->boolean('existente')->default(false); // tabela feita à mão e incorporada ao dicionário: nunca gera migration nem arquivos
+            $table->string('classe_model', 200)->nullable(); // model real da tabela existente (App\Models\User...)
             $table->timestamp('generated_at')->nullable();
             $table->timestamps();
 
@@ -260,7 +287,7 @@ return new class extends Migration
 
         foreach (['md_gerenciamento_botoes', 'md_gerenciamentos', 'md_formulario_botoes', 'md_formulario_componentes',
             'md_formulario_paginas', 'md_formularios', 'md_tabela_itens', 'md_tabela_traducoes', 'md_campos',
-            'md_tabela_status', 'md_tabelas', 'md_status', 'modulos'] as $table) {
+            'md_tabela_status', 'md_tabelas', 'md_status', 'md_releases', 'empresa_modulos', 'modulos'] as $table) {
             $schema->dropIfExists($table);
         }
     }
