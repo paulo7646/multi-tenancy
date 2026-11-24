@@ -10,6 +10,7 @@ use App\Sistema\Base\BaseBotoes;
 use App\Sistema\Base\BaseController;
 use App\Sistema\Base\BaseResource;
 use App\Sistema\Enums\Banco;
+use App\Sistema\Geradores\ResourceVirtual;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
@@ -86,16 +87,17 @@ class Registro
     }
 
     /**
-     * Classe do Resource do gerenciamento (null se o arquivo ainda não foi gerado).
+     * Classe do Resource do gerenciamento (sem arquivos gerados, a tela padrão em memória: ResourceVirtual).
      *
      * @return class-string<BaseResource>|null
      */
     public static function resource(MdGerenciamento $gerenciamento): ?string
     {
-        $class = $gerenciamento->resourceFqcn();
+        // sem arquivos gerados, a tela padrão do dicionário (em memória); com eles, valem os do disco
+        $class = ResourceVirtual::garantir($gerenciamento);
 
         // sem as páginas (arquivo apagado à mão) o painel nem sobe: ignora até gerar de novo
-        return class_exists($class) && is_subclass_of($class, BaseResource::class) && class_exists($class.'\\Pages\\Listar')
+        return $class && class_exists($class) && is_subclass_of($class, BaseResource::class) && class_exists($class.'\\Pages\\Listar')
             ? $class
             : null;
     }
