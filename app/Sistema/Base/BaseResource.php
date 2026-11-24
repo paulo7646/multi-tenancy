@@ -27,6 +27,7 @@ use Filament\Notifications\Notification;
 use Filament\Panel;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Filters\BaseFilter;
@@ -337,7 +338,8 @@ abstract class BaseResource extends Resource
 
         return $schema
             ->columns(1)
-            ->components((new FormularioBuilder($formulario, $tela))->componentes())
+            // um cartão (fundo e bordas arredondadas) como o da listagem
+            ->components([Section::make()->schema((new FormularioBuilder($formulario, $tela))->componentes())->columnSpanFull()])
             ->disabled($tela->getReadOnly());
     }
 

@@ -7,7 +7,7 @@
 @unless (\App\Sistema\Runtime\Janela::ativa())
     <style>
         .jn-raiz { --jn-fundo: light-dark(#ffffff, #18181b); --jn-borda: light-dark(#e4e4e7, #3f3f46); --jn-texto: light-dark(#18181b, #fafafa); --jn-suave: light-dark(#f4f4f5, #27272a); }
-        .jn-janela { position: fixed; inset: 4vh 4vw 64px 4vw; z-index: 60; display: flex; flex-direction: column; background: var(--jn-fundo); color: var(--jn-texto); border: 1px solid var(--jn-borda); border-radius: .75rem; box-shadow: 0 25px 50px -12px rgb(0 0 0 / .45); overflow: hidden; }
+        .jn-janela { position: fixed; inset: 0 0 56px 0; margin: auto; width: min(56rem, 94vw); height: min(38rem, calc(100vh - 7rem)); z-index: 60; display: flex; flex-direction: column; background: var(--jn-fundo); color: var(--jn-texto); border: 1px solid var(--jn-borda); border-radius: .75rem; box-shadow: 0 25px 50px -12px rgb(0 0 0 / .45); overflow: hidden; }
         .jn-topo { display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem; background: var(--jn-suave); border-bottom: 1px solid var(--jn-borda); }
         .jn-titulo { flex: 1; font-weight: 600; font-size: .875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .jn-botao { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: .375rem; border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 1.125rem; line-height: 1; }
