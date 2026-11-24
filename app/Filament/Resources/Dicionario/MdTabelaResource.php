@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Dicionario;
 
 use App\Filament\Resources\Dicionario\Concerns\AcessoDicionario;
 use App\Filament\Resources\Dicionario\MdTabelaResource\Pages;
+use App\Livewire\Dicionario\TelasDaTabela;
 use App\Models\Md\MdStatus;
 use App\Models\Md\MdTabela;
 use App\Models\Md\MdTabelaItem;
@@ -33,13 +34,13 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
@@ -665,13 +666,9 @@ class MdTabelaResource extends Resource
             ->visible(fn (Get $get, ?MdTabela $record) => (bool) $record?->exists && static::temTelasNoForm($get))
             ->badge(fn (?MdTabela $record) => $record ? ($tipo === 'formularios' ? $record->formularios()->count() : $record->gerenciamentos()->count()) ?: null : null)
             ->schema([
-                View::make('filament.sistema.tabela-telas')
-                    ->viewData(fn (?MdTabela $record) => [
-                        'tipo' => $tipo,
-                        'itens' => $record ? ($tipo === 'formularios' ? $record->formularios()->orderBy('id')->get() : $record->gerenciamentos()->with('formulario')->orderBy('ordem')->get()) : collect(),
-                        'urlNovo' => $record ? ($tipo === 'formularios' ? MdFormularioResource::getUrl('create', ['tabela' => $record->id]) : MdGerenciamentoResource::getUrl('create', ['tabela' => $record->id])) : null,
-                        'urlEditar' => fn ($item) => $tipo === 'formularios' ? MdFormularioResource::getUrl('edit', ['record' => $item]) : MdGerenciamentoResource::getUrl('edit', ['record' => $item]),
-                    ]),
+                Livewire::make(TelasDaTabela::class, fn (?MdTabela $record) => ['tabelaId' => $record?->id, 'tipo' => $tipo])
+                    ->key("telas-da-tabela-{$tipo}")
+                    ->columnSpanFull(),
             ]);
     }
 

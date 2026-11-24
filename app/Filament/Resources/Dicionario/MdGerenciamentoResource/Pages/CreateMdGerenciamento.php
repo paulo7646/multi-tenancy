@@ -5,11 +5,13 @@ namespace App\Filament\Resources\Dicionario\MdGerenciamentoResource\Pages;
 use App\Filament\Resources\Dicionario\Concerns\SalvaNoDicionario;
 use App\Filament\Resources\Dicionario\MdGerenciamentoResource;
 use App\Models\Md\MdTabela;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateMdGerenciamento extends CreateRecord
 {
     use SalvaNoDicionario;
+    use TituloPadrao;
 
     protected static string $resource = MdGerenciamentoResource::class;
 

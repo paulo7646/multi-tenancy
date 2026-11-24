@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Dicionario\MdStatusResource\Pages;
 
 use App\Filament\Resources\Dicionario\Concerns\PublicaNoDicionario;
 use App\Filament\Resources\Dicionario\MdStatusResource;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use App\Sistema\Geradores\Gerador;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 class CreateMdStatus extends CreateRecord
 {
     use PublicaNoDicionario;
+    use TituloPadrao;
 
     protected static string $resource = MdStatusResource::class;
 

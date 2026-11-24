@@ -3,12 +3,14 @@
 namespace App\Sistema\Base\Pages;
 
 use App\Sistema\Base\BaseResource;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 abstract class CriarRegistro extends CreateRecord
 {
     use GravaNoDicionario;
+    use TituloPadrao;
 
     protected function getOperacaoFilament(): string
     {

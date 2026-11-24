@@ -3,10 +3,13 @@
 namespace App\Filament\Resources\TenantResource\Pages;
 
 use App\Filament\Resources\TenantResource;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateTenant extends CreateRecord
 {
+    use TituloPadrao;
+
     protected static string $resource = TenantResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array

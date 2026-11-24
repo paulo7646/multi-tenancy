@@ -2,6 +2,7 @@
 
 namespace App\Webservice\Resources;
 
+use App\Sistema\Base\Concerns\TituloPadrao;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -11,6 +12,8 @@ use Filament\Resources\Pages\EditRecord;
  */
 abstract class EditFilho extends EditRecord
 {
+    use TituloPadrao;
+
     protected function getHeaderActions(): array
     {
         /** @var class-string<ResourceFilho> $resource */

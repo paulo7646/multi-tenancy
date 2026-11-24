@@ -6,6 +6,7 @@ use App\Filament\Resources\Dicionario\Concerns\AbreArquivosNoEditor;
 use App\Filament\Resources\Dicionario\Concerns\CriaArquivosPorBotao;
 use App\Filament\Resources\Dicionario\MdFormularioResource;
 use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use App\Sistema\Geradores\Gerador;
 use App\Sistema\Runtime\Layout;
 use Filament\Actions\DeleteAction;
@@ -17,6 +18,7 @@ class EditMdFormulario extends EditRecord
     use AbreArquivosNoEditor;
     use CriaArquivosPorBotao;
     use DesenhaPrevia;
+    use TituloPadrao;
 
     protected static string $resource = MdFormularioResource::class;
 

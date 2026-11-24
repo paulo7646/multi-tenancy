@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Dicionario\ModuloResource\Pages;
 
 use App\Filament\Resources\Dicionario\Concerns\CriaArquivosPorBotao;
 use App\Filament\Resources\Dicionario\ModuloResource;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use App\Sistema\Geradores\Gerador;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 class EditModulo extends EditRecord
 {
     use CriaArquivosPorBotao;
+    use TituloPadrao;
 
     protected static string $resource = ModuloResource::class;
 

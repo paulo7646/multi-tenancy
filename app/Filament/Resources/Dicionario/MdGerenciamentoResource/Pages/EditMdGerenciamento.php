@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Dicionario\MdGerenciamentoResource\Pages;
 use App\Filament\Resources\Dicionario\Concerns\AbreArquivosNoEditor;
 use App\Filament\Resources\Dicionario\Concerns\CriaArquivosPorBotao;
 use App\Filament\Resources\Dicionario\MdGerenciamentoResource;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use App\Sistema\Geradores\Gerador;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -14,6 +15,7 @@ class EditMdGerenciamento extends EditRecord
 {
     use AbreArquivosNoEditor;
     use CriaArquivosPorBotao;
+    use TituloPadrao;
 
     protected static string $resource = MdGerenciamentoResource::class;
 

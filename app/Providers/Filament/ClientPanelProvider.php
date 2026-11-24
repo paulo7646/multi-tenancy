@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Sistema\Pages\ModuloPage;
 use App\Http\Middleware\CheckTenantStatus;
 use App\Http\Middleware\CheckUserLicense;
 use App\Plataforma\Plataforma;
@@ -44,6 +43,10 @@ class ClientPanelProvider extends PanelProvider
             ->id('client')
             ->path('admin')
             ->login()
+            ->globalSearch(false)
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
+            ->sidebarCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -67,7 +70,6 @@ class ClientPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Client/Pages'), for: 'App\\Filament\\Client\\Pages')
             ->pages([
                 Dashboard::class,
-                ModuloPage::class, // visão geral de cada módulo
             ])
             ->discoverWidgets(in: app_path('Filament/Client/Widgets'), for: 'App\\Filament\\Client\\Widgets')
             ->widgets([
@@ -100,6 +102,8 @@ class ClientPanelProvider extends PanelProvider
                 CheckUserLicense::class,
             ])
             // janelas (iframe com X e −, barra inferior): o estilo esconde o menu dentro da janela
+            ->renderHook(PanelsRenderHook::SIDEBAR_START, fn () => view('components.sidebar-recolher'))
+            ->renderHook(PanelsRenderHook::SIDEBAR_NAV_START, fn () => view('components.menu-pesquisa'))
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('components.janela-estilos'))
             ->renderHook(PanelsRenderHook::BODY_END, fn () => view('components.janelas-gerenciador'))
             ->renderHook(

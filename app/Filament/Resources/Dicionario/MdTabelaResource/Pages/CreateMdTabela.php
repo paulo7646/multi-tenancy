@@ -7,6 +7,7 @@ use App\Filament\Resources\Dicionario\MdTabelaResource;
 use App\Models\Md\MdFormulario;
 use App\Models\Md\MdGerenciamento;
 use App\Models\Md\Modulo;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use App\Sistema\Enums\TipoTabela;
 use App\Sistema\Geradores\Gerador;
 use Filament\Resources\Pages\CreateRecord;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 class CreateMdTabela extends CreateRecord
 {
     use SalvaNoDicionario;
+    use TituloPadrao;
 
     protected static string $resource = MdTabelaResource::class;
 
@@ -25,8 +27,10 @@ class CreateMdTabela extends CreateRecord
         parent::mount();
 
         // vindo da aba Tabelas de um módulo: já escolhe o módulo
-        if ($moduloId = request()->integer('modulo_id')) {
-            $this->data['modulo_id'] = $moduloId;
+        if (($moduloId = request()->integer('modulo_id')) && $modulo = Modulo::find($moduloId)) {
+            // o banco vem do módulo (o campo só é preenchido sozinho quando se escolhe o módulo na tela)
+            $this->data['modulo_id'] = $modulo->id;
+            $this->data['banco'] = $modulo->banco->value;
         }
     }
 

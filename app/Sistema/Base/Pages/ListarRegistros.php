@@ -2,6 +2,7 @@
 
 namespace App\Sistema\Base\Pages;
 
+use App\Sistema\Base\Concerns\TituloPadrao;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
@@ -10,6 +11,8 @@ use Filament\Resources\Pages\ListRecords;
  */
 abstract class ListarRegistros extends ListRecords
 {
+    use TituloPadrao;
+
     protected function getHeaderActions(): array
     {
         return [

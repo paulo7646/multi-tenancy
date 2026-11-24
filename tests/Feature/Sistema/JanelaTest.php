@@ -1,6 +1,13 @@
 <?php
 
+use App\Filament\Resources\Dicionario\ModuloResource\Pages\CreateModulo;
+use App\Filament\Resources\Dicionario\ModuloResource\Pages\EditModulo;
+use App\Filament\Resources\Dicionario\ModuloResource\Pages\ListModulos;
+use App\Models\User;
 use App\Sistema\Runtime\Janela;
+use Filament\Facades\Filament;
+use Filament\Livewire\DatabaseNotifications;
+use Livewire\Livewire;
 
 /**
  * Janelas (iframe com X e −): o modo vem da URL, ou do Referer da própria página nas atualizações do
@@ -61,6 +68,7 @@ it('a barra guarda no máximo 5 janelas', function () {
     expect($html)->toContain('janelasGerenciador')
         ->toContain('limite: 5')
         ->toContain('Diminuir')
+        ->toContain('.fi-sidebar a[href]')
         ->toContain('Fechar');
 });
 
@@ -68,9 +76,49 @@ it('dentro de uma janela não há gerenciador, e o menu some', function () {
     request()->query->replace(['janela' => '1']);
 
     expect(trim(view('components.janelas-gerenciador')->render()))->not->toContain('janelasGerenciador')
-        ->and(view('components.janela-estilos')->render())->toContain('.fi-sidebar');
+        ->and(view('components.janela-estilos')->render())->toContain('.fi-sidebar')->toContain("classList.add('jn-iframe')");
 });
 
-it('fora de uma janela os estilos de janela não saem', function () {
-    expect(trim(view('components.janela-estilos')->render()))->toBe('');
+it('o iframe se reconhece sozinho, sem depender do parâmetro da URL', function () {
+    $html = view('components.janela-estilos')->render();
+
+    expect($html)->toContain('window.self !== window.top')->toContain('html.jn-iframe .fi-sidebar');
+});
+
+it('as notificações do painel aparecem num menu suspenso, não no drawer lateral', function () {
+    $this->actingAs(User::factory()->create());
+    Filament::setCurrentPanel('admin');
+
+    Livewire::test(DatabaseNotifications::class)
+        ->assertSee('fi-no-database')
+        ->assertDontSee('slide-over');
+});
+
+it('os títulos das telas seguem o padrão: gerenciamento, manutenção e visualização', function () {
+    $lista = new class extends ListModulos {};
+    $criar = new class extends CreateModulo {};
+    $editar = new class extends EditModulo {};
+
+    expect((string) $lista->getTitle())->toBe('Gerenciamento de Módulos')
+        ->and((string) $criar->getTitle())->toBe('Manutenção de Módulo')
+        ->and((string) $editar->getTitle())->toBe('Manutenção de Módulo');
+});
+
+it('a barra de baixo mostra o contador de janelas', function () {
+    expect(view('components.janelas-gerenciador')->render())->toContain('lista.length')->toContain('badge');
+});
+
+it('a barra tem fechar todas e a dica do limite, e pergunta antes de fechar formulário', function () {
+    expect(view('components.janelas-gerenciador')->render())
+        ->toContain('Fechar todas as janelas')
+        ->toContain('Limite de')
+        ->toContain('sem salvar os dados')->toContain('x-tooltip')->toContain('jn-confirmar')->not->toContain('window.confirm');
+});
+
+it('o menu lateral tem a seta de recolher dentro dele, e recolhido não mostra mais nada', function () {
+    expect(view('components.sidebar-recolher')->render())->toContain('Recolher o menu')->toContain('jn-recolher')->toContain(':not(.jn-recolher)');
+});
+
+it('o menu lateral tem a pesquisa de módulos e telas só com a lupa', function () {
+    expect(view('components.menu-pesquisa')->render())->toContain('menu-pesquisa')->toContain('fi-sidebar-group');
 });

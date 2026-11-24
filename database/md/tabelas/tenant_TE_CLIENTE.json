@@ -1,0 +1,124 @@
+{
+    "nome": "cliente",
+    "nome_fisico": "TE_CLIENTE",
+    "nome_controller": "ControllerCLIENTE",
+    "descricao": "tabela de clientes",
+    "icone": "heroicon-o-user-circle",
+    "cor": "success",
+    "controla_situacao": false,
+    "exibe_filho": true,
+    "campo_exibicao": null,
+    "generated_schema": {
+        "fields": {
+            "f8d29385-e077-4f11-a618-a1ca90065eb2": {
+                "name": "NOME",
+                "type": "string",
+                "length": 255,
+                "precision": null,
+                "scale": null,
+                "options": null,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "index": false,
+                "foreign": null
+            }
+        }
+    },
+    "itens_gerados": null,
+    "existente": false,
+    "classe_model": null,
+    "modulo": "te",
+    "banco": "tenant",
+    "tipo": "cadastro",
+    "generated_at": "2026-11-23T23:23:01-03:00",
+    "campos": [
+        {
+            "uid": "f8d29385-e077-4f11-a618-a1ca90065eb2",
+            "nome": "Nome",
+            "nome_fisico": "NOME",
+            "tipo": "string",
+            "tamanho": null,
+            "precisao": null,
+            "escala": null,
+            "opcoes": null,
+            "obrigatorio": false,
+            "unico": false,
+            "indice": false,
+            "sem_componente": false,
+            "sistema": false,
+            "padrao": null,
+            "ajuda": null,
+            "fk_on_delete": "restrict",
+            "ordem": 1,
+            "chave": false,
+            "fk": null
+        }
+    ],
+    "situacoes": [],
+    "traducoes": [
+        {
+            "tipo": "tabela",
+            "nome": "Nome do cliente",
+            "campos": [
+                "f8d29385-e077-4f11-a618-a1ca90065eb2"
+            ],
+            "padrao": false,
+            "ordem": 1
+        },
+        {
+            "tipo": "lookup",
+            "nome": "Noem cliente",
+            "campos": [
+                "f8d29385-e077-4f11-a618-a1ca90065eb2"
+            ],
+            "padrao": false,
+            "ordem": 1
+        }
+    ],
+    "itens": [],
+    "formularios": [
+        {
+            "nome": "cliente",
+            "titulo": "cliente",
+            "nome_fisico": "TE_CLIENTE",
+            "nome_arquivo": "ViewCliente",
+            "paginado": false,
+            "colunas": 2,
+            "paginas": [
+                "Geral"
+            ],
+            "botoes": [],
+            "tab_pages": [],
+            "componentes": [
+                {
+                    "titulo": "Geral",
+                    "pagina": null,
+                    "campos": [
+                        {
+                            "tipo": "campo",
+                            "campo": "f8d29385-e077-4f11-a618-a1ca90065eb2",
+                            "componente": "texto",
+                            "colunas": 1,
+                            "traducao": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "gerenciamentos": [
+        {
+            "nome": "cliente",
+            "titulo": "cliente",
+            "nome_fisico": "TE_CLIENTE",
+            "nome_arquivo": "ClienteResource",
+            "icone": null,
+            "ordem": 0,
+            "colunas": [],
+            "filtros": null,
+            "formulario": "TE_CLIENTE",
+            "botoes": []
+        }
+    ]
+}

@@ -1,14 +1,17 @@
 <?php
 
 use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\EditMdFormulario;
+use App\Filament\Resources\Dicionario\MdTabelaResource\Pages\CreateMdTabela;
 use App\Filament\Resources\Dicionario\MdTabelaResource\Pages\EditMdTabela;
 use App\Filament\Resources\Dicionario\ModuloResource\Pages\EditModulo;
 use App\Livewire\Dicionario\TabelasDoModulo;
+use App\Livewire\Dicionario\TelasDaTabela;
 use App\Models\Md\MdCampo;
 use App\Models\Md\MdFormulario;
 use App\Models\Md\MdTabela;
 use App\Models\Md\Modulo;
 use App\Models\User;
+use App\Sistema\Enums\Banco;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -131,4 +134,24 @@ it('a aba Tabelas do módulo é uma tabela com abrir, nova tabela e excluir', fu
         ->assertTableActionExists('edit', record: $this->tabela)
         ->assertTableActionExists('delete', record: $this->tabela)
         ->assertSee('Nova tabela');
+});
+
+it('criar tabela pela aba do módulo já traz o módulo e o banco dele', function () {
+    Livewire::withQueryParams(['modulo_id' => $this->modulo->id])
+        ->test(CreateMdTabela::class)
+        ->assertFormSet(['modulo_id' => $this->modulo->id, 'banco' => Banco::Central]);
+});
+
+it('as abas Formulários e Gerenciamentos da tabela são tabelas do Filament', function () {
+    $formulario = MdFormulario::create([
+        'md_tabela_id' => $this->tabela->id, 'nome' => 'cliente', 'titulo' => 'Cliente', 'nome_fisico' => 'ZZ_CLIENTE', 'nome_arquivo' => 'ViewCliente',
+    ]);
+
+    Livewire::test(TelasDaTabela::class, ['tabelaId' => $this->tabela->id, 'tipo' => 'formularios'])
+        ->assertCanSeeTableRecords([$formulario])
+        ->assertTableActionExists('delete', record: $formulario)
+        ->assertSee('Novo formulário');
+
+    Livewire::test(TelasDaTabela::class, ['tabelaId' => $this->tabela->id, 'tipo' => 'gerenciamentos'])
+        ->assertSee('Novo gerenciamento');
 });

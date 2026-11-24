@@ -6,12 +6,14 @@ use App\Filament\Resources\Dicionario\Concerns\SalvaNoDicionario;
 use App\Filament\Resources\Dicionario\MdFormularioResource;
 use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
 use App\Models\Md\MdTabela;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateMdFormulario extends CreateRecord
 {
     use DesenhaPrevia;
     use SalvaNoDicionario;
+    use TituloPadrao;
 
     protected static string $resource = MdFormularioResource::class;
 

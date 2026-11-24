@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Dicionario\ReleaseResource\Pages;
 
 use App\Filament\Resources\Dicionario\ReleaseResource;
 use App\Models\Md\Modulo;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use App\Sistema\Releases\Publicador;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
@@ -14,6 +15,8 @@ use RuntimeException;
 
 class ManageReleases extends ManageRecords
 {
+    use TituloPadrao;
+
     protected static string $resource = ReleaseResource::class;
 
     protected function getHeaderActions(): array

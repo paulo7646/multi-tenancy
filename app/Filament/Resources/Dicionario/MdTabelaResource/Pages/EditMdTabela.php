@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Dicionario\MdTabelaResource\Pages;
 use App\Filament\Resources\Dicionario\Concerns\AbreArquivosNoEditor;
 use App\Filament\Resources\Dicionario\Concerns\CriaArquivosPorBotao;
 use App\Filament\Resources\Dicionario\MdTabelaResource;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use App\Sistema\Geradores\Gerador;
 use App\Sistema\Schema\SchemaException;
 use Filament\Actions\DeleteAction;
@@ -18,6 +19,7 @@ class EditMdTabela extends EditRecord
 {
     use AbreArquivosNoEditor;
     use CriaArquivosPorBotao;
+    use TituloPadrao;
 
     protected static string $resource = MdTabelaResource::class;
 

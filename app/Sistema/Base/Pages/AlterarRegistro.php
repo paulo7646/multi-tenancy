@@ -3,6 +3,7 @@
 namespace App\Sistema\Base\Pages;
 
 use App\Sistema\Base\BaseResource;
+use App\Sistema\Base\Concerns\TituloPadrao;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 abstract class AlterarRegistro extends EditRecord
 {
     use GravaNoDicionario;
+    use TituloPadrao;
 
     protected function getOperacaoFilament(): string
     {
