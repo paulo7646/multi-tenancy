@@ -156,7 +156,7 @@ class Registro
     {
         $class = $tabela->controllerFqcn();
 
-        return class_exists($class) ? app($class) : new class extends BaseController {};
+        return (class_exists($class) ? app($class) : new class extends BaseController {})->paraTabela($tabela);
     }
 
     /**

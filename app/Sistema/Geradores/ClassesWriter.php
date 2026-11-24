@@ -60,19 +60,21 @@ namespace {$tabela->namespace()};
 
 use {$tabela->modulo->namespace()}\Enums;
 use App\Sistema\Base\BaseController;
-use App\Sistema\ModelProperty;
+use App\Sistema\VQueryTabela;
 
 /**
  * Regras de negócio da tabela "{$tabela->nome}" ({$tabela->nome_fisico}).
  *
  * Criado pelo dicionário de dados; o código escrito aqui nunca é sobrescrito.
+ * Sobrescreva os ganchos de BaseController (beforeBeforePost, beforePost, beforeInsert, afterInsert,
+ * afterAfterInsert, beforeDelete...): os formulários e o VQueryTabela os chamam ao gravar.
  * Use de qualquer lugar com \$this->getController('{$tabela->modulo->prefixo}', '{$tabela->nomeSemPrefixo()}').
  *
  * Exemplo:
  *
  *   public function reajustar(int \$id, float \$percentual): void
  *   {
- *       \$registro = new ModelProperty('{$tabela->modulo->prefixo}', '{$tabela->nomeSemPrefixo()}', \$id);
+ *       \$registro = new VQueryTabela('{$tabela->modulo->prefixo}', '{$tabela->nomeSemPrefixo()}', \$id);
  *       \$registro->setDecimal('preco', \$registro->getDecimal('preco') * (1 + \$percentual / 100));
  *       \$registro->update();
  *   }

@@ -3,6 +3,7 @@
 namespace App\Sistema\Base\Pages;
 
 use App\Sistema\Base\BaseResource;
+use App\Sistema\Registro;
 use App\Sistema\Runtime\Executor;
 use Filament\Support\Exceptions\Halt;
 use Illuminate\Database\Eloquent\Model;
@@ -20,12 +21,13 @@ trait GravaNoDicionario
         $resource = static::getResource();
         $tela = $resource::tela($operacao, $registro->exists ? $registro : null);
 
-        $salvo = Executor::transacao($registro, function () use ($tela, $registro, $dados) {
-            $registro->fill($tela->antesDeSalvar($dados));
+        // as regras da tabela (beforePost, afterInsert, afterAfter...) estão no controller dela
+        $controller = Registro::controller($resource::md()->tabela);
 
-            if ($registro->save() === false) {
-                $tela->abortar('A gravação foi cancelada pelas regras da tabela.');
-            }
+        $salvo = Executor::transacao($registro, function () use ($tela, $controller, $registro, $dados) {
+            $dados = $tela->antesDeSalvar($dados);
+
+            $registro->exists ? $controller->alterar($registro, $dados) : $controller->incluir($registro, $dados);
 
             $tela->depoisDeSalvar($registro);
 

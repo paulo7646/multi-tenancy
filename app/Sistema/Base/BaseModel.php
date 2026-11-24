@@ -4,37 +4,35 @@ namespace App\Sistema\Base;
 
 use App\Models\Md\MdCampo;
 use App\Models\Md\MdTabela;
+use App\Sistema\Base\Concerns\Principal;
 use App\Sistema\Base\Concerns\Utilidades;
 use App\Sistema\Registro;
+use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use RuntimeException;
 
 /**
- * Base dos models gerados pelo dicionário de dados, com o controle de eventos.
+ * Base dos models gerados pelo dicionário de dados.
  *
- * Ordem ao INCLUIR:  beforePost -> beforeInsert -> (insert) -> afterInsert -> afterPost
- * Ordem ao ALTERAR:  beforePost -> beforeUpdate -> (update) -> afterUpdate -> afterPost
- * Ordem ao EXCLUIR:  beforeDelete -> (delete) -> afterDelete
+ * O model só guarda os dados e sabe se carregar do banco; as regras (beforePost, afterInsert...) ficam
+ * no controller da tabela, chamado pelos formulários e pelo VQueryTabela. Gravar direto com
+ * $model->save() NÃO passa por elas.
  *
- * Os "afterAfter" (afterAfterInsert, afterAfterUpdate, afterAfterPost,
- * afterAfterDelete) rodam depois do COMMIT da transação: bom lugar para
- * e-mails, filas e integrações, que não devem acontecer se a gravação for
- * desfeita. Sem transação aberta, rodam logo em seguida.
- *
- * Para cancelar a operação: chame $this->abortar('mensagem') (a tela mostra a
- * mensagem e a transação é desfeita) ou retorne false de um "before".
- *
- * Use $this->inserindo() para saber se o registro está sendo incluído e
- * $this->isDirty('campo') / $this->getOriginal('campo') para comparar valores.
- *
- * Se o model filho declarar booted(), chame parent::booted().
+ *   $produto = $this->getModel('op', 'produto');
+ *   $produto->set('CODIGO', 'A-10')->persiste();       // carrega pelo campo chave
+ *   $produto->set('CODIGO', 'A-10')->persiste(true);    // e todos os filhos, netos... pela FK
  */
 abstract class BaseModel extends Model
 {
+    use Principal;
     use Utilidades {
         Utilidades::getModel as protected getModelDoModulo;
     }
+
+    /** Profundidade máxima de filhos carregados (proteção contra dados circulares) */
+    protected const PROFUNDIDADE_MAXIMA = 50;
 
     /**
      * $this->getModel('op', 'produto'): model de qualquer módulo (como nas outras classes).
@@ -51,90 +49,74 @@ abstract class BaseModel extends Model
     /** Nome físico da tabela no dicionário (md_tabelas) */
     protected static string $mdTabela = '';
 
-    protected static function booted(): void
-    {
-        static::saving(fn (self $model) => $model->beforePost());
-        static::creating(fn (self $model) => $model->beforeInsert());
-        static::updating(fn (self $model) => $model->beforeUpdate());
-
-        static::created(function (self $model) {
-            $model->afterInsert();
-            $model->depoisDoCommit(fn () => $model->afterAfterInsert());
-        });
-
-        static::updated(function (self $model) {
-            $model->afterUpdate();
-            $model->depoisDoCommit(fn () => $model->afterAfterUpdate());
-        });
-
-        static::saved(function (self $model) {
-            $model->afterPost();
-            $model->depoisDoCommit(fn () => $model->afterAfterPost());
-        });
-
-        static::deleting(fn (self $model) => $model->beforeDelete());
-
-        static::deleted(function (self $model) {
-            $model->afterDelete();
-            $model->depoisDoCommit(fn () => $model->afterAfterDelete());
-        });
-    }
-
     public static function mdTabela(): string
     {
         return static::$mdTabela;
     }
 
+    protected function conexaoPrincipal(): ConnectionInterface
+    {
+        return $this->getConnection();
+    }
+
     // ------------------------------------------------------------------
-    // Chave primária e carga do registro
+    // Chave de busca e carga do registro
     // ------------------------------------------------------------------
 
     /**
-     * $this->getModel('op', 'produto')->setPrimaryKey(1)->refresh()
+     * Coluna usada para localizar o registro: o campo marcado como "chave" no dicionário;
+     * sem ele, a chave primária (id).
      */
-    public function setPrimaryKey(mixed $valor): static
+    public function nomeDaChave(): string
     {
-        $this->setAttribute($this->getKeyName(), $valor);
+        $chave = Registro::tabelaPorNomeFisico(static::$mdTabela)->campos->firstWhere('chave', true);
+
+        return $chave?->nome_fisico ?? $this->getKeyName();
+    }
+
+    /**
+     * $produto->set('CODIGO', 'A-10')->persiste()
+     */
+    public function set(string $campo, mixed $valor): static
+    {
+        $this->setAttribute($campo, $valor);
 
         return $this;
     }
 
-    public function getPrimaryKey(): mixed
+    /**
+     * Preenche o model com os dados do registro cujo campo chave (veja nomeDaChave()) já foi informado.
+     *
+     * Com $bPersisteFilhos, carrega também as tabelas filhas (as que têm FK para esta), depois as
+     * filhas delas, e assim por diante até o fim. Cada filha vira um array de models com o nome
+     * físico dela: $produto->OP_PRECO[0]->valor.
+     */
+    public function persiste(bool $bPersisteFilhos = false): static
     {
-        return $this->getKey();
+        return $this->persistePor($this->nomeDaChave(), $bPersisteFilhos);
     }
 
     /**
-     * Preenche o model com os dados do registro da chave primária.
-     *
-     * $preencheFilhos:
-     *  - false (padrão): só o registro;
-     *  - true: também as tabelas filhas (as que têm FK para esta);
-     *  - ['op_preco', ...]: só essas filhas.
-     *
-     * Cada filha vira um array de models com o nome físico dela:
-     * $produto->op_preco[0]->valor
-     *
-     * @param  bool|list<string>  $preencheFilhos
+     * Como persiste(), mas localizando por outra coluna já preenchida (ex.: a chave primária).
      */
-    public function refresh(bool|array $preencheFilhos = false): static
+    public function persistePor(string $chave, bool $bPersisteFilhos = false): static
     {
-        $chave = $this->getKey();
+        $valor = $this->getAttribute($chave);
 
-        if ($chave === null) {
-            throw new RuntimeException('Informe a chave com setPrimaryKey() antes de chamar refresh().');
+        if ($valor === null) {
+            throw new RuntimeException("Informe o campo chave ({$chave}) com set() antes de chamar persiste().");
         }
 
-        $registro = $this->newQuery()->find($chave)
-            ?? throw (new ModelNotFoundException)->setModel(static::class, [$chave]);
+        $registro = $this->newQuery()->where($chave, $valor)->first()
+            ?? throw (new ModelNotFoundException)->setModel(static::class, [$valor]);
 
         $this->setRawAttributes($registro->getAttributes(), true);
         $this->exists = true;
         $this->wasRecentlyCreated = false;
         $this->setRelations([]);
 
-        if ($preencheFilhos !== false) {
-            $this->preencherFilhos($preencheFilhos === true ? null : $preencheFilhos);
+        if ($bPersisteFilhos) {
+            $this->carregarFilhos(new Collection([$this]));
         }
 
         return $this;
@@ -160,15 +142,29 @@ abstract class BaseModel extends Model
     }
 
     /**
-     * Carrega as tabelas filhas no registro já carregado.
+     * Carrega as tabelas filhas (só um nível) no registro já carregado.
      *
      * @param  list<string>|null  $nomes  null = todas as filhas
      */
     public function preencherFilhos(?array $nomes = null): void
     {
-        $filhas = $this->tabelasFilhas();
+        $this->carregarFilhos(new Collection([$this]), 0, $nomes, false);
+    }
 
-        // nomes físicos em maiúscula (aceita op_preco ou OP_PRECO)
+    /**
+     * Carrega os filhos de vários registros da MESMA tabela com uma consulta por tabela filha e
+     * desce para os filhos deles do mesmo jeito.
+     *
+     * @param  Collection<int, static>  $pais
+     * @param  list<string>|null  $nomes  null = todas as filhas
+     */
+    protected function carregarFilhos(Collection $pais, int $nivel = 0, ?array $nomes = null, bool $descer = true): void
+    {
+        if ($nivel >= static::PROFUNDIDADE_MAXIMA || $pais->isEmpty()) {
+            return;
+        }
+
+        $filhas = $this->tabelasFilhas();
         $nomes = $nomes === null ? null : array_map('mb_strtoupper', $nomes);
 
         if ($nomes !== null && ($desconhecidas = array_diff($nomes, array_keys($filhas))) !== []) {
@@ -176,81 +172,24 @@ abstract class BaseModel extends Model
                 .'. Filhas: '.(implode(', ', array_keys($filhas)) ?: 'nenhuma').'.');
         }
 
+        $chaves = $pais->map(fn (Model $pai) => $pai->getKey())->all();
+
         foreach ($filhas as $nome => [$tabela, $coluna]) {
             if ($nomes !== null && ! in_array($nome, $nomes, true)) {
                 continue;
             }
 
-            $this->setRelation($nome, Registro::model($tabela)->newQuery()
-                ->where($coluna, $this->getKey())
-                ->orderBy(Registro::model($tabela)->getKeyName())
-                ->get()
-                ->all());
+            $modelo = Registro::model($tabela);
+            $filhos = $modelo->newQuery()->whereIn($coluna, $chaves)->orderBy($modelo->getKeyName())->get();
+            $porPai = $filhos->groupBy($coluna);
+
+            foreach ($pais as $pai) {
+                $pai->setRelation($nome, $porPai->get($pai->getKey(), new Collection)->values()->all());
+            }
+
+            if ($descer && $filhos->isNotEmpty() && $modelo instanceof self) {
+                $modelo->carregarFilhos($filhos, $nivel + 1);
+            }
         }
     }
-
-    /**
-     * Está incluindo (antes ou logo depois do insert)?
-     */
-    public function inserindo(): bool
-    {
-        return ! $this->exists || $this->wasRecentlyCreated;
-    }
-
-    protected function depoisDoCommit(callable $callback): void
-    {
-        $this->getConnection()->afterCommit($callback);
-    }
-
-    // ------------------------------------------------------------------
-    // Eventos: sobrescreva no model da tabela
-    // ------------------------------------------------------------------
-
-    /** Antes de incluir ou alterar. Retorne false para cancelar. */
-    protected function beforePost(): ?bool
-    {
-        return null;
-    }
-
-    /** Antes de incluir. Retorne false para cancelar. */
-    protected function beforeInsert(): ?bool
-    {
-        return null;
-    }
-
-    /** Antes de alterar. Retorne false para cancelar. */
-    protected function beforeUpdate(): ?bool
-    {
-        return null;
-    }
-
-    /** Antes de excluir. Retorne false para cancelar. */
-    protected function beforeDelete(): ?bool
-    {
-        return null;
-    }
-
-    /** Depois de incluir (dentro da transação). */
-    protected function afterInsert(): void {}
-
-    /** Depois de alterar (dentro da transação). */
-    protected function afterUpdate(): void {}
-
-    /** Depois de incluir ou alterar (dentro da transação). */
-    protected function afterPost(): void {}
-
-    /** Depois de excluir (dentro da transação). */
-    protected function afterDelete(): void {}
-
-    /** Depois do commit de uma inclusão. */
-    protected function afterAfterInsert(): void {}
-
-    /** Depois do commit de uma alteração. */
-    protected function afterAfterUpdate(): void {}
-
-    /** Depois do commit de uma inclusão ou alteração. */
-    protected function afterAfterPost(): void {}
-
-    /** Depois do commit de uma exclusão. */
-    protected function afterAfterDelete(): void {}
 }

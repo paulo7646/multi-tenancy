@@ -118,6 +118,7 @@ return new class extends Migration
             $table->json('opcoes')->nullable();
             $table->boolean('obrigatorio')->default(false);
             $table->boolean('unico')->default(false);
+            $table->boolean('chave')->default(false); // chave de busca do registro (set/persiste): única e obrigatória
             $table->boolean('indice')->default(false);
             $table->boolean('sem_componente')->default(false); // não aparece no formulário
             $table->boolean('sistema')->default(false); // criado pelo tipo da tabela (lista/conteúdo)

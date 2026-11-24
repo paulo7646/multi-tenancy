@@ -12,7 +12,7 @@ use Illuminate\Database\QueryException;
 use Livewire\Component;
 
 /**
- * Executa gravações e botões numa transação: eventos do model (beforePost,
+ * Executa gravações e botões numa transação: ganchos do controller (beforePost,
  * afterPost...) e $this->abortar('...') desfazem tudo e viram mensagem na tela.
  */
 class Executor

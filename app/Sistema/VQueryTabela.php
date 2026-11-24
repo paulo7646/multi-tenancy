@@ -6,31 +6,30 @@ use App\Models\Md\MdCampo;
 use App\Models\Md\MdTabela;
 use App\Sistema\Base\BaseController;
 use App\Sistema\Base\BaseModel;
+use App\Sistema\Base\Concerns\Principal;
 use App\Sistema\Base\Concerns\Utilidades;
 use App\Sistema\Enums\TipoCampo;
 use App\Sistema\Exceptions\EventoException;
-use App\Sistema\Rules\Cnpj;
-use App\Sistema\Rules\Cpf;
 use BadMethodCallException;
-use Carbon\Carbon;
 use DateTimeInterface;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Um registro de qualquer tabela do dicionário, com leitura e gravação por tipo.
+ * Auxiliar para operar qualquer tabela do dicionário (módulo + nome) sem instanciar o model: lê, insere,
+ * altera e exclui por tipo de campo. Quem grava é SEMPRE o controller da tabela (Registro::controller),
+ * então beforePost, afterInsert etc. rodam como nos formulários.
  *
- *   $produto = new ModelProperty('op', 'produto', 1);   // carrega o registro 1
+ *   $produto = new VQueryTabela('op', 'produto', 1);   // carrega o registro 1
  *   $produto->setGetAllChildrens();                      // traz todas as tabelas filhas
  *   $produto->setGetChildren('op_preco');                // ou só algumas
  *
  *   $produto->getString('descricao');                    // 'Suco'
  *   $produto->setDecimal('preco', 9.9)->update();
  *
- *   $novo = new ModelProperty('op', 'produto');
+ *   $novo = new VQueryTabela('op', 'produto');
  *   $novo->setString('descricao', 'Água')->setDecimal('preco', 3)->insert();
  *   $novo->getId();
  *
@@ -39,8 +38,8 @@ use Throwable;
  * tipo do campo; o get devolve o valor no tipo do PHP. setCampo/getCampo são os
  * genéricos (o get devolve string).
  *
- * insert(), update() e delete() rodam em transação (erro = rollback) e disparam
- * os eventos do model (beforePost, afterPost...). Para agrupar várias operações:
+ * insert(), update() e delete() chamam o controller da tabela, que roda os ganchos (beforePost,
+ * afterPost...) em transação (erro = rollback). Para agrupar várias operações:
  * iniciaTransacao() ... transacaoCommit() / transacaoRollBack(), ou
  * finalizaTransacao() (commit se tudo deu certo, rollback se alguma operação falhou).
  * Os nomes com acento também funcionam: iniciaTransação(), finalizaTransação(),
@@ -157,37 +156,13 @@ use Throwable;
  * @method $this transaçãoCommit()
  * @method $this transaçãoRollBack()
  */
-class ModelProperty
+class VQueryTabela
 {
-    use Utilidades;
-
-    /** Apelidos aceitos nos nomes dos métodos (setSmallInt = setSmallInteger) */
-    protected const APELIDOS = [
-        'int' => TipoCampo::Integer,
-        'tinyint' => TipoCampo::TinyInteger,
-        'smallint' => TipoCampo::SmallInteger,
-        'mediumint' => TipoCampo::MediumInteger,
-        'bigint' => TipoCampo::BigInteger,
-        'bool' => TipoCampo::Boolean,
-    ];
-
-    /** Faixa dos inteiros no PostgreSQL (tinyInteger vira smallint) */
-    protected const FAIXAS = [
-        'tinyInteger' => [-32768, 32767],
-        'smallInteger' => [-32768, 32767],
-        'integer' => [-2147483648, 2147483647],
-        'mediumInteger' => [-2147483648, 2147483647],
-        'bigInteger' => [PHP_INT_MIN, PHP_INT_MAX],
-        'unsignedTinyInteger' => [0, 32767],
-        'unsignedSmallInteger' => [0, 32767],
-        'unsignedInteger' => [0, 2147483647],
-        'unsignedMediumInteger' => [0, 2147483647],
-        'unsignedBigInteger' => [0, PHP_INT_MAX],
-        'foreignId' => [1, PHP_INT_MAX],
-        'year' => [1901, 2155],
-    ];
+    use Principal, Utilidades;
 
     protected MdTabela $tabela;
+
+    protected ConversorDeCampo $conversor;
 
     protected BaseModel $model;
 
@@ -198,12 +173,6 @@ class ModelProperty
 
     /** @var list<string> */
     protected array $filhos = [];
-
-    /** Transações abertas por este objeto (iniciaTransacao) */
-    protected int $transacoes = 0;
-
-    /** Alguma operação falhou dentro da transação aberta? */
-    protected ?Throwable $erro = null;
 
     /**
      * @param  string  $modulo  prefixo (op), nome (Operacional) ou pasta do módulo
@@ -237,6 +206,20 @@ class ModelProperty
         $this->tabela = $tabela;
         $this->model = $model;
         $this->campos = $tabela->campos->keyBy('nome_fisico');
+        $this->conversor = new ConversorDeCampo($tabela);
+    }
+
+    protected function conexaoPrincipal(): ConnectionInterface
+    {
+        return $this->model->getConnection();
+    }
+
+    /**
+     * Transação esquecida aberta é desfeita (nada fica pendurado na conexão).
+     */
+    public function __destruct()
+    {
+        $this->desfazerTransacoesEsquecidas();
     }
 
     // ------------------------------------------------------------------
@@ -248,7 +231,7 @@ class ModelProperty
      */
     public function setId(mixed $id): static
     {
-        $this->model->setPrimaryKey($id)->refresh();
+        $this->model->set($this->model->getKeyName(), $id)->persistePor($this->model->getKeyName());
         $this->carregarFilhos();
 
         return $this;
@@ -338,9 +321,9 @@ class ModelProperty
     }
 
     /**
-     * Registros de uma tabela filha, ou todas: ['op_preco' => [ModelProperty, ...]].
+     * Registros de uma tabela filha, ou todas: ['op_preco' => [VQueryTabela, ...]].
      *
-     * @return list<ModelProperty>|array<string, list<ModelProperty>>
+     * @return list<VQueryTabela>|array<string, list<VQueryTabela>>
      */
     public function getChildren(?string $filha = null): array
     {
@@ -387,7 +370,7 @@ class ModelProperty
     public function setCampo(string $campo, mixed $valor): static
     {
         $campo = $this->nomeDoCampo($campo);
-        $this->model->setAttribute($campo, $this->paraGravar($this->tipoDo($campo), $campo, $valor));
+        $this->model->setAttribute($campo, $this->conversor->paraGravar($this->tipoDo($campo), $campo, $valor));
 
         return $this;
     }
@@ -399,7 +382,7 @@ class ModelProperty
     {
         $campo = $this->nomeDoCampo($campo);
         $tipo = $this->tipoDo($campo);
-        $valor = $this->paraLer($tipo, $campo);
+        $valor = $this->conversor->paraLer($tipo, $this->model->getAttribute($campo));
 
         return match (true) {
             $valor === null => null,
@@ -415,7 +398,7 @@ class ModelProperty
     // ------------------------------------------------------------------
 
     /**
-     * Insere o registro (transação: erro = rollback). Os eventos do model rodam.
+     * Insere o registro pelo controller da tabela (ganchos + transação: erro = rollback).
      */
     public function insert(): static
     {
@@ -423,15 +406,11 @@ class ModelProperty
             throw new EventoException("O registro {$this->getId()} já existe em {$this->tabela->nome_fisico}: use update().");
         }
 
-        return $this->gravar(function () {
-            if ($this->model->save() === false) {
-                throw new EventoException('A inclusão foi cancelada pelas regras da tabela.');
-            }
-        });
+        return $this->gravar(fn () => $this->getController()->incluir($this->model));
     }
 
     /**
-     * Atualiza o registro do id setado (transação: erro = rollback).
+     * Atualiza o registro carregado pelo controller da tabela (ganchos + transação: erro = rollback).
      */
     public function update(): static
     {
@@ -439,15 +418,11 @@ class ModelProperty
             throw new EventoException("Informe o id do registro de {$this->tabela->nome_fisico} antes do update() (ou use insert()).");
         }
 
-        return $this->gravar(function () {
-            if ($this->model->isDirty() && $this->model->save() === false) {
-                throw new EventoException('A alteração foi cancelada pelas regras da tabela.');
-            }
-        });
+        return $this->gravar(fn () => $this->model->isDirty() ? $this->getController()->alterar($this->model) : null);
     }
 
     /**
-     * Exclui o registro do id setado (transação: erro = rollback).
+     * Exclui o registro carregado pelo controller da tabela (ganchos + transação: erro = rollback).
      */
     public function delete(): static
     {
@@ -455,18 +430,14 @@ class ModelProperty
             throw new EventoException("Informe o id do registro de {$this->tabela->nome_fisico} antes do delete().");
         }
 
-        return $this->gravar(function () {
-            if ($this->model->delete() === false) {
-                throw new EventoException('A exclusão foi cancelada pelas regras da tabela.');
-            }
-        });
+        return $this->gravar(fn () => $this->getController()->excluir($this->model));
     }
 
     protected function gravar(callable $operacao): static
     {
         try {
-            // dentro de iniciaTransacao() vira um savepoint
-            $this->conexao()->transaction($operacao);
+            // o controller abre a própria transação; dentro de iniciaTransacao() ela vira um savepoint
+            $operacao();
         } catch (Throwable $e) {
             $this->erro = $e;
 
@@ -474,98 +445,6 @@ class ModelProperty
         }
 
         return $this;
-    }
-
-    // ------------------------------------------------------------------
-    // Transação manual
-    // ------------------------------------------------------------------
-
-    public function iniciaTransacao(): static
-    {
-        $this->conexao()->beginTransaction();
-        $this->transacoes++;
-        $this->erro = null;
-
-        return $this;
-    }
-
-    public function transacaoCommit(): static
-    {
-        $this->exigirTransacao('transacaoCommit');
-        $this->conexao()->commit();
-        $this->transacoes--;
-
-        return $this;
-    }
-
-    /**
-     * Desfaz tudo desde o iniciaTransacao(). O objeto continua com os valores
-     * setados; use recarregar() para voltar ao que está no banco.
-     */
-    public function transacaoRollBack(): static
-    {
-        $this->exigirTransacao('transacaoRollBack');
-        $this->conexao()->rollBack();
-        $this->transacoes--;
-
-        return $this;
-    }
-
-    /**
-     * Encerra as transações abertas por este objeto: commit se tudo deu
-     * certo, rollback se alguma operação falhou. Retorna true no commit.
-     */
-    public function finalizaTransacao(): bool
-    {
-        $commit = $this->erro === null;
-
-        while ($this->transacoes > 0) {
-            $commit ? $this->transacaoCommit() : $this->transacaoRollBack();
-        }
-
-        $this->erro = null;
-
-        return $commit;
-    }
-
-    public function emTransacao(): bool
-    {
-        return $this->transacoes > 0;
-    }
-
-    /**
-     * Erro da última operação que falhou dentro da transação aberta.
-     */
-    public function getErro(): ?Throwable
-    {
-        return $this->erro;
-    }
-
-    protected function exigirTransacao(string $metodo): void
-    {
-        if ($this->transacoes === 0) {
-            throw new EventoException("{$metodo}(): não há transação aberta. Chame iniciaTransacao() antes.");
-        }
-    }
-
-    protected function conexao(): ConnectionInterface
-    {
-        return $this->model->getConnection();
-    }
-
-    /**
-     * Transação esquecida aberta é desfeita (nada fica pendurado na conexão).
-     */
-    public function __destruct()
-    {
-        try {
-            while ($this->transacoes > 0) {
-                $this->conexao()->rollBack();
-                $this->transacoes--;
-            }
-        } catch (Throwable) {
-            // conexão já encerrada
-        }
     }
 
     // ------------------------------------------------------------------
@@ -580,41 +459,24 @@ class ModelProperty
             return $this->{$semAcento}(...$argumentos);
         }
 
-        if (preg_match('/^(set|get)(.+)$/i', $metodo, $m) && ($tipo = static::tipoDoMetodo($m[2]))) {
+        if (preg_match('/^(set|get)(.+)$/i', $metodo, $m) && ($tipo = ConversorDeCampo::tipoDoMetodo($m[2]))) {
             $campo = $this->nomeDoCampo($argumentos[0] ?? throw new BadMethodCallException("{$metodo}(): informe o nome do campo."));
             $this->conferirTipo($tipo, $campo, $metodo);
 
             if (strtolower($m[1]) === 'get') {
-                return $this->paraLer($tipo, $campo);
+                return $this->conversor->paraLer($tipo, $this->model->getAttribute($campo));
             }
 
             if (! array_key_exists(1, $argumentos)) {
                 throw new BadMethodCallException("{$metodo}('{$campo}', valor): informe o valor.");
             }
 
-            $this->model->setAttribute($campo, $this->paraGravar($tipo, $campo, $argumentos[1]));
+            $this->model->setAttribute($campo, $this->conversor->paraGravar($tipo, $campo, $argumentos[1]));
 
             return $this;
         }
 
         throw new BadMethodCallException('Método '.static::class."::{$metodo}() não existe. Use set/get + o tipo do campo (setString, getDecimal...) ou setCampo/getCampo.");
-    }
-
-    public static function tipoDoMetodo(string $sufixo): ?TipoCampo
-    {
-        $chave = strtolower($sufixo);
-
-        if (isset(static::APELIDOS[$chave])) {
-            return static::APELIDOS[$chave];
-        }
-
-        foreach (TipoCampo::cases() as $tipo) {
-            if (strtolower($tipo->value) === $chave) {
-                return $tipo;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -661,229 +523,5 @@ class ModelProperty
         $sugestao = preg_replace('/^(set|get).*/i', '$1', $metodo).ucfirst($doCampo->value);
 
         throw new EventoException("O campo {$campo} é do tipo {$doCampo->label()}: use {$sugestao}() (ou setCampo/getCampo).");
-    }
-
-    // ------------------------------------------------------------------
-    // Conversões
-    // ------------------------------------------------------------------
-
-    protected function paraGravar(TipoCampo $tipo, string $campo, mixed $valor): mixed
-    {
-        if ($valor === null || $valor === '') {
-            return null;
-        }
-
-        $md = $this->campos->get($campo);
-        $erro = fn (string $esperado) => new EventoException("{$this->tabela->nome_fisico}.{$campo}: valor ".var_export($valor, true)." inválido ({$esperado}).");
-
-        if ($tipo->isInteger() || in_array($tipo, [TipoCampo::Year, TipoCampo::ForeignId], true)) {
-            if (! is_int($valor) && ! (is_string($valor) && preg_match('/^-?\d+$/', trim($valor))) && ! (is_float($valor) && floor($valor) === $valor)) {
-                throw $erro('número inteiro');
-            }
-
-            $inteiro = (int) $valor;
-            [$min, $max] = static::FAIXAS[$tipo->value] ?? [PHP_INT_MIN, PHP_INT_MAX];
-
-            if ($inteiro < $min || $inteiro > $max) {
-                throw $erro("entre {$min} e {$max}");
-            }
-
-            return $inteiro;
-        }
-
-        return match (true) {
-            in_array($tipo, [TipoCampo::Decimal, TipoCampo::Float, TipoCampo::Double], true) => $this->numero($tipo, $md, $valor, $erro),
-            $tipo === TipoCampo::Boolean => $this->logico($valor, $erro),
-            $tipo->isDate() => $this->data($valor, $erro)->format('Y-m-d'),
-            $tipo->isDateTime() => $this->data($valor, $erro)->format('Y-m-d H:i:s'),
-            $tipo->isTime() => $this->hora($valor, $erro),
-            $tipo->isJson() => $this->lista($valor, $erro),
-            $tipo === TipoCampo::MultiSelect => $this->multipla($md, $valor, $erro),
-            $tipo === TipoCampo::Enum => $this->opcao($campo, $md, $valor, $erro),
-            default => $this->texto($tipo, $md, $valor, $erro),
-        };
-    }
-
-    protected function paraLer(TipoCampo $tipo, string $campo): mixed
-    {
-        $valor = $this->model->getAttribute($campo);
-
-        if ($valor === null) {
-            return null;
-        }
-
-        return match (true) {
-            $tipo->isInteger(), $tipo === TipoCampo::Year, $tipo === TipoCampo::ForeignId => (int) $valor,
-            in_array($tipo, [TipoCampo::Decimal, TipoCampo::Float, TipoCampo::Double], true) => (float) $valor,
-            $tipo === TipoCampo::Boolean => (bool) $valor,
-            $tipo->isDate(), $tipo->isDateTime() => $valor instanceof DateTimeInterface ? Carbon::instance($valor) : Carbon::parse($valor),
-            $tipo->isTime() => $valor instanceof DateTimeInterface ? $valor->format('H:i:s') : (string) $valor,
-            $tipo->isJson(), $tipo === TipoCampo::MultiSelect => is_array($valor) ? $valor : (json_decode((string) $valor, true) ?? []),
-            default => (string) $valor,
-        };
-    }
-
-    protected function numero(TipoCampo $tipo, ?MdCampo $md, mixed $valor, \Closure $erro): string|float
-    {
-        if (is_string($valor)) {
-            $texto = trim($valor);
-            // formato brasileiro: 1.234,56
-            if (preg_match('/^-?\d{1,3}(\.\d{3})*(,\d+)?$/', $texto) || preg_match('/^-?\d+,\d+$/', $texto)) {
-                $texto = str_replace(['.', ','], ['', '.'], $texto);
-            }
-            $valor = $texto;
-        }
-
-        if (! is_numeric($valor)) {
-            throw $erro('número');
-        }
-
-        if ($tipo !== TipoCampo::Decimal) {
-            return (float) $valor;
-        }
-
-        $precisao = $md?->precisao ?: 10;
-        $escala = $md?->escala ?? 2;
-        $formatado = number_format((float) $valor, $escala, '.', '');
-        $digitosInteiros = strlen(ltrim(explode('.', ltrim($formatado, '-'))[0], '0'));
-
-        if ($digitosInteiros > $precisao - $escala) {
-            throw $erro('no máximo '.($precisao - $escala)." dígitos antes da vírgula e {$escala} casas decimais");
-        }
-
-        return $formatado;
-    }
-
-    protected function logico(mixed $valor, \Closure $erro): bool
-    {
-        if (is_bool($valor)) {
-            return $valor;
-        }
-
-        return match (mb_strtolower(trim((string) $valor))) {
-            '1', 'true', 's', 'sim', 'y', 'yes' => true,
-            '0', 'false', 'n', 'nao', 'não', 'no' => false,
-            default => throw $erro('verdadeiro/falso'),
-        };
-    }
-
-    protected function data(mixed $valor, \Closure $erro): Carbon
-    {
-        if ($valor instanceof DateTimeInterface) {
-            return Carbon::instance($valor);
-        }
-
-        $texto = trim((string) $valor);
-
-        foreach (['d/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 'Y-m-d H:i:s', 'Y-m-d H:i', 'Y-m-d'] as $formato) {
-            try {
-                $data = Carbon::createFromFormat("!{$formato}", $texto);
-            } catch (Throwable) {
-                continue;
-            }
-
-            if ($data && $data->format($formato) === $texto) {
-                return $data;
-            }
-        }
-
-        try {
-            return Carbon::parse($texto);
-        } catch (Throwable) {
-            throw $erro('data: Y-m-d ou d/m/Y');
-        }
-    }
-
-    protected function hora(mixed $valor, \Closure $erro): string
-    {
-        if ($valor instanceof DateTimeInterface) {
-            return $valor->format('H:i:s');
-        }
-
-        if (! preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/', trim((string) $valor), $m)) {
-            throw $erro('hora: HH:MM ou HH:MM:SS');
-        }
-
-        return "{$m[1]}:{$m[2]}:".($m[4] ?? '00');
-    }
-
-    protected function lista(mixed $valor, \Closure $erro): array
-    {
-        if (is_array($valor)) {
-            return $valor;
-        }
-
-        $decodificado = json_decode((string) $valor, true);
-
-        return is_array($decodificado) ? $decodificado : throw $erro('JSON');
-    }
-
-    protected function multipla(?MdCampo $md, mixed $valor, \Closure $erro): array
-    {
-        $valores = array_values(array_map('strval', $this->lista($valor, $erro)));
-        $fora = array_diff($valores, array_map('strval', $md?->opcoes ?? []));
-
-        if ($fora !== []) {
-            throw $erro('opções: '.implode(', ', $md?->opcoes ?? []));
-        }
-
-        return $valores;
-    }
-
-    protected function opcao(string $campo, ?MdCampo $md, mixed $valor, \Closure $erro): string
-    {
-        $opcoes = array_map('strval', $md?->opcoes ?? []);
-
-        if (! in_array((string) $valor, $opcoes, true)) {
-            throw $erro('opções: '.implode(', ', $opcoes));
-        }
-
-        return (string) $valor;
-    }
-
-    protected function texto(TipoCampo $tipo, ?MdCampo $md, mixed $valor, \Closure $erro): string
-    {
-        if (! is_scalar($valor) && ! $valor instanceof \Stringable) {
-            throw $erro('texto');
-        }
-
-        $texto = (string) $valor;
-
-        $valido = match ($tipo) {
-            TipoCampo::Email => filter_var($texto, FILTER_VALIDATE_EMAIL) !== false,
-            TipoCampo::Url => filter_var($texto, FILTER_VALIDATE_URL) !== false,
-            TipoCampo::Uuid => Str::isUuid($texto),
-            TipoCampo::Ulid => Str::isUlid($texto),
-            TipoCampo::IpAddress => filter_var($texto, FILTER_VALIDATE_IP) !== false,
-            TipoCampo::MacAddress => filter_var($texto, FILTER_VALIDATE_MAC) !== false,
-            TipoCampo::Cep => (bool) preg_match('/^\d{5}-?\d{3}$/', $texto),
-            TipoCampo::Phone => (bool) preg_match('/^\d{10,11}$/', preg_replace('/\D/', '', $texto)),
-            TipoCampo::Color => (bool) preg_match('/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i', $texto),
-            TipoCampo::Cpf => $this->regraPassa(new Cpf, $texto),
-            TipoCampo::Cnpj => $this->regraPassa(new Cnpj, $texto),
-            default => true,
-        };
-
-        if (! $valido) {
-            throw $erro($tipo->label());
-        }
-
-        $limite = $tipo->storageType()->hasLength() ? ($md?->tamanho ?: $tipo->defaultLength()) : null;
-
-        if ($limite !== null && mb_strlen($texto) > $limite) {
-            throw $erro("no máximo {$limite} caracteres");
-        }
-
-        return $texto;
-    }
-
-    protected function regraPassa(ValidationRule $regra, string $valor): bool
-    {
-        $passou = true;
-        $regra->validate('valor', $valor, function () use (&$passou) {
-            $passou = false;
-        });
-
-        return $passou;
     }
 }

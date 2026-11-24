@@ -16,7 +16,7 @@ class MdCampo extends Model
 
     protected $fillable = [
         'uid', 'md_tabela_id', 'nome', 'nome_fisico', 'tipo', 'tamanho', 'precisao', 'escala', 'opcoes',
-        'obrigatorio', 'unico', 'indice', 'sem_componente', 'sistema', 'padrao', 'ajuda', 'fk_tabela_id', 'fk_on_delete', 'ordem',
+        'obrigatorio', 'unico', 'chave', 'indice', 'sem_componente', 'sistema', 'padrao', 'ajuda', 'fk_tabela_id', 'fk_on_delete', 'ordem',
     ];
 
     protected function casts(): array
@@ -26,6 +26,7 @@ class MdCampo extends Model
             'opcoes' => 'array',
             'obrigatorio' => 'boolean',
             'unico' => 'boolean',
+            'chave' => 'boolean',
             'indice' => 'boolean',
             'sem_componente' => 'boolean',
             'sistema' => 'boolean',
@@ -40,6 +41,28 @@ class MdCampo extends Model
     {
         static::creating(function (MdCampo $campo) {
             $campo->uid ??= (string) Str::uuid();
+        });
+
+        // a chave de busca (set/persiste) é única e obrigatória, e só há uma por tabela
+        static::saving(function (MdCampo $campo) {
+            if (! $campo->chave) {
+                return;
+            }
+
+            $campo->unico = true;
+            $campo->obrigatorio = true;
+
+            $outra = static::query()
+                ->where('md_tabela_id', $campo->md_tabela_id)
+                ->where('chave', true)
+                ->when($campo->exists, fn ($q) => $q->where('id', '!=', $campo->id))
+                ->exists();
+
+            if ($outra) {
+                throw ValidationException::withMessages([
+                    'chave' => 'A tabela já tem um campo chave. Só pode haver um por tabela.',
+                ]);
+            }
         });
 
         // uma tabela só referencia o próprio módulo ou um módulo padrão (Estrutura): o cliente pode não ter o outro

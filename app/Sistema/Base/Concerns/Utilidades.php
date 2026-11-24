@@ -9,8 +9,8 @@ use App\Sistema\Base\BaseBotoes;
 use App\Sistema\Base\BaseController;
 use App\Sistema\Base\BaseResource;
 use App\Sistema\Exceptions\EventoException;
-use App\Sistema\ModelProperty;
 use App\Sistema\Registro;
+use App\Sistema\VQueryTabela;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 
@@ -62,11 +62,11 @@ trait Utilidades
     }
 
     /**
-     * Registro de qualquer tabela: $this->modelProperty('op', 'produto', 1).
+     * Registro de qualquer tabela: $this->vQueryTabela('op', 'produto', 1).
      */
-    public function modelProperty(string $modulo, string $nome, mixed $id = null): ModelProperty
+    public function vQueryTabela(string $modulo, string $nome, mixed $id = null): VQueryTabela
     {
-        return new ModelProperty($modulo, $nome, $id);
+        return new VQueryTabela($modulo, $nome, $id);
     }
 
     /**

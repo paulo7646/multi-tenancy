@@ -603,8 +603,8 @@ class FormularioBuilder
                 $registro = Registro::model($destino);
                 $view = Registro::tela($formularioDestino);
 
-                return Executor::transacao($registro, function () use ($registro, $view, $data) {
-                    $registro->fill($view->antesDeSalvar($data))->save();
+                return Executor::transacao($registro, function () use ($registro, $view, $data, $destino) {
+                    Registro::controller($destino)->incluir($registro, $view->antesDeSalvar($data));
                     $view->depoisDeSalvar($registro);
 
                     return $registro->getKey();

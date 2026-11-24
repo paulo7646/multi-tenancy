@@ -494,7 +494,7 @@ abstract class BaseResource extends Resource
     }
 
     /**
-     * Exclui numa transação só (os eventos beforeDelete/afterDelete do model rodam por registro).
+     * Exclui numa transação só (as regras beforeDelete/afterDelete do controller rodam por registro).
      *
      * @return int registros excluídos (0 se a exclusão foi interrompida)
      */
@@ -504,11 +504,11 @@ abstract class BaseResource extends Resource
             return 0;
         }
 
-        return (int) Executor::transacao($registros->first(), function () use ($registros) {
+        $controller = Registro::controller(static::md()->tabela);
+
+        return (int) Executor::transacao($registros->first(), function () use ($controller, $registros) {
             foreach ($registros as $registro) {
-                if ($registro->delete() === false) {
-                    static::tela()->abortar('A exclusão foi cancelada pelas regras da tabela.');
-                }
+                $controller->excluir($registro);
             }
 
             return $registros->count();

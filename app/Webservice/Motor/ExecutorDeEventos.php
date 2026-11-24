@@ -45,13 +45,13 @@ class ExecutorDeEventos
             throw new ProcessamentoException("A função \"{$evento->funcao}\" não existe em {$classe}.");
         }
 
-        (new $classe)->{$evento->funcao}($contexto);
+        Registro::controller($tabela)->{$evento->funcao}($contexto);
     }
 
     protected static function incluir(Model $model, Evento $evento, ContextoEvento $contexto): void
     {
         $novo = $model->newInstance();
-        $novo->forceFill(static::valores($evento, $contexto))->save();
+        Registro::controller(Registro::tabelaPorNomeFisico($novo->getTable()))->incluir($novo, static::valores($evento, $contexto));
     }
 
     protected static function incluirSeNaoExistir(Model $model, Evento $evento, ContextoEvento $contexto): void
@@ -75,7 +75,7 @@ class ExecutorDeEventos
         $valores = static::valores($evento, $contexto);
 
         foreach ($registros as $registro) {
-            $registro->forceFill($valores)->save();
+            Registro::controller(Registro::tabelaPorNomeFisico($registro->getTable()))->alterar($registro, $valores);
         }
     }
 
@@ -84,7 +84,7 @@ class ExecutorDeEventos
         static::exigirBusca($evento);
 
         foreach (static::consulta($model, $evento, $contexto)->get() as $registro) {
-            $registro->delete();
+            Registro::controller(Registro::tabelaPorNomeFisico($registro->getTable()))->excluir($registro);
         }
     }
 

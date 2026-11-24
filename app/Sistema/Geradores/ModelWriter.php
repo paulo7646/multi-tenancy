@@ -120,9 +120,9 @@ use App\Sistema\Base\BaseModel;
 /**
  * Tabela "{$tabela->nome}" ({$tabela->nome_fisico}) do módulo {$tabela->modulo->nome}.
  *
- * Criado pelo dicionário de dados. Escreva aqui os eventos (beforePost,
- * afterPost, afterAfterPost, beforeDelete...) e as regras da tabela; veja
- * App\Sistema\Base\BaseModel. Só o bloco <estrutura> é recriado.
+ * Criado pelo dicionário de dados. As regras da tabela (beforePost, afterPost,
+ * afterAfterPost, beforeDelete...) ficam no controller dela; o model guarda os
+ * dados e carrega o registro (set/persiste). Só o bloco <estrutura> é recriado.
  */
 class {$tabela->classeModel()} extends BaseModel
 {

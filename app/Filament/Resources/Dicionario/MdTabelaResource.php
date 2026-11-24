@@ -356,6 +356,9 @@ class MdTabelaResource extends Resource
                                     ->schema([
                                         Toggle::make('obrigatorio')->label('Obrigatório')->inline(false)->disabled(fn (Get $get) => (bool) $get('sistema')),
                                         Toggle::make('unico')->label('Único')->inline(false)->disabled(fn (Get $get) => (bool) $get('sistema')),
+                                        Toggle::make('chave')->label('Chave de busca')->inline(false)
+                                            ->helperText('Localiza o registro em set()/persiste(). Único e obrigatório; um por tabela.')
+                                            ->disabled(fn (Get $get) => (bool) $get('sistema')),
                                         Toggle::make('indice')->label('Índice')->inline(false),
                                         Toggle::make('sem_componente')->label('Não cria componente')->inline(false),
                                     ]),

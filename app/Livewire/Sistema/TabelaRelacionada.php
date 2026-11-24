@@ -408,7 +408,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
     }
 
     /**
-     * Cria as linhas de ligação (eventos do model da tabela de ligação), numa transação.
+     * Cria as linhas de ligação (pelo controller da tabela de ligação), numa transação.
      *
      * @param  list<int|string>  $ids
      */
@@ -427,9 +427,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
 
                 $linha = $ligacao->newInstance([$this->campoLigacao() => $this->valorLigacao(), $outro => $id]);
 
-                if ($linha->save() === false) {
-                    $this->tela(BaseResource::INCLUIR)->abortar('A ligação foi cancelada pelas regras da tabela.');
-                }
+                Registro::controller($this->destino())->incluir($linha);
 
                 $criados++;
             }
@@ -445,9 +443,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
     {
         if (! $this->ehLigacao()) {
             return (bool) Executor::transacao($record, function () use ($record) {
-                if ($record->delete() === false) {
-                    $this->tela(BaseResource::VISUALIZAR, $record)->abortar('A exclusão foi cancelada pelas regras da tabela.');
-                }
+                Registro::controller($this->destino())->excluir($record);
 
                 return true;
             });
@@ -457,9 +453,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
 
         return (bool) Executor::transacao(Registro::model($this->destino()), function () use ($record, $outro) {
             foreach ($this->ligacoes()->where($outro, $record->getKey())->get() as $linha) {
-                if ($linha->delete() === false) {
-                    $this->tela(BaseResource::VISUALIZAR, $record)->abortar('A remoção da ligação foi cancelada pelas regras da tabela.');
-                }
+                Registro::controller($this->destino())->excluir($linha);
             }
 
             return true;
@@ -519,7 +513,7 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
     }
 
     /**
-     * Grava na tabela listada com os eventos do model e os hooks do Resource
+     * Grava na tabela listada pelo controller dela e com os hooks do Resource
      * dela, numa transação. Na tabela de ligação, incluir também cria a ligação.
      */
     protected function gravar(Model $registro, array $dados, string $operacao): Model
@@ -530,11 +524,10 @@ class TabelaRelacionada extends Component implements HasActions, HasSchemas, Has
         $novo = ! $registro->exists;
 
         $salvo = Executor::transacao($registro, function () use ($tela, $registro, $dados, $novo) {
-            $registro->fill($tela->antesDeSalvar($dados));
+            $dados = $tela->antesDeSalvar($dados);
+            $controller = Registro::controller($this->listada());
 
-            if ($registro->save() === false) {
-                $tela->abortar('A gravação foi cancelada pelas regras da tabela.');
-            }
+            $registro->exists ? $controller->alterar($registro, $dados) : $controller->incluir($registro, $dados);
 
             $tela->depoisDeSalvar($registro);
 
