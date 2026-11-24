@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Dicionario\MdGerenciamentoResource\Pages;
 
+use App\Filament\Resources\Dicionario\Concerns\AbreArquivosNoEditor;
 use App\Filament\Resources\Dicionario\Concerns\CriaArquivosPorBotao;
 use App\Filament\Resources\Dicionario\MdGerenciamentoResource;
 use App\Sistema\Geradores\Gerador;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EditMdGerenciamento extends EditRecord
 {
+    use AbreArquivosNoEditor;
     use CriaArquivosPorBotao;
 
     protected static string $resource = MdGerenciamentoResource::class;
@@ -18,6 +20,7 @@ class EditMdGerenciamento extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            static::acaoAbrirArquivoDoGerenciamento($this->getRecord()),
             $this->acaoCriarArquivos(),
             MdGerenciamentoResource::acaoAbrir(),
             MdGerenciamentoResource::excluir(DeleteAction::make()),

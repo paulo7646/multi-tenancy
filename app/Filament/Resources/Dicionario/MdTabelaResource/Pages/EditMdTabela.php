@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Dicionario\MdTabelaResource\Pages;
 
+use App\Filament\Resources\Dicionario\Concerns\AbreArquivosNoEditor;
 use App\Filament\Resources\Dicionario\Concerns\CriaArquivosPorBotao;
 use App\Filament\Resources\Dicionario\MdTabelaResource;
 use App\Sistema\Geradores\Gerador;
@@ -15,6 +16,7 @@ use Illuminate\Support\HtmlString;
 
 class EditMdTabela extends EditRecord
 {
+    use AbreArquivosNoEditor;
     use CriaArquivosPorBotao;
 
     protected static string $resource = MdTabelaResource::class;
@@ -22,6 +24,7 @@ class EditMdTabela extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            static::grupoDeArquivosDaTabela($this->getRecord()),
             $this->acaoCriarArquivos(),
             MdTabelaResource::acaoValores(),
             MdTabelaResource::acaoConstantes(),

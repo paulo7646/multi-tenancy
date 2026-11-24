@@ -20,6 +20,16 @@ class CreateMdTabela extends CreateRecord
 
     protected bool $criarTelas = false;
 
+    public function mount(): void
+    {
+        parent::mount();
+
+        // vindo da aba Tabelas de um módulo: já escolhe o módulo
+        if ($moduloId = request()->integer('modulo_id')) {
+            $this->data['modulo_id'] = $moduloId;
+        }
+    }
+
     protected function beforeCreate(): void
     {
         // tabela de ligação que exibe o filho não tem formulário nem tela

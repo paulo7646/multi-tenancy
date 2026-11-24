@@ -3,6 +3,7 @@
 use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\EditMdFormulario;
 use App\Filament\Resources\Dicionario\MdTabelaResource\Pages\EditMdTabela;
 use App\Filament\Resources\Dicionario\ModuloResource\Pages\EditModulo;
+use App\Livewire\Dicionario\TabelasDoModulo;
 use App\Models\Md\MdCampo;
 use App\Models\Md\MdFormulario;
 use App\Models\Md\MdTabela;
@@ -112,4 +113,22 @@ it('formulário e tela só geram depois que a tabela tem arquivos', function () 
     $pagina->callAction('criarArquivos');
 
     expect(is_file($this->tabela->caminho($this->tabela->classeModel().'.php')))->toBeFalse();
+});
+
+it('o módulo lista as tabelas numa aba e a tabela tem o grupo de arquivos', function () {
+    Livewire::test(EditModulo::class, ['record' => $this->modulo->getRouteKey()])
+        ->assertSee('Tabelas')
+        ->assertSee('Cliente');
+
+    Livewire::test(EditMdTabela::class, ['record' => $this->tabela->getRouteKey()])
+        ->assertSee('Abrir arquivo model')
+        ->assertSee('Abrir arquivo controller');
+});
+
+it('a aba Tabelas do módulo é uma tabela com abrir, nova tabela e excluir', function () {
+    Livewire::test(TabelasDoModulo::class, ['moduloId' => $this->modulo->id])
+        ->assertCanSeeTableRecords([$this->tabela])
+        ->assertTableActionExists('edit', record: $this->tabela)
+        ->assertTableActionExists('delete', record: $this->tabela)
+        ->assertSee('Nova tabela');
 });

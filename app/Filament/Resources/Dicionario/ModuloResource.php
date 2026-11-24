@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Dicionario;
 
 use App\Filament\Resources\Dicionario\Concerns\AcessoDicionario;
 use App\Filament\Resources\Dicionario\ModuloResource\Pages;
+use App\Livewire\Dicionario\TabelasDoModulo;
 use App\Models\Md\Modulo;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Geradores\Gerador;
@@ -17,6 +18,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
@@ -116,6 +118,15 @@ class ModuloResource extends Resource
                         Textarea::make('descricao')
                             ->label('Descrição')
                             ->rows(2)
+                            ->columnSpanFull(),
+                    ]),
+
+                Tab::make('Tabelas')
+                    ->icon('heroicon-o-table-cells')
+                    ->visible(fn (?Modulo $record) => (bool) $record?->exists)
+                    ->schema([
+                        Livewire::make(TabelasDoModulo::class, fn (?Modulo $record) => ['moduloId' => $record?->id])
+                            ->key('tabelas-do-modulo')
                             ->columnSpanFull(),
                     ]),
             ]),

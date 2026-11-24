@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Dicionario\MdFormularioResource\Pages;
 
+use App\Filament\Resources\Dicionario\Concerns\AbreArquivosNoEditor;
 use App\Filament\Resources\Dicionario\Concerns\CriaArquivosPorBotao;
 use App\Filament\Resources\Dicionario\MdFormularioResource;
 use App\Filament\Resources\Dicionario\MdFormularioResource\Pages\Concerns\DesenhaPrevia;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EditMdFormulario extends EditRecord
 {
+    use AbreArquivosNoEditor;
     use CriaArquivosPorBotao;
     use DesenhaPrevia;
 
@@ -21,6 +23,7 @@ class EditMdFormulario extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            static::acaoAbrirArquivoDoFormulario($this->getRecord()),
             $this->acaoCriarArquivos(),
             MdFormularioResource::previa(),
             MdFormularioResource::excluir(DeleteAction::make()),
