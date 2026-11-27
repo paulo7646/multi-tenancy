@@ -2,16 +2,8 @@
 
 namespace App\Providers\Filament;
 
-use App\Plataforma\Plataforma;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Registro;
-use App\Webservice\Resources\AgendamentoResource;
-use App\Webservice\Resources\EventoResource;
-use App\Webservice\Resources\IntegracaoResource;
-use App\Webservice\Resources\ObjetoResource;
-use App\Webservice\Resources\OperacaoResource;
-use App\Webservice\Resources\VersaoResource;
-use App\Webservice\Resources\WebserviceResource;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -50,19 +42,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            // documentos, assinatura eletrônica, impressão e dados da empresa
-            ->resources(Plataforma::recursos())
-            ->pages(Plataforma::paginas())
-            // webservices (consumidos ou disponibilizados) e layouts de integração
-            ->resources([
-                WebserviceResource::class,
-                OperacaoResource::class,
-                VersaoResource::class,
-                ObjetoResource::class,
-                EventoResource::class,
-                IntegracaoResource::class,
-                AgendamentoResource::class,
-            ])
             // telas dos módulos da base pai (dicionário de dados)
             ->resources(Registro::resources(Banco::Central))
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

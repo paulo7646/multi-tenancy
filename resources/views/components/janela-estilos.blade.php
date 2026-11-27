@@ -43,11 +43,15 @@
     }
 </script>
 
-@if (\App\Sistema\Runtime\Janela::modo() === 'selecionar' && filled($campo = \App\Sistema\Runtime\Janela::campo()))
+@if (\App\Sistema\Runtime\Janela::modo() === 'selecionar' && filled(\App\Sistema\Runtime\Janela::recurso()) && filled($campo = \App\Sistema\Runtime\Janela::campo()))
     <script>
         // lista aberta pela lupa de um campo de FK: o duplo clique na linha devolve o registro ao campo
         document.addEventListener('dblclick', (evento) => {
-            const chave = evento.target.closest?.('.fi-ta-row')?.getAttribute('wire:key')?.match(/\.table\.records\.(.+)$/)?.[1];
+            // só a lista (datagrid) da página de listagem: não as tabelas filhas de um formulário
+            const linha = evento.target.closest?.('.fi-ta-row, .fi-ta-record');
+            const chave = linha && linha.closest('.fi-resource-list-records-page')
+                ? linha.getAttribute('wire:key')?.match(/\.table\.records\.(.+)$/)?.[1]
+                : undefined;
 
             if (chave !== undefined && window.parent !== window) {
                 window.parent.postMessage({ tipo: 'fk-selecionado', campo: @js($campo), id: chave }, window.location.origin);

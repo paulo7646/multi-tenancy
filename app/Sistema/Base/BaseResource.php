@@ -7,7 +7,6 @@ use App\Models\Md\MdFormularioBotao;
 use App\Models\Md\MdGerenciamento;
 use App\Models\Md\MdGerenciamentoBotao;
 use App\Models\Md\MdTabela;
-use App\Plataforma\Impressao\AcoesDeImpressao;
 use App\Sistema\Base\Concerns\Utilidades;
 use App\Sistema\Enums\Cor;
 use App\Sistema\Permissoes;
@@ -346,9 +345,9 @@ abstract class BaseResource extends Resource
     }
 
     /**
-     * Botões do formulário (dicionário), no topo das telas de incluir, alterar e visualizar.
+     * Botões do formulário (dicionário), no topo das telas de incluir, alterar e visualizar, em ordem e com grupos.
      *
-     * @return list<Action>
+     * @return list<Action|ActionGroup>
      */
     public static function botoesDoFormulario(?Model $registro, \Livewire\Component $livewire): array
     {
@@ -455,7 +454,6 @@ abstract class BaseResource extends Resource
             ->columns((new ColunasBuilder($md, $tela))->colunas())
             ->filters($filtros)
             ->defaultSort($model->getKeyName(), 'desc')
-            ->headerActions([AcoesDeImpressao::exportar($tabela)])
             // na lista de seleção (lupa de um campo de FK) a linha não abre o registro: o duplo clique seleciona
             ->recordUrl(fn (Model $record) => static::emSelecao() ? null : static::urlDoRegistro($record))
             // nenhum botão na linha: todos ficam no topo e agem nos registros selecionados
@@ -467,24 +465,17 @@ abstract class BaseResource extends Resource
                     ->color('gray')
                     ->visible(fn () => static::formulario() && ! static::emSelecao())
                     ->action(function (Collection $records, $livewire) {
-                        if (! static::umSelecionado($records, 'Alterar') || ! static::canEdit($registro = $records->first())) {
+                        if (! static::umSelecionado($records, 'Alterar')) {
+                            return;
+                        }
+
+                        if (! static::canEdit($registro = $records->first())) {
+                            Notification::make()->title('Você não pode alterar este registro')->warning()->send();
+
                             return;
                         }
 
                         $livewire->redirect(static::getUrl('edit', ['record' => $registro]));
-                    }),
-
-                BulkAction::make('imprimir')
-                    ->label('Imprimir')
-                    ->icon('heroicon-o-printer')
-                    ->color('gray')
-                    ->visible(fn () => ! static::emSelecao())
-                    ->action(function (Collection $records) use ($tabela) {
-                        if (! static::umSelecionado($records, 'Imprimir')) {
-                            return null;
-                        }
-
-                        return AcoesDeImpressao::baixarRegistro($tabela, $records->first());
                     }),
 
                 ...static::agruparBotoes($md->botoes, $md->grupos_botoes, fn (MdGerenciamentoBotao $b) => static::botao($b, $tela, $tabela, $model)),
@@ -557,16 +548,26 @@ abstract class BaseResource extends Resource
 
         return $acao
             ->deselectRecordsAfterCompletion()
-            ->action(function (Collection $records, $livewire) use ($b, $tabela, $model) {
-                if ($b->multiplos) {
-                    Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $model, $b->nome_fisico, $b->titulo, $livewire, [$records]);
-
+            ->action(function (Collection $records, $livewire) use ($b, $tela, $tabela, $model) {
+                if (! $b->multiplos && ! static::umSelecionado($records, $b->titulo)) {
                     return;
                 }
 
-                if (static::umSelecionado($records, $b->titulo)) {
-                    Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $records->first(), $b->nome_fisico, $b->titulo, $livewire, [$records->first()]);
+                // a regra de visibilidade do botão (botaoVisivel) vale para cada registro selecionado
+                $permitidos = $records->filter(fn (Model $registro) => $tela->botaoVisivel($b->nome_fisico, $registro))->values();
+
+                if ($permitidos->count() < $records->count()) {
+                    $fora = $records->count() - $permitidos->count();
+                    Notification::make()->title("{$b->titulo}: não vale para {$fora} ".($fora === 1 ? 'registro selecionado' : 'registros selecionados'))->warning()->send();
                 }
+
+                if ($permitidos->isEmpty()) {
+                    return;
+                }
+
+                $b->multiplos
+                    ? Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $model, $b->nome_fisico, $b->titulo, $livewire, [$permitidos])
+                    : Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $permitidos->first(), $b->nome_fisico, $b->titulo, $livewire, [$permitidos->first()]);
             });
     }
 

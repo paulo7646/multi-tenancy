@@ -5,6 +5,7 @@ use App\Models\Md\MdGerenciamento;
 use App\Models\Md\MdGerenciamentoBotao;
 use App\Models\User;
 use App\Sistema\Base\BaseResource;
+use App\Sistema\Geradores\Exportador;
 use App\Sistema\Registro;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -75,7 +76,6 @@ it('o datagrid não tem botões na linha: alterar, imprimir, excluir e os cadast
     Livewire::test($resource.'\\Pages\\Listar')
         ->assertCanSeeTableRecords([$model])
         ->assertTableBulkActionExists('alterar')
-        ->assertTableBulkActionExists('imprimir')
         ->assertTableBulkActionExists('excluir_selecionados')
         ->assertTableBulkActionExists('faturar')
         ->assertTableActionDoesNotExist('edit', record: $model)
@@ -84,10 +84,29 @@ it('o datagrid não tem botões na linha: alterar, imprimir, excluir e os cadast
 });
 
 it('na lista de seleção da lupa o duplo clique devolve o registro ao campo', function () {
-    request()->query->replace(['janela' => '1', 'modo' => 'selecionar', 'campo' => 'data.CLIENTE_ID']);
+    request()->query->replace(['janela' => '1', 'modo' => 'selecionar', 'campo' => 'data.CLIENTE_ID', 'recurso' => 'cliente']);
 
     expect(view('components.janela-estilos')->render())
         ->toContain('dblclick')
         ->toContain('fk-selecionado')
         ->toContain('data.CLIENTE_ID');
+});
+
+it('sem o recurso na URL (página aberta por outro caminho) o duplo clique não seleciona', function () {
+    request()->query->replace(['janela' => '1', 'modo' => 'selecionar', 'campo' => 'data.CLIENTE_ID']);
+
+    expect(view('components.janela-estilos')->render())->not->toContain('dblclick');
+});
+
+it('o dicionário exportado antes (botão na linha) é importado no modelo novo', function () {
+    $converter = fn (array $b) => Exportador::botaoDoModeloAntigo($b);
+
+    expect($converter(['nome_fisico' => 'a', 'no_registro' => true, 'exige_selecao' => false]))
+        ->toMatchArray(['exige_selecao' => true, 'multiplos' => false])->not->toHaveKey('no_registro')
+        ->and($converter(['nome_fisico' => 'b', 'no_registro' => false, 'exige_selecao' => true, 'multiplos' => false]))
+        ->toMatchArray(['exige_selecao' => true, 'multiplos' => true])
+        ->and($converter(['nome_fisico' => 'c', 'no_registro' => false, 'exige_selecao' => false]))
+        ->toMatchArray(['exige_selecao' => false, 'multiplos' => false])
+        ->and($converter(['nome_fisico' => 'd', 'exige_selecao' => true, 'multiplos' => false]))
+        ->toMatchArray(['exige_selecao' => true, 'multiplos' => false]);
 });

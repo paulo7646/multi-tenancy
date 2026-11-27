@@ -9,6 +9,3 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('licenses:expire')->hourly();
-
-Schedule::command('webservice:agendamentos')->everyMinute()->withoutOverlapping();
-Schedule::command('webservice:limpar')->dailyAt('03:30')->withoutOverlapping();

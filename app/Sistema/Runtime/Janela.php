@@ -55,12 +55,6 @@ class Janela
         return 'window.Janelas && window.Janelas.abrir('.static::json(['titulo' => $titulo, 'url' => $url]).')';
     }
 
-    /** JS (dentro da janela) que devolve o registro escolhido à página que abriu a janela. */
-    public static function scriptSelecionar(string $campo, mixed $id): string
-    {
-        return 'window.parent.postMessage('.static::json(['tipo' => 'fk-selecionado', 'campo' => $campo, 'id' => $id]).', window.location.origin)';
-    }
-
     protected static function json(array $dados): string
     {
         return json_encode($dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);

@@ -4,16 +4,8 @@ namespace App\Providers\Filament;
 
 use App\Http\Middleware\CheckTenantStatus;
 use App\Http\Middleware\CheckUserLicense;
-use App\Plataforma\Plataforma;
 use App\Sistema\Enums\Banco;
 use App\Sistema\Registro;
-use App\Webservice\Resources\AgendamentoResource;
-use App\Webservice\Resources\EventoResource;
-use App\Webservice\Resources\IntegracaoResource;
-use App\Webservice\Resources\ObjetoResource;
-use App\Webservice\Resources\OperacaoResource;
-use App\Webservice\Resources\VersaoResource;
-use App\Webservice\Resources\WebserviceResource;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use CrescentPurchasing\FilamentAuditing\FilamentAuditingPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -52,19 +44,6 @@ class ClientPanelProvider extends PanelProvider
             ])
             ->viteTheme('resources/css/filament/client/theme.css')
             ->discoverResources(in: app_path('Filament/Client/Resources'), for: 'App\\Filament\\Client\\Resources')
-            // documentos, assinatura eletrônica, impressão e dados da empresa
-            ->resources(Plataforma::recursos())
-            ->pages(Plataforma::paginas())
-            // webservices (consumidos ou disponibilizados) e layouts de integração
-            ->resources([
-                WebserviceResource::class,
-                OperacaoResource::class,
-                VersaoResource::class,
-                ObjetoResource::class,
-                EventoResource::class,
-                IntegracaoResource::class,
-                AgendamentoResource::class,
-            ])
             // telas dos módulos dos clientes (dicionário de dados)
             ->resources(Registro::resources(Banco::Tenant))
             ->discoverPages(in: app_path('Filament/Client/Pages'), for: 'App\\Filament\\Client\\Pages')

@@ -13,8 +13,6 @@ use App\Sistema\Geradores\Gerador;
 use App\Sistema\Registro;
 use App\Sistema\Runtime\Acesso;
 use App\Sistema\Schema\Incorporador;
-use App\Webservice\Resources\WebserviceResource;
-use Filament\Facades\Filament;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -149,30 +147,6 @@ it('uma tabela de módulo comum pode referenciar a do módulo padrão (Estrutura
 
         expect(MdCampo::create(['md_tabela_id' => $tabelaWs->id, 'nome' => 'L', 'nome_fisico' => 'LICENCA_ID', 'tipo' => TipoCampo::ForeignId, 'fk_tabela_id' => $licencas->id, 'fk_on_delete' => 'restrict']))
             ->toBeInstanceOf(MdCampo::class);
-    } finally {
-        $empresa->delete();
-    }
-});
-
-it('as telas do Webservice só abrem para a empresa que tem o módulo', function () {
-    $empresa = empresaComBanco('exist5');
-
-    try {
-        $ws = Modulo::create(['nome' => 'Webservice', 'prefixo' => 'ws', 'pasta' => 'Webservice', 'banco' => Banco::Tenant]);
-
-        // só a regra de módulo da trava (a permissão do usuário é outra camada, testada à parte)
-        $acessa = fn () => $empresa->fresh()->executar(function () {
-            Filament::setCurrentPanel('client');
-            test()->actingAs(User::first());
-
-            return (fn () => static::moduloLiberado())->bindTo(null, WebserviceResource::class)();
-        });
-
-        expect($acessa())->toBeFalse();
-
-        $empresa->modulos()->attach($ws->id);
-
-        expect($acessa())->toBeTrue();
     } finally {
         $empresa->delete();
     }

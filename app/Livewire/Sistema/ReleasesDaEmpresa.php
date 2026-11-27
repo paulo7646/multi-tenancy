@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Plataforma\Livewire;
+namespace App\Livewire\Sistema;
 
 use App\Models\Md\MdRelease;
 use App\Models\Tenant;

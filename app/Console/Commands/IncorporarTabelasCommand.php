@@ -15,7 +15,7 @@ class IncorporarTabelasCommand extends Command
 {
     protected $signature = 'md:incorporar {--sem-exportar : não grava o dicionário em database/md}';
 
-    protected $description = 'Cadastra no dicionário as tabelas feitas à mão (módulos Estrutura e Webservice), sem gerar migration nem arquivos';
+    protected $description = 'Cadastra no dicionário as tabelas feitas à mão (módulo Estrutura), sem gerar migration nem arquivos';
 
     public function handle(): int
     {

@@ -14,13 +14,10 @@ use Filament\Navigation\NavigationManager;
 use Filament\Pages\BasePage as Page;
 use Filament\Resources\Resource;
 use Filament\Widgets\Widget;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Throwable;
@@ -45,10 +42,6 @@ class AppServiceProvider extends ServiceProvider
 
         $this->desfazerTransacaoAbertaAoFinal();
         $this->usarConexaoDiretaNasMigrations();
-
-        // entrada dos webservices disponibilizados: limite por IP e webservice
-        RateLimiter::for('webservice', fn (Request $request) => Limit::perMinute((int) config('webservice.limite_por_minuto', 120))
-            ->by($request->ip().'|'.$request->route('webservice')));
 
         $this->preserveShieldV3PermissionKeys();
     }

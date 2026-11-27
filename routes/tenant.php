@@ -6,9 +6,6 @@ use App\Http\Controllers\Auth\ImpersonateController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\LicenseRequestController;
 use App\Http\Middleware\CheckTenantStatus;
-use App\Webservice\Http\EntradaController;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -30,12 +27,6 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    // webservices disponibilizados: terceiros enviam JSON/XML para /ws/{webservice}/{rota}
-    Route::any('/ws/{webservice}/{rota?}', EntradaController::class)
-        ->where('rota', '.*')
-        ->middleware('throttle:webservice')
-        ->withoutMiddleware([VerifyCsrfToken::class, ValidateCsrfToken::class])
-        ->name('webservice.entrada.tenant');
 
     // Página da empresa em Vue: views/clientes/{slug}
     Route::get('/', [FrontendController::class, 'tenant'])

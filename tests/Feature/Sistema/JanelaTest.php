@@ -52,12 +52,8 @@ it('monta a URL da janela sem parâmetros vazios', function () {
 
 it('os scripts escapam o conteúdo, sem deixar fechar a tag nem a aspa', function () {
     $abrir = Janela::scriptAbrir('Buscar </script><b>"x"', 'http://x.test/a?b=1&c=2');
-    $selecionar = Janela::scriptSelecionar("data.A'];alert(1)//", 5);
-
     expect($abrir)->not->toContain('</script>')->not->toContain('<b>')
-        ->and($abrir)->toContain('window.Janelas')
-        ->and($selecionar)->not->toContain("'];alert(1)//")
-        ->and($selecionar)->toContain('window.parent.postMessage')->toContain('"id":5');
+        ->and($abrir)->toContain('window.Janelas');
 });
 
 it('a barra guarda no máximo 5 janelas', function () {

@@ -9,16 +9,5 @@
         "roles": null,
         "roles_gerados": null,
         "banco": "tenant"
-    },
-    {
-        "nome": "Webservice",
-        "prefixo": "ws",
-        "pasta": "Webservice",
-        "descricao": "Webservices consumidos ou disponibilizados e layouts de integração.",
-        "ordem": 0,
-        "padrao": false,
-        "roles": null,
-        "roles_gerados": null,
-        "banco": "tenant"
     }
 ]

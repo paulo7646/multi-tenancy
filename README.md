@@ -26,7 +26,7 @@ mesmo nome do site (ex.: `meu-projeto.test`).
 
 | Parte | O que é |
 |---|---|
-| Painel `/admin` (central) | Empresas (clientes), domínios, licenças, dicionário de dados, webservices da base pai |
+| Painel `/admin` (central) | Empresas (clientes), domínios, licenças, dicionário de dados |
 | Painel `/admin` do cliente | Usuários, filiais e as telas dos módulos do cliente |
 | `database/migrations` | Banco central |
 | `database/migrations/tenant` | Banco de cada cliente |
@@ -60,44 +60,11 @@ testada numa transação desfeita antes de gerar.
   `md_status` (copiada para cada cliente com os mesmos ids).
 - Um módulo vale para a base pai (`central`) ou para os clientes (`tenant`).
 
-### Plataforma (`app/Plataforma`)
-
-Recursos de base, sem regra de negócio, na base pai e nos clientes:
-
-- **Documentos:** pastas, versões (cada envio novo guarda a anterior), tags, lixeira,
-  cota por empresa e bloqueio de extensões perigosas. O disco é o `DOCUMENTOS_DISCO`
-  (`local` por empresa, ou `s3`). Toda tela gerada pelo dicionário ganha a aba
-  **Anexos**, que liga documentos ao registro.
-- **Impressão:** toda tela gerada pelo dicionário ganha **Exportar** (PDF, Excel, CSV,
-  respeitando filtros e busca) e **Imprimir** (ficha do registro em PDF). Os
-  **Modelos de impressão** definem papel, título, rodapé e o corpo da ficha com
-  marcadores `{CAMPO}`. O cabeçalho vem de **Dados da empresa** (nome, logo, rodapé).
-- **Assinatura eletrônica:** pedido com vários assinantes, em ordem ou não. Cada
-  um recebe um link pessoal por e-mail, confirma um código de 6 dígitos e assina;
-  IP, navegador e hash do arquivo ficam gravados numa trilha encadeada por hash.
-  Ao fim sai um certificado em PDF com QR, e `/verificar/{código}` confere a
-  autenticidade (inclusive se o arquivo foi alterado). Só PDF.
-### Webservices (`app/Webservice`)
-
-Cadastro de webservices consumidos ou disponibilizados, com operações,
-parâmetros, versões de layout, objetos, eventos, campos de busca e atributos.
-"Executar" busca a URL, guarda o arquivo e processa o retorno em lotes (cada
-lote é uma transação com rollback). Agendamentos rodam pelo comando
-`php artisan webservice:agendamentos` (agendado a cada minuto: mantenha o
-`schedule:run` ativo no servidor). A entrada dos serviços disponibilizados é
-`/ws/{id do webservice}/{rota}`.
-
 ## Atualizar os clientes
 
-Depois de um deploy com migrations novas: botão **Atualizar** em cada empresa,
-**Atualizar todos os clientes** no dashboard, ou
+Depois de um deploy com migrations novas: botão **Atualizar** em cada empresa ou
 `php artisan tenants:migrate`. A lista de empresas mostra quantas migrations
 faltam em cada banco.
-
-Com `WEBSERVICE_FILA=true` no `.env` (e `php artisan queue:work` rodando), o
-botão Executar e o Atualizar todos rodam em segundo plano. Outras opções:
-`WEBSERVICE_RETENCAO_DIAS` (integrações mais antigas são apagadas todo dia pelo
-`webservice:limpar`) e `WEBSERVICE_LIMITE_POR_MINUTO` (limite da entrada `/ws`).
 
 ## Conexões com o banco
 

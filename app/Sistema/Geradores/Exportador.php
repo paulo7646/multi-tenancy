@@ -273,7 +273,7 @@ class Exportador
                     ]);
                     $gerenciamento->botoes()->delete();
                     foreach ($g['botoes'] as $b) {
-                        $gerenciamento->botoes()->create($b);
+                        $gerenciamento->botoes()->create(static::botaoDoModeloAntigo($b));
                     }
                     $gerenciamentos[] = $gerenciamento->id;
                 }
@@ -288,5 +288,26 @@ class Exportador
         Registro::limpar();
 
         return $resultado;
+    }
+
+    /**
+     * Botão de gerenciamento exportado antes de os botões irem todos para o topo: o que ficava na linha
+     * (no_registro) passa a agir em um registro selecionado; o do topo que exigia seleção recebia a lista,
+     * então vira multioperação (a assinatura do método gerado continua a mesma).
+     *
+     * @param  array<string, mixed>  $botao
+     * @return array<string, mixed>
+     */
+    public static function botaoDoModeloAntigo(array $botao): array
+    {
+        if (! array_key_exists('no_registro', $botao)) {
+            return $botao;
+        }
+
+        $naLinha = (bool) $botao['no_registro'];
+        $exigia = (bool) ($botao['exige_selecao'] ?? false);
+        unset($botao['no_registro']);
+
+        return [...$botao, 'exige_selecao' => $naLinha || $exigia, 'multiplos' => ! $naLinha && $exigia];
     }
 }

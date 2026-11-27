@@ -1,7 +1,7 @@
 <?php
 
+use App\Livewire\Sistema\ReleasesDaEmpresa;
 use App\Models\User;
-use App\Plataforma\Livewire\ReleasesDaEmpresa;
 use App\Sistema\Releases\Publicador;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
