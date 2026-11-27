@@ -165,6 +165,7 @@ return new class extends Migration
             $table->boolean('paginado')->default(false);
             $table->unsignedTinyInteger('colunas')->default(2);
             $table->json('paginas')->nullable(); // títulos das páginas
+            $table->json('grupos_botoes')->nullable(); // [{nome, titulo, icone, cor, ordem}]: os botões com "grupo" ficam dentro dele
             $table->timestamps();
 
             $table->unique(['md_tabela_id', 'nome_arquivo']);
@@ -225,6 +226,7 @@ return new class extends Migration
             $table->string('nome_arquivo', 80); // classe/arquivo: BotoesProduto.php
             $table->string('icone')->nullable();
             $table->string('cor', 20)->default('primary');
+            $table->string('grupo', 60)->nullable(); // nome do grupo de botões do formulário (vazio: fora de grupo)
             $table->boolean('confirmar')->default(false);
             $table->unsignedInteger('ordem')->default(0);
             $table->timestamps();
@@ -245,6 +247,7 @@ return new class extends Migration
             $table->unsignedInteger('ordem')->default(0);
             $table->json('colunas')->nullable(); // [{campo, pesquisavel, ordenavel, oculta}]
             $table->json('filtros')->nullable(); // [{nome, campo: uid|situacao}]
+            $table->json('grupos_botoes')->nullable(); // [{nome, titulo, icone, cor, ordem}]: os botões com "grupo" ficam dentro dele
             $table->timestamps();
 
             $table->unique(['md_tabela_id', 'nome_arquivo']);
@@ -259,9 +262,10 @@ return new class extends Migration
             $table->string('nome_arquivo', 80); // classe/arquivo: BotoesProduto.php
             $table->string('icone')->nullable();
             $table->string('cor', 20)->default('primary');
-            $table->boolean('no_registro')->default(true); // true: coluna de ações; false: topo do datagrid
-            $table->boolean('exige_selecao')->default(false); // só no topo: precisa selecionar registros
-            $table->boolean('multiplos')->default(false); // aceita mais de um registro selecionado
+            // todos ficam no topo do datagrid
+            $table->boolean('exige_selecao')->default(false); // age nos registros selecionados
+            $table->boolean('multiplos')->default(false); // multioperação: aceita mais de um registro selecionado
+            $table->string('grupo', 60)->nullable(); // nome do grupo de botões do gerenciamento (vazio: fora de grupo)
             $table->boolean('confirmar')->default(false);
             $table->unsignedInteger('ordem')->default(0);
             $table->timestamps();

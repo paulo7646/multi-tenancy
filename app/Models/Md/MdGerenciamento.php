@@ -19,7 +19,7 @@ class MdGerenciamento extends Model
     protected $table = 'md_gerenciamentos';
 
     protected $fillable = [
-        'md_tabela_id', 'md_formulario_id', 'nome', 'titulo', 'nome_fisico', 'nome_arquivo', 'icone', 'ordem', 'colunas', 'filtros',
+        'md_tabela_id', 'md_formulario_id', 'nome', 'titulo', 'nome_fisico', 'nome_arquivo', 'icone', 'ordem', 'colunas', 'filtros', 'grupos_botoes',
     ];
 
     protected function casts(): array
@@ -27,6 +27,7 @@ class MdGerenciamento extends Model
         return [
             'colunas' => 'array',
             'filtros' => 'array',
+            'grupos_botoes' => 'array',
             'ordem' => 'integer',
         ];
     }

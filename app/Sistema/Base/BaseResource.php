@@ -3,6 +3,7 @@
 namespace App\Sistema\Base;
 
 use App\Models\Md\MdFormulario;
+use App\Models\Md\MdFormularioBotao;
 use App\Models\Md\MdGerenciamento;
 use App\Models\Md\MdGerenciamentoBotao;
 use App\Models\Md\MdTabela;
@@ -19,10 +20,11 @@ use App\Sistema\Runtime\FormularioBuilder;
 use App\Sistema\Runtime\Janela;
 use App\Sistema\Runtime\ModuloNavegacao;
 use BackedEnum;
+use Closure;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Notifications\Notification;
 use Filament\Panel;
 use Filament\Resources\Resource;
@@ -354,7 +356,11 @@ abstract class BaseResource extends Resource
         $tabela = static::md()->tabela;
         $tela = static::tela(registro: $registro);
 
-        return $formulario?->botoes->map(fn ($b) => Action::make($b->nome_fisico)
+        if (! $formulario) {
+            return [];
+        }
+
+        return static::agruparBotoes($formulario->botoes, $formulario->grupos_botoes, fn ($b) => Action::make($b->nome_fisico)
             ->label($b->titulo)
             ->icon($b->icone)
             ->color(Cor::resolver($b->cor))
@@ -367,7 +373,44 @@ abstract class BaseResource extends Resource
                 $b->titulo,
                 $livewire,
                 [$registro, $livewire->data ?? []],
-            )))->values()->all() ?? [];
+            )));
+    }
+
+    /**
+     * Botões na ordem da tela: os sem grupo e os grupos (um botão com setinha que abre os botões dele) se
+     * misturam pelo campo "ordem"; dentro do grupo, os botões seguem a ordem deles.
+     *
+     * @param  iterable<MdFormularioBotao|MdGerenciamentoBotao>  $botoes
+     * @param  list<array{nome?: string, titulo?: string, icone?: string, cor?: string, ordem?: int}>|null  $grupos
+     * @param  Closure(MdFormularioBotao|MdGerenciamentoBotao): Action  $acao
+     * @return list<Action|ActionGroup>
+     */
+    public static function agruparBotoes(iterable $botoes, ?array $grupos, Closure $acao): array
+    {
+        $grupos = collect($grupos ?? [])->filter(fn ($g) => filled($g['nome'] ?? null))->keyBy('nome');
+        $itens = [];
+
+        foreach (collect($botoes)->sortBy([['ordem', 'asc'], ['id', 'asc']])->groupBy(fn ($b) => $grupos->has($b->grupo) ? $b->grupo : '') as $grupo => $doGrupo) {
+            if ($grupo === '') {
+                foreach ($doGrupo as $b) {
+                    $itens[] = [(int) $b->ordem, $acao($b)];
+                }
+
+                continue;
+            }
+
+            $definicao = $grupos->get($grupo);
+            $acoes = $doGrupo->map($acao)->values()->all();
+            $soDeSelecao = collect($acoes)->every(fn ($a) => $a instanceof BulkAction);
+
+            $itens[] = [(int) ($definicao['ordem'] ?? 0), ($soDeSelecao ? BulkActionGroup::make($acoes) : ActionGroup::make($acoes))
+                ->label(($definicao['titulo'] ?? null) ?: $grupo)
+                ->icon(($definicao['icone'] ?? null) ?: 'heroicon-m-chevron-down')
+                ->color(Cor::resolver(($definicao['cor'] ?? null) ?: 'gray'))
+                ->button()];
+        }
+
+        return collect($itens)->sortBy(fn ($item) => $item[0])->map(fn ($item) => $item[1])->values()->all();
     }
 
     // ------------------------------------------------------------------
@@ -413,51 +456,45 @@ abstract class BaseResource extends Resource
             ->filters($filtros)
             ->defaultSort($model->getKeyName(), 'desc')
             ->headerActions([AcoesDeImpressao::exportar($tabela)])
-            ->recordActions([
-                // aberta pela lupa de um campo de FK: devolve o registro escolhido ao campo que abriu a janela
-                Action::make('selecionar')
-                    ->label('Selecionar')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->visible(fn () => Janela::modo() === 'selecionar' && Janela::recurso() === static::sujeitoPermissao() && filled(Janela::campo()))
-                    ->action(fn (Model $record, $livewire) => $livewire->js(Janela::scriptSelecionar((string) Janela::campo(), $record->getKey()))),
-
-                AcoesDeImpressao::registro($tabela),
-
-                ...$md->botoes->where('no_registro', true)->map(fn (MdGerenciamentoBotao $b) => static::botao($b)
-                    ->visible(fn (Model $record) => $tela->botaoVisivel($b->nome_fisico, $record))
-                    ->action(fn (Model $record, $livewire) => Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $record, $b->nome_fisico, $b->titulo, $livewire, [$record])))->values()->all(),
-
-                EditAction::make()->iconButton()->visible(fn (Model $record) => static::formulario() && static::canEdit($record)),
-
-                DeleteAction::make()
-                    ->iconButton()
-                    ->using(fn (Model $record) => static::excluir(collect([$record])) > 0),
-            ])
+            // na lista de seleção (lupa de um campo de FK) a linha não abre o registro: o duplo clique seleciona
+            ->recordUrl(fn (Model $record) => static::emSelecao() ? null : static::urlDoRegistro($record))
+            // nenhum botão na linha: todos ficam no topo e agem nos registros selecionados
+            ->recordActions([])
             ->toolbarActions([
-                ...$md->botoes->where('no_registro', false)->where('exige_selecao', true)->map(fn (MdGerenciamentoBotao $b) => BulkAction::make($b->nome_fisico)
-                    ->label($b->titulo)
-                    ->icon($b->icone)
-                    ->color(Cor::resolver($b->cor))
-                    ->requiresConfirmation($b->confirmar)
-                    ->visible(fn () => $tela->botaoVisivel($b->nome_fisico))
-                    ->deselectRecordsAfterCompletion()
-                    ->action(function (Collection $records, $livewire) use ($b, $tabela, $model) {
-                        if (! $b->multiplos && $records->count() > 1) {
-                            Notification::make()->title("{$b->titulo}: selecione apenas um registro")->warning()->send();
-
+                BulkAction::make('alterar')
+                    ->label('Alterar')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('gray')
+                    ->visible(fn () => static::formulario() && ! static::emSelecao())
+                    ->action(function (Collection $records, $livewire) {
+                        if (! static::umSelecionado($records, 'Alterar') || ! static::canEdit($registro = $records->first())) {
                             return;
                         }
 
-                        Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $model, $b->nome_fisico, $b->titulo, $livewire, [$records]);
-                    }))->values()->all(),
+                        $livewire->redirect(static::getUrl('edit', ['record' => $registro]));
+                    }),
+
+                BulkAction::make('imprimir')
+                    ->label('Imprimir')
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->visible(fn () => ! static::emSelecao())
+                    ->action(function (Collection $records) use ($tabela) {
+                        if (! static::umSelecionado($records, 'Imprimir')) {
+                            return null;
+                        }
+
+                        return AcoesDeImpressao::baixarRegistro($tabela, $records->first());
+                    }),
+
+                ...static::agruparBotoes($md->botoes, $md->grupos_botoes, fn (MdGerenciamentoBotao $b) => static::botao($b, $tela, $tabela, $model)),
 
                 BulkAction::make('excluir_selecionados')
-                    ->label('Excluir selecionados')
+                    ->label('Excluir')
                     ->icon('heroicon-o-trash')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn () => static::canDeleteAny())
+                    ->visible(fn () => static::canDeleteAny() && ! static::emSelecao())
                     ->deselectRecordsAfterCompletion()
                     ->action(function (Collection $records) {
                         $excluidos = static::excluir($records->filter(fn (Model $r) => static::canDelete($r)));
@@ -470,29 +507,67 @@ abstract class BaseResource extends Resource
     }
 
     /**
-     * Botões do topo da listagem que não exigem seleção.
-     *
-     * @return list<Action>
+     * Aberta pela lupa de um campo de FK (escolher um registro e devolver ao campo).
      */
-    public static function botoesDoTopo(\Livewire\Component $livewire): array
+    public static function emSelecao(): bool
     {
-        $md = static::md();
-        $tabela = $md->tabela;
-        $tela = static::tela(self::VISUALIZAR);
-        $model = Registro::model($tabela);
-
-        return $md->botoes->where('no_registro', false)->where('exige_selecao', false)->map(fn (MdGerenciamentoBotao $b) => static::botao($b)
-            ->visible(fn () => $tela->botaoVisivel($b->nome_fisico))
-            ->action(fn () => Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $model, $b->nome_fisico, $b->titulo, $livewire)))->values()->all();
+        return Janela::modo() === 'selecionar' && Janela::recurso() === static::sujeitoPermissao() && filled(Janela::campo());
     }
 
-    protected static function botao(MdGerenciamentoBotao $b): Action
+    protected static function urlDoRegistro(Model $record): ?string
     {
-        return Action::make($b->nome_fisico)
-            ->label($b->titulo)
+        return match (true) {
+            static::formulario() && static::canEdit($record) => static::getUrl('edit', ['record' => $record]),
+            static::canView($record) => static::getUrl('view', ['record' => $record]),
+            default => null,
+        };
+    }
+
+    /**
+     * Ações que valem para um registro só: avisa se nenhum ou mais de um foi selecionado.
+     */
+    protected static function umSelecionado(Collection $records, string $acao): bool
+    {
+        if ($records->count() === 1) {
+            return true;
+        }
+
+        Notification::make()->title("{$acao}: selecione um registro")->warning()->send();
+
+        return false;
+    }
+
+    /**
+     * Botão do gerenciamento no topo do datagrid: sem seleção é uma ação comum; com seleção age nos marcados
+     * (vários se for multioperação, senão exatamente um).
+     */
+    protected static function botao(MdGerenciamentoBotao $b, self $tela, MdTabela $tabela, Model $model): Action
+    {
+        $acao = $b->exige_selecao ? BulkAction::make($b->nome_fisico) : Action::make($b->nome_fisico);
+
+        $acao->label($b->titulo)
             ->icon($b->icone)
             ->color(Cor::resolver($b->cor))
-            ->requiresConfirmation($b->confirmar);
+            ->requiresConfirmation($b->confirmar)
+            ->visible(fn () => $tela->botaoVisivel($b->nome_fisico) && ! static::emSelecao());
+
+        if (! $b->exige_selecao) {
+            return $acao->action(fn ($livewire) => Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $model, $b->nome_fisico, $b->titulo, $livewire));
+        }
+
+        return $acao
+            ->deselectRecordsAfterCompletion()
+            ->action(function (Collection $records, $livewire) use ($b, $tabela, $model) {
+                if ($b->multiplos) {
+                    Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $model, $b->nome_fisico, $b->titulo, $livewire, [$records]);
+
+                    return;
+                }
+
+                if (static::umSelecionado($records, $b->titulo)) {
+                    Executor::botao(Registro::botoes($tabela, $b->nome_arquivo), $records->first(), $b->nome_fisico, $b->titulo, $livewire, [$records->first()]);
+                }
+            });
     }
 
     /**

@@ -115,6 +115,8 @@ class MdFormularioResource extends Resource
 
                         static::abaTabPages($tabela),
 
+                        static::abaGruposDeBotoes(),
+
                         Tab::make('Botões')
                             ->icon('heroicon-o-cursor-arrow-rays')
                             ->schema([
@@ -122,11 +124,10 @@ class MdFormularioResource extends Resource
                                     ->hiddenLabel()
                                     ->defaultItems(0)
                                     ->relationship('botoes')
-                                    ->orderColumn('ordem')
-                                    ->reorderable()
+                                    ->reorderable(false)
                                     ->collapsible()
                                     ->addActionLabel('Adicionar botão')
-                                    ->itemLabel(fn (array $state) => $state['titulo'] ?? 'Novo botão')
+                                    ->itemLabel(fn (array $state) => static::rotuloBotao($state))
                                     ->columns(4)
                                     ->schema(static::camposBotao($tabela, fn (Get $get, Component $livewire) => Campos::botoesDaTabela($tabela($get), ignorarFormulario: $livewire->record?->id ?? 0))),
                             ]),
@@ -530,12 +531,91 @@ class MdFormularioResource extends Resource
 
             Campos::cor(),
 
+            Select::make('grupo')
+                ->label('Grupo de botões')
+                ->placeholder('Fora de grupo')
+                ->options(fn (Get $get) => collect($get('../../grupos_botoes') ?? [])
+                    ->filter(fn ($g) => filled($g['nome'] ?? null))
+                    ->mapWithKeys(fn ($g) => [$g['nome'] => ($g['titulo'] ?? null) ?: $g['nome']])
+                    ->all())
+                ->helperText('Cadastre os grupos na aba Grupos de botões.'),
+
+            TextInput::make('ordem')
+                ->label('Ordem na tela')
+                ->numeric()
+                ->integer()
+                ->minValue(0)
+                ->default(0)
+                ->helperText('Menor primeiro. Vale junto com a ordem dos grupos.'),
+
             ...$extras,
 
             Toggle::make('confirmar')
                 ->label('Pedir confirmação')
                 ->inline(false),
         ];
+    }
+
+    /**
+     * Aba "Grupos de botões" (formulário e gerenciamento): só o cadastro dos grupos. O botão escolhe o grupo
+     * no combo; com grupo ele fica dentro do grupo (um botão com setinha), sem grupo fica do lado de fora.
+     */
+    public static function abaGruposDeBotoes(): Tab
+    {
+        return Tab::make('Grupos de botões')
+            ->icon('heroicon-o-rectangle-group')
+            ->schema([
+                Repeater::make('grupos_botoes')
+                    ->hiddenLabel()
+                    ->defaultItems(0)
+                    ->reorderable(false)
+                    ->collapsible()
+                    ->addActionLabel('Adicionar grupo')
+                    ->itemLabel(fn (array $state) => (($state['titulo'] ?? null) ?: 'Novo grupo').' · ordem '.(int) ($state['ordem'] ?? 0))
+                    ->columns(4)
+                    ->schema([
+                        TextInput::make('nome')
+                            ->label('Nome')
+                            ->required()
+                            ->maxLength(60)
+                            ->distinct()
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+                                if (blank($get('titulo'))) {
+                                    $set('titulo', $state);
+                                }
+                            }),
+
+                        TextInput::make('titulo')
+                            ->label('Título (texto do botão do grupo)')
+                            ->required()
+                            ->maxLength(60),
+
+                        Campos::icone(),
+
+                        Campos::cor(padrao: 'gray'),
+
+                        TextInput::make('ordem')
+                            ->label('Ordem na tela')
+                            ->numeric()
+                            ->integer()
+                            ->minValue(0)
+                            ->default(0),
+                    ]),
+            ]);
+    }
+
+    /**
+     * Título do botão no cadastro: nome, grupo, onde age e ordem.
+     */
+    public static function rotuloBotao(array $state, ?string $onde = null): string
+    {
+        return collect([
+            ($state['titulo'] ?? null) ?: 'Novo botão',
+            filled($state['grupo'] ?? null) ? 'grupo '.$state['grupo'] : null,
+            $onde,
+            'ordem '.(int) ($state['ordem'] ?? 0),
+        ])->filter()->join(' · ');
     }
 
     protected static function sugerir(Get $get, Set $set): void

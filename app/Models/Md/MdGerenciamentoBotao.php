@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Botão do datagrid:
- *  - no_registro: na coluna de ações de cada registro;
- *  - topo sem seleção: no cabeçalho do datagrid;
- *  - topo com seleção: age nos registros marcados (um só, ou vários se "multiplos").
+ * Botão do datagrid, sempre no topo:
+ *  - sem seleção: age sem registro;
+ *  - exige seleção: age no registro marcado, ou em vários se for multioperação ("multiplos");
+ *  - com "grupo": fica dentro do grupo de botões do gerenciamento (grupos_botoes).
  */
 class MdGerenciamentoBotao extends Model
 {
@@ -19,13 +19,12 @@ class MdGerenciamentoBotao extends Model
 
     protected $fillable = [
         'md_gerenciamento_id', 'nome', 'titulo', 'nome_fisico', 'nome_arquivo', 'icone', 'cor',
-        'no_registro', 'exige_selecao', 'multiplos', 'confirmar', 'ordem',
+        'exige_selecao', 'multiplos', 'grupo', 'confirmar', 'ordem',
     ];
 
     protected function casts(): array
     {
         return [
-            'no_registro' => 'boolean',
             'exige_selecao' => 'boolean',
             'multiplos' => 'boolean',
             'confirmar' => 'boolean',
@@ -39,13 +38,13 @@ class MdGerenciamentoBotao extends Model
     }
 
     /**
-     * Assinatura do método na classe de botões, conforme onde o botão fica.
+     * Assinatura do método na classe de botões: vários selecionados (multioperação), um selecionado ou nenhum.
      */
     public function assinatura(string $model): string
     {
         return match (true) {
-            $this->no_registro => "{$model} \$registro",
-            $this->exige_selecao => 'Collection $registros',
+            $this->exige_selecao && $this->multiplos => 'Collection $registros',
+            $this->exige_selecao => "{$model} \$registro",
             default => '',
         };
     }

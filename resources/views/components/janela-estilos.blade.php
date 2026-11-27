@@ -43,6 +43,19 @@
     }
 </script>
 
+@if (\App\Sistema\Runtime\Janela::modo() === 'selecionar' && filled($campo = \App\Sistema\Runtime\Janela::campo()))
+    <script>
+        // lista aberta pela lupa de um campo de FK: o duplo clique na linha devolve o registro ao campo
+        document.addEventListener('dblclick', (evento) => {
+            const chave = evento.target.closest?.('.fi-ta-row')?.getAttribute('wire:key')?.match(/\.table\.records\.(.+)$/)?.[1];
+
+            if (chave !== undefined && window.parent !== window) {
+                window.parent.postMessage({ tipo: 'fk-selecionado', campo: @js($campo), id: chave }, window.location.origin);
+            }
+        });
+    </script>
+@endif
+
 @if (\App\Sistema\Runtime\Janela::ativa())
     <script>
         // aberta direto com ?janela=1 (fora de um iframe): também sem o menu

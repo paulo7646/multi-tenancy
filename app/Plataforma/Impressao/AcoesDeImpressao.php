@@ -27,11 +27,17 @@ class AcoesDeImpressao
             ->icon('heroicon-o-printer')
             ->iconButton()
             ->color('gray')
-            ->action(function (Model $record) use ($tabela) {
-                $pdf = Relatorios::registro($tabela, $record);
+            ->action(fn (Model $record) => static::baixarRegistro($tabela, $record));
+    }
 
-                return response()->streamDownload(fn () => print $pdf, Str::slug("{$tabela->nome}-{$record->getKey()}").'.pdf', ['Content-Type' => 'application/pdf']);
-            });
+    /**
+     * PDF de um registro (a ação Imprimir do topo do datagrid, com um registro selecionado).
+     */
+    public static function baixarRegistro(MdTabela $tabela, Model $record): mixed
+    {
+        $pdf = Relatorios::registro($tabela, $record);
+
+        return response()->streamDownload(fn () => print $pdf, Str::slug("{$tabela->nome}-{$record->getKey()}").'.pdf', ['Content-Type' => 'application/pdf']);
     }
 
     public static function exportar(MdTabela $tabela): Action

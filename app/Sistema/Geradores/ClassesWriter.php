@@ -276,10 +276,9 @@ PHP)
     protected static function ondeFica(MdGerenciamentoBotao $botao): string
     {
         return match (true) {
-            $botao->no_registro => 'no registro',
-            $botao->exige_selecao && $botao->multiplos => 'topo, um ou mais registros selecionados',
+            $botao->exige_selecao && $botao->multiplos => 'topo, multioperação: um ou mais registros selecionados',
             $botao->exige_selecao => 'topo, um registro selecionado',
-            default => 'topo',
+            default => 'topo, sem seleção',
         };
     }
 

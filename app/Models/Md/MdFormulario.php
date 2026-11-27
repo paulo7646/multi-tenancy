@@ -24,12 +24,13 @@ class MdFormulario extends Model
 
     protected $table = 'md_formularios';
 
-    protected $fillable = ['md_tabela_id', 'nome', 'titulo', 'nome_fisico', 'nome_arquivo', 'paginado', 'colunas', 'paginas'];
+    protected $fillable = ['md_tabela_id', 'nome', 'titulo', 'nome_fisico', 'nome_arquivo', 'paginado', 'colunas', 'paginas', 'grupos_botoes'];
 
     protected function casts(): array
     {
         return [
             'paginado' => 'boolean',
+            'grupos_botoes' => 'array',
             'colunas' => 'integer',
             'paginas' => 'array',
         ];

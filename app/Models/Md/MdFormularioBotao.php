@@ -11,7 +11,7 @@ class MdFormularioBotao extends Model
 
     protected $table = 'md_formulario_botoes';
 
-    protected $fillable = ['md_formulario_id', 'nome', 'titulo', 'nome_fisico', 'nome_arquivo', 'icone', 'cor', 'confirmar', 'ordem'];
+    protected $fillable = ['md_formulario_id', 'nome', 'titulo', 'nome_fisico', 'nome_arquivo', 'icone', 'cor', 'grupo', 'confirmar', 'ordem'];
 
     protected function casts(): array
     {

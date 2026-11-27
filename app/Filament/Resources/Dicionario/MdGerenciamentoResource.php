@@ -169,6 +169,8 @@ class MdGerenciamentoResource extends Resource
                                     ]),
                             ]),
 
+                        MdFormularioResource::abaGruposDeBotoes(),
+
                         Tab::make('Botões')
                             ->icon('heroicon-o-cursor-arrow-rays')
                             ->schema([
@@ -176,35 +178,28 @@ class MdGerenciamentoResource extends Resource
                                     ->hiddenLabel()
                                     ->defaultItems(0)
                                     ->relationship('botoes')
-                                    ->orderColumn('ordem')
-                                    ->reorderable()
+                                    ->reorderable(false)
                                     ->collapsible()
                                     ->addActionLabel('Adicionar botão')
-                                    ->itemLabel(fn (array $state) => ($state['titulo'] ?? 'Novo botão').' · '.static::ondeFica($state))
+                                    ->itemLabel(fn (array $state) => MdFormularioResource::rotuloBotao($state, static::ondeFica($state)))
                                     ->columns(4)
                                     ->schema(MdFormularioResource::camposBotao(
                                         $tabela,
                                         fn (Get $get, Component $livewire) => Campos::botoesDaTabela($tabela($get), ignorarGerenciamento: $livewire->record?->id ?? 0),
                                         [
-                                            Toggle::make('no_registro')
-                                                ->label('No registro (coluna de ações)')
-                                                ->helperText('Desmarcado: fica no topo do datagrid.')
-                                                ->default(true)
+                                            // todos os botões ficam no topo do datagrid
+                                            Toggle::make('exige_selecao')
+                                                ->label('Age nos registros selecionados')
+                                                ->helperText('Desmarcado: não precisa de registro selecionado.')
                                                 ->inline(false)
                                                 ->live(),
 
-                                            Toggle::make('exige_selecao')
-                                                ->label('Exige selecionar registros')
-                                                ->inline(false)
-                                                ->live()
-                                                ->visible(fn (Get $get) => ! $get('no_registro'))
-                                                ->dehydrateStateUsing(fn ($state, Get $get) => ! $get('no_registro') && $state),
-
                                             Toggle::make('multiplos')
-                                                ->label('Aceita vários registros')
+                                                ->label('Multioperação')
+                                                ->helperText('Aceita vários registros selecionados. Desmarcado: só um.')
                                                 ->inline(false)
-                                                ->visible(fn (Get $get) => ! $get('no_registro') && $get('exige_selecao'))
-                                                ->dehydrateStateUsing(fn ($state, Get $get) => ! $get('no_registro') && $get('exige_selecao') && $state),
+                                                ->visible(fn (Get $get) => (bool) $get('exige_selecao'))
+                                                ->dehydrateStateUsing(fn ($state, Get $get) => (bool) $get('exige_selecao') && $state),
                                         ],
                                     )),
                             ]),
@@ -216,10 +211,9 @@ class MdGerenciamentoResource extends Resource
     protected static function ondeFica(array $state): string
     {
         return match (true) {
-            (bool) ($state['no_registro'] ?? true) => 'no registro',
-            (bool) ($state['exige_selecao'] ?? false) && (bool) ($state['multiplos'] ?? false) => 'topo, um ou mais selecionados',
-            (bool) ($state['exige_selecao'] ?? false) => 'topo, um selecionado',
-            default => 'topo',
+            (bool) ($state['exige_selecao'] ?? false) && (bool) ($state['multiplos'] ?? false) => 'multioperação',
+            (bool) ($state['exige_selecao'] ?? false) => 'um registro',
+            default => 'sem seleção',
         };
     }
 
